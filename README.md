@@ -10,8 +10,8 @@ No login, no server, no adverts.
 
 - **Home**: days to go, the readiness ring, and **today's tasks**. Lola (the cat from the maths app) says which
   task is next and how to do it well.
-- **Today's tasks**: Round 1 of today's questions, the day's special activity (flashcards, a table, This or That,
-  or the Argument Builder), Round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
+- **Today's tasks**: the Key Terms flashcards first (on the days that have them), then Round 1 of today's questions,
+  the day's other activity (a table, This or That, or the Argument Builder), Round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
   The tasks open one at a time: only the next one can be started, and the ones after it are grey and locked
   until it is finished. After each task the app offers the next. When every task is ticked, **today's preparation is finished**,
   the day gets a tick in the plan, and she is told to stop. The day before the exam starts with the **Mock Exam**;

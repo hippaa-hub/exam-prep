@@ -30,7 +30,7 @@ export const GAME_TITLES: Record<Game, string> = {
 };
 
 const GAME_TIPS: Record<Game, string> = {
-  'key-terms': 'Say or type what each word means, and I will check it. Then read the simple words and the examples.',
+  'key-terms': 'Say or type what each word means. New to you? Tap "I don\'t know yet" and I will show you. Then read the simple words and the examples.',
   'this-or-that': 'Go slowly: these pairs are easy to mix up. After each one, read why your choice was right or not.',
   'which-system': 'Look for the clue: who holds the power, and how did they get it? Then read why.',
   'which-responsibility': 'Pick the responsibility, then write one sentence saying why it matters.',
@@ -49,8 +49,9 @@ const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${
 
 /**
  * The tasks for today, in the order to do them:
- * round 1 of today's questions, the day's special activities, round 2 (what is left, plus a review
- * of earlier days), then Fix My Mistakes. On exam day there is only the warm-up.
+ * the Key Terms flashcards (on the days that have them), round 1 of today's questions, the day's other
+ * activities, round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
+ * On exam day there is only the warm-up.
  *
  * `due` is how many things are still to practise today; `mistakes` is the length of the Fix list.
  */
@@ -81,6 +82,15 @@ export function tasksFor(
     });
   }
 
+  // The Key Terms flashcards come before the questions: she meets the words first, then is asked about them.
+  const isFlashcards = (e: (typeof plan.extras)[number]) => e.kind === 'game' && e.game === 'key-terms';
+  if (plan.extras.some(isFlashcards)) {
+    tasks.push({
+      id: gameTaskId('key-terms'), kind: 'game', game: 'key-terms', title: GAME_TITLES['key-terms'],
+      detail: 'Ten key terms · about 8 min', tip: GAME_TIPS['key-terms'], done: didTask(gameTaskId('key-terms')),
+    });
+  }
+
   tasks.push({
     id: 'round-1', kind: 'round', title: plan.mock ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
@@ -89,6 +99,7 @@ export function tasksFor(
   });
 
   for (const extra of plan.extras) {
+    if (isFlashcards(extra)) continue; // already first in the list
     if (extra.kind === 'game') {
       tasks.push({
         id: gameTaskId(extra.game), kind: 'game', game: extra.game, title: GAME_TITLES[extra.game],
