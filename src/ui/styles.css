@@ -354,6 +354,38 @@ textarea {
 }
 textarea:focus { outline: none; border-color: var(--blue); }
 
+/* Say your answer */
+.dictation { display: flex; flex-direction: column; gap: 8px; }
+.mic {
+  min-height: 56px; padding: 8px 16px; border-radius: 14px; border: 2px solid var(--blue); border-bottom-width: 4px;
+  background: var(--blue-soft); color: #0b5c86; font-weight: 800; font-size: 1.02rem;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.mic:active { border-bottom-width: 2px; transform: translateY(2px); }
+.mic-icon { font-size: 1.4rem; line-height: 1; }
+.mic.listening { background: var(--orange-soft); border-color: var(--orange); color: var(--orange-ink); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(255, 150, 0, 0.18); } }
+.mic-hint { color: var(--ink-soft); font-size: 0.92rem; }
+.mic-error { color: var(--orange-ink); font-weight: 800; font-size: 0.92rem; }
+
+/* The app's check of a spoken or written answer */
+.verdict-wrap { display: flex; flex-direction: column; gap: 12px; }
+.verdict { border-radius: 14px; padding: 14px; border: 2px solid; display: flex; flex-direction: column; gap: 8px; }
+.verdict.good { background: var(--green-soft); border-color: var(--green); color: var(--green-ink); }
+.verdict.retry { background: var(--orange-soft); border-color: var(--orange); color: var(--orange-ink); }
+.verdict-word { font-size: 1.5rem; font-weight: 900; line-height: 1.1; }
+.verdict-detail { font-weight: 800; }
+.closeness { display: flex; gap: 6px; }
+.closeness i { flex: 1; max-width: 72px; height: 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.75); border: 2px solid currentColor; opacity: 0.55; }
+.closeness i.on { background: currentColor; opacity: 1; }
+.idea-list { display: flex; flex-direction: column; gap: 8px; }
+.idea-list li { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; line-height: 1.35; }
+.idea-list li.idea-missing { opacity: 0.85; }
+.idea-list label { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; width: 100%; }
+.idea-list input[type='checkbox'] { width: 26px; height: 26px; flex: none; accent-color: var(--accent); margin: 0; }
+.idea-mark { width: 26px; flex: none; text-align: center; font-weight: 900; }
+.spelling { font-weight: 800; }
+
 /* Pickers: matching and table rows */
 .fill { display: flex; flex-direction: column; gap: 12px; }
 .fill-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
@@ -406,6 +438,15 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .rate-notyet { background: var(--orange); box-shadow: 0 4px 0 var(--orange-dark); color: #4a2a00 !important; }
 .rate .btn:active { transform: translateY(4px); box-shadow: none; }
 
+/* Reading a card aloud */
+.listen { display: flex; align-items: center; gap: 4px 12px; flex-wrap: wrap; }
+.listen-btn {
+  min-height: 48px; padding: 6px 16px; border-radius: 14px; border: 2px solid var(--blue); border-bottom-width: 4px;
+  background: var(--blue-soft); color: #0b5c86; font-weight: 800;
+}
+.listen-btn:active { border-bottom-width: 2px; transform: translateY(2px); }
+.listen-toggle { min-height: 48px; padding: 6px 4px; border: 0; background: transparent; color: var(--ink-soft); font-weight: 800; font-size: 0.9rem; text-decoration: underline; text-underline-offset: 3px; }
+
 /* Feedback after each answer */
 .feedback {
   position: sticky; bottom: 0; z-index: 6; padding: 16px 16px calc(16px + var(--safe-bottom));
@@ -416,6 +457,29 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .feedback-answer { display: flex; flex-direction: column; font-weight: 800; white-space: pre-line; }
 .feedback-explain { font-size: 0.98rem; font-weight: 700; }
 @keyframes rise { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Argument Builder and the mock exam */
+.arg-boxes { display: flex; flex-direction: column; gap: 16px; }
+.arg-box { display: flex; flex-direction: column; gap: 6px; }
+.arg-box label { display: flex; flex-direction: column; gap: 2px; }
+.arg-box label strong { font-weight: 800; }
+.arg-box label span { color: var(--ink-soft); font-size: 0.92rem; }
+.arg-text p { margin-top: 6px; }
+.arg-text em, .written em { font-style: normal; font-weight: 800; }
+.checklist { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 0; background: #fff; display: flex; flex-direction: column; gap: 4px; }
+.checklist legend { font-weight: 800; padding: 0 6px; }
+.checklist label { display: flex; align-items: center; gap: 12px; min-height: 48px; font-weight: 700; }
+.checklist input { width: 26px; height: 26px; flex: none; accent-color: var(--accent); margin: 0; }
+.stack-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+.row-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
+.exam-clock { margin-left: auto; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--accent-dark); white-space: nowrap; }
+.exam-clock small { font-weight: 700; color: var(--ink-soft); }
+.exam-clock.over { color: var(--orange-ink); }
+.arg-pick { grid-template-columns: 1fr !important; }
+.written { border-top: 2px solid var(--line); padding-top: 10px; }
+.written summary { font-weight: 800; min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.written p { margin-top: 8px; font-weight: 600; }
+.preview-note { background: var(--yellow-soft); border: 2px solid var(--yellow); border-radius: 12px; padding: 8px 12px; font-size: 0.9rem; color: #5c4500; }
 
 /* Whole-table screen */
 .table-body { padding-bottom: 110px; }

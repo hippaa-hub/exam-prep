@@ -1,6 +1,6 @@
 // Small helpers so that pack files read like the teacher's notes
 // and cannot point at an answer that is not among the options.
-import type { ChoiceItem, ChoiceSet, Item, MatchItem, OrderItem, PairItem, TableCell, TableItem, TermItem } from './types';
+import type { ChoiceItem, ChoiceSet, Idea, Item, MatchItem, OrderItem, PairItem, ShortItem, TableCell, TableItem, TermItem } from './types';
 
 export const SYSTEMS = [
   'Absolute monarchy',
@@ -34,8 +34,8 @@ function indexIn(options: readonly string[], correct: string, id: string): numbe
   return i;
 }
 
-export function term(id: string, name: string, definition: string): TermItem {
-  return { id, type: 'term', term: name, definition, prompt: `What does "${name}" mean?` };
+export function term(id: string, name: string, definition: string, ideas?: Idea[]): TermItem {
+  return { id, type: 'term', term: name, definition, prompt: `What does "${name}" mean?`, ideas };
 }
 
 /** A free choice: the correct answer first, then the wrong ones. The app shuffles them on screen. */
@@ -92,4 +92,18 @@ export function withConcepts(items: Item[], rules: [concept: string, pattern: Re
     if (!rule) throw new Error(`Item ${it.id} does not belong to any concept`);
     return { ...it, concept: rule[0] };
   });
+}
+
+/** One key idea for a written answer: the idea in plain words, then the words that signal it. */
+export function idea(label: string, ...words: string[]): Idea {
+  return { label, words };
+}
+
+/**
+ * A question answered in full sentences. `concept` is the thing to know it belongs to;
+ * `need` is how many of the ideas a full answer needs (all of them if left out).
+ */
+export function short(id: string, concept: string, prompt: string, ideas: Idea[], model: string, need?: number): ShortItem {
+  if (need !== undefined && (need < 1 || need > ideas.length)) throw new Error(`Item ${id}: needs ${need} of ${ideas.length} ideas`);
+  return { id, type: 'short', concept, prompt, ideas, model, need };
 }

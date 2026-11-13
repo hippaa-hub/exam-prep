@@ -141,9 +141,11 @@ export function weakest(pack: Pack, progress: ProgressMap, n: number): ItemId[] 
     .map(({ c }) => {
       const p = progress[c];
       const variants = all.filter((it) => conceptOf(it) === c);
-      const pick = variants.find((it) => it.id === p?.fixItem)
-        ?? variants.find((it) => it.type !== 'table' && !(p?.recent ?? []).includes(it.id))
-        ?? variants.find((it) => it.type !== 'table')
+      // The warm-up is quick taps only: no tables and no written answers.
+      const quick = variants.filter((it) => it.type !== 'table' && it.type !== 'short');
+      const pick = quick.find((it) => it.id === p?.fixItem)
+        ?? quick.find((it) => !(p?.recent ?? []).includes(it.id))
+        ?? quick[0]
         ?? variants[0];
       return pick.id;
     });

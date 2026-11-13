@@ -4,7 +4,7 @@ import type { DateKey, Game } from '../content/types';
 import type { SessionRecord, TodayPlan } from './plan';
 import { TODAY_SIZE, WARM_UP_SIZE } from './session';
 
-export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up';
+export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock';
 
 export interface Task {
   id: string;
@@ -26,6 +26,7 @@ export const GAME_TITLES: Record<Game, string> = {
   'which-responsibility': 'Which responsibility?',
   tables: 'Tables',
   quiz: 'Quick Quiz',
+  write: 'Write it',
 };
 
 const GAME_TIPS: Record<Game, string> = {
@@ -35,10 +36,13 @@ const GAME_TIPS: Record<Game, string> = {
   'which-responsibility': 'Pick the responsibility, then write one sentence saying why it matters.',
   tables: 'Fill every box without looking, then check.',
   quiz: 'Answer from memory, then read the teacher\'s wording.',
+  write: 'Write full sentences, as you will in the test. Then tick the ideas you really had.',
 };
 
 export const gameTaskId = (game: Game) => `game:${game}`;
 export const tableTaskId = (group: string) => `table:${group}`;
+export const mockTaskId = (mock: string) => `mock:${mock}`;
+export const ARGUMENT_TASK = 'argument';
 
 const minutes = (questions: number) => Math.max(2, Math.round(questions * 0.65));
 const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${minutes(n)} min`;
@@ -66,12 +70,23 @@ export function tasksFor(
   }
 
   const size = Math.min(TODAY_SIZE, due || TODAY_SIZE);
-  const tasks: Task[] = [{
-    id: 'round-1', kind: 'round', title: "Round 1: today's questions",
+  const tasks: Task[] = [];
+
+  // On the day of the mock exam, the mock comes first, while she is fresh.
+  if (plan.mock) {
+    tasks.push({
+      id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: 'Like the real test · about 35 min',
+      tip: 'Do it like the real test: notes closed, and write every answer in full sentences. You mark it at the end, and it shows you what to fix.',
+      done: didTask(mockTaskId(plan.mock)),
+    });
+  }
+
+  tasks.push({
+    id: 'round-1', kind: 'round', title: plan.mock ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
     tip: "Close your notes and answer from memory. After each answer, read your teacher's wording once in your head.",
     done: rounds >= 1,
-  }];
+  });
 
   for (const extra of plan.extras) {
     if (extra.kind === 'game') {
@@ -79,24 +94,33 @@ export function tasksFor(
         id: gameTaskId(extra.game), kind: 'game', game: extra.game, title: GAME_TITLES[extra.game],
         detail: 'One round · about 5 min', tip: GAME_TIPS[extra.game], done: didTask(gameTaskId(extra.game)),
       });
-    } else {
+    } else if (extra.kind === 'table') {
       tasks.push({
         id: tableTaskId(extra.group), kind: 'table', group: extra.group, title: `Fill the table: ${extra.group.replace(/^The /, '')}`,
         detail: 'From memory · about 5 min',
         tip: 'Fill every box without looking, then check. The test asks you to compare, and this is the best practice for it.',
         done: didTask(tableTaskId(extra.group)),
       });
+    } else {
+      tasks.push({
+        id: ARGUMENT_TASK, kind: 'argument', title: 'Argument Builder', detail: 'One question · about 10 min',
+        tip: 'Fill all four boxes in your own words: your argument, a country example, how power is distributed, and another view. The example answer comes after you finish.',
+        done: didTask(ARGUMENT_TASK),
+      });
     }
   }
 
   // Round 2 is finished after a second round, or straight away if round 1 left nothing to do.
-  const round2Done = rounds >= 2 || (rounds >= 1 && due === 0);
-  tasks.push({
-    id: 'round-2', kind: 'round', title: 'Round 2: what is left',
-    detail: round2Done ? 'Done' : rounds >= 1 ? questions(size) : 'After round 1',
-    tip: 'A second go at what is left, with a few things from earlier days mixed in. Coming back to them is what makes them stay.',
-    done: round2Done,
-  });
+  // The mock exam day has one round only: the mock is the long task that day.
+  if (!plan.mock) {
+    const round2Done = rounds >= 2 || (rounds >= 1 && due === 0);
+    tasks.push({
+      id: 'round-2', kind: 'round', title: 'Round 2: what is left',
+      detail: round2Done ? 'Done' : rounds >= 1 ? questions(size) : 'After round 1',
+      tip: 'A second go at what is left, with a few things from earlier days mixed in. Coming back to them is what makes them stay.',
+      done: round2Done,
+    });
+  }
 
   // Fix My Mistakes comes last, so it only counts once everything before it is done.
   const before = tasks.every((t) => t.done);

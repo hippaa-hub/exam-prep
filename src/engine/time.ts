@@ -10,6 +10,8 @@ export type StudyTime = Record<DateKey, number>;
 export const QUESTION_CAP_SECONDS = 90;
 /** Filling a whole table from memory is one long answer, so it gets a longer allowance. */
 export const TABLE_CAP_SECONDS = 8 * 60;
+/** A written answer takes a minute or two. */
+export const WRITTEN_CAP_SECONDS = 4 * 60;
 
 /** The seconds to count for one answer, given the time since the last one. */
 export function creditSeconds(elapsedMs: number, capSeconds = QUESTION_CAP_SECONDS): number {

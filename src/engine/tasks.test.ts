@@ -87,6 +87,35 @@ describe("today's tasks", () => {
     expect(dayFinished([])).toBe(false);
   });
 
+  it('puts the mock exam first on its day, with one round and Fix My Mistakes after it', () => {
+    const withMock: Pack = { ...pack, mocks: [{ id: 'mock-1', title: 'Mock Exam 1', minutes: 35, partA: [], partB: [] }],
+      plan: pack.plan.map((d) => (d.day === -1 ? { day: -1, label: 'Mock', mock: 'mock-1' } : d)) };
+    const tue = '2026-11-17';
+    const list = (sessions: SessionRecord[], due: number, mistakes: number) => tasksFor(planFor(withMock, sessions, tue), sessions, tue, due, mistakes);
+    expect(list([], 20, 0).map((t) => t.id)).toEqual(['mock:mock-1', 'round-1', 'fix']);
+    expect(nextTask(list([], 20, 0))?.kind).toBe('mock');
+    const done = [rec('practice', 'mock:mock-1', tue), rec('today', 'round-1', tue), rec('fix', 'fix', tue)];
+    expect(dayFinished(list(done, 9, 2))).toBe(true); // one round is enough on the mock exam day
+  });
+
+  it('has the Argument Builder as a task on the day the plan asks for it', () => {
+    const withArgument: Pack = { ...pack, plan: pack.plan.map((d) => (d.day === -2 ? { ...d, extras: [{ kind: 'argument' as const }] } : d)) };
+    const mon = '2026-11-16';
+    const before = [rec('today', 'round-1', '2026-11-14'), rec('today', 'round-1', '2026-11-15')].map((s, i) => ({ ...s, topics: i === 0 ? ['G1', 'G4'] : ['S1', 'S4'] }));
+    const tasks = tasksFor(planFor(withArgument, before, mon), before, mon, 5, 0);
+    expect(tasks.map((t) => t.id)).toEqual(['round-1', 'argument', 'round-2', 'fix']);
+    const after = [...before, rec('today', 'round-1', mon), rec('practice', 'argument', mon)];
+    expect(nextTask(tasksFor(planFor(withArgument, after, mon), after, mon, 3, 0))?.id).toBe('round-2');
+  });
+
+  it('keeps the argument when a missed day squeezes the activities down to two', () => {
+    const withArgument: Pack = { ...pack, plan: pack.plan.map((d) => (d.day === -2 ? { ...d, extras: [{ kind: 'game' as const, game: 'this-or-that' as const }, { kind: 'argument' as const }] } : d)) };
+    const mon = '2026-11-16';
+    // Nothing done on Saturday or Sunday: everything lands on Monday.
+    const ids = tasksFor(planFor(withArgument, [], mon), [], mon, 20, 0).map((t) => t.id);
+    expect(ids).toEqual(['round-1', 'argument', 'game:key-terms', 'round-2', 'fix']);
+  });
+
   it('gives every task a tip on how to do it well', () => {
     for (const t of ids([], 20, 2)) expect(t.tip.length).toBeGreaterThan(20);
   });

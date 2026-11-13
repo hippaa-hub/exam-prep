@@ -18,11 +18,21 @@ export interface ItemBase {
   concept?: string;
 }
 
+/** One key idea a written answer should contain, with the words that show it is there. */
+export interface Idea {
+  /** The idea in plain words, for the tick-list she marks herself with. */
+  label: string;
+  /** Words or short phrases that signal the idea. Any one of them is enough. */
+  words: string[];
+}
+
 /** A flashcard: see the term, say the definition, flip, then rate yourself. */
 export interface TermItem extends ItemBase {
   type: 'term';
   term: string;
   definition: string;
+  /** The key ideas of the definition, so the app can check a definition she says or types. */
+  ideas?: Idea[];
 }
 
 /**
@@ -72,7 +82,17 @@ export interface OrderItem extends ItemBase {
   steps: string[];
 }
 
-export type Item = TermItem | ChoiceItem | PairItem | MatchItem | TableItem | OrderItem;
+/** A question answered in full sentences, as in the test. She writes first; the teacher's wording comes after. */
+export interface ShortItem extends ItemBase {
+  type: 'short';
+  ideas: Idea[];
+  /** How many of the ideas a full answer needs. Left out, it needs all of them. */
+  need?: number;
+  /** The teacher's wording, shown only after she has written her own answer. */
+  model: string;
+}
+
+export type Item = TermItem | ChoiceItem | PairItem | MatchItem | TableItem | OrderItem | ShortItem;
 export type ItemType = Item['type'];
 
 export interface Topic {
@@ -84,7 +104,45 @@ export interface Topic {
 }
 
 /** An extra activity for a plan day, on top of the rounds of questions. */
-export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string };
+export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string } | { kind: 'argument' };
+
+/** A critical-thinking question (Criterion D), answered in the Argument Builder. */
+export interface ArgumentItem {
+  id: string;
+  prompt: string;
+  /** One possible answer, built from the teacher's notes. Shown only after she has written her own. */
+  example: string;
+}
+
+/** A practice exam in the teacher's format. */
+export interface MockExam {
+  id: string;
+  title: string;
+  /** A sensible time for the whole paper. The app shows it but never cuts her off. */
+  minutes: number;
+  /** Part A, knowing and understanding: ids of written questions. */
+  partA: ItemId[];
+  /** Part B, thinking critically: ids of argument questions. */
+  partB: string[];
+}
+
+/** The four boxes of the Argument Builder: the four things the teacher asks for in an argument. */
+export const ARGUMENT_BOXES: { label: string; help: string }[] = [
+  { label: 'My argument', help: 'One clear sentence: what do you think, and why?' },
+  { label: 'A country example', help: 'Which of the countries shows this? What happens there?' },
+  { label: 'How power is distributed', help: 'Who holds the power in this system, and how did they get it?' },
+  { label: 'Another view, then my conclusion', help: 'What might someone who disagrees say? Then finish with your conclusion.' },
+];
+
+/** What she checks her own argument against (PLAN.md section 5). No automatic mark. */
+export const ARGUMENT_CHECKLIST: string[] = [
+  'A clear argument',
+  'Key terms used accurately',
+  'A country example',
+  'Explains how power is distributed',
+  'Considers another view',
+  'A justified conclusion',
+];
 
 export interface PlanDay {
   /** Days relative to the exam: -4 is four days before, 0 is exam day. */
@@ -109,16 +167,21 @@ export interface Pack {
   plan: PlanDay[];
   /** Advice for the test itself, from the teacher's material. Shown in the Guide. */
   examTips?: { title: string; points: string[] }[];
+  /** The critical-thinking questions for the Argument Builder. */
+  arguments?: ArgumentItem[];
+  /** Practice exams. */
+  mocks?: MockExam[];
 }
 
 /** Which practice game an item belongs to. */
-export type Game = 'key-terms' | 'this-or-that' | 'which-system' | 'which-responsibility' | 'tables' | 'quiz';
+export type Game = 'key-terms' | 'this-or-that' | 'which-system' | 'which-responsibility' | 'tables' | 'quiz' | 'write';
 
 export function gameOf(item: Item): Game {
   switch (item.type) {
     case 'term': return 'key-terms';
     case 'pair': return 'this-or-that';
     case 'table': return 'tables';
+    case 'short': return 'write';
     case 'choice':
       if (item.set === 'system') return 'which-system';
       if (item.set === 'responsibility') return 'which-responsibility';
@@ -162,5 +225,6 @@ export function answerText(item: Item): string {
     case 'match': return item.pairs.map((p) => `${p.left}: ${p.right}`).join('\n');
     case 'table': return item.columns.map((c, i) => `${c}: ${item.cells[i].options[item.cells[i].answer]}`).join('\n');
     case 'order': return item.steps.join(' → ');
+    case 'short': return item.model;
   }
 }

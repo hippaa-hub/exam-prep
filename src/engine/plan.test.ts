@@ -13,6 +13,7 @@ const pack: Pack = {
     { day: -2, label: 'Pairs', topics: ['G2', 'S5', 'D1'] },
     { day: -1, label: 'Mock', mock: 'mock-1' },
   ],
+  mocks: [{ id: 'mock-1', title: 'Mock Exam 1', minutes: 35, partA: [], partB: [] }],
 };
 const done = (date: string, topics: string[]): SessionRecord => ({ date, kind: 'today', topics, asked: 14, firstTimeRight: 10 });
 
@@ -82,6 +83,10 @@ describe('plan for today', () => {
     expect(tue.phase).toBe('last-day');
     expect(tue.topics).toEqual([]);
     expect(tue.mock).toBe('mock-1');
+  });
+
+  it('does not offer a mock exam the pack does not have', () => {
+    expect(planFor({ ...pack, mocks: [] }, [], '2026-11-17').mock).toBeUndefined();
   });
 
   it('is a warm-up on exam day and a past exam afterwards', () => {

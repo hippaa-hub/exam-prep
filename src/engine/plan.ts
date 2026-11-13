@@ -66,7 +66,9 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
     .map((d) => ({ ...d, topics: (d.topics ?? []).filter((t) => known.has(t)) }))
     .filter((d) => d.topics.length > 0)
     .sort((a, b) => a.day - b.day);
-  const mock = pack.plan.find((d) => d.mock)?.mock;
+  const planned = pack.plan.find((d) => d.mock)?.mock;
+  // The mock exam is only offered if the pack really has it.
+  const mock = planned && pack.mocks?.some((m) => m.id === planned) ? planned : undefined;
   const doneToday = sessions.some((s) => s.kind === 'today' && s.date === today);
   const base = { daysToGo: left, catchUp: [] as TopicId[], extras: [] as DayExtra[], doneToday };
 
@@ -109,8 +111,11 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
     label: 'Catching up, then on with the plan',
     topics,
     catchUp: topics.filter((t) => missed.includes(t)),
-    // The activities of the days whose topics landed on today (two at most, to keep the day short).
-    extras: uniqueExtras(studyDays.filter((d) => d.topics.some((t) => topics.includes(t))).flatMap((d) => d.extras ?? [])).slice(0, 2),
+    // The activities of the days whose topics landed on today: two at most, to keep the day short,
+    // and the argument first, because it is the closest practice for half of the test.
+    extras: uniqueExtras(studyDays.filter((d) => d.topics.some((t) => topics.includes(t))).flatMap((d) => d.extras ?? []))
+      .sort((a, b) => Number(b.kind === 'argument') - Number(a.kind === 'argument'))
+      .slice(0, 2),
   };
 }
 

@@ -1,6 +1,8 @@
-import type { Game, Item, Pack } from '../content/types';
+import type { Game, Item, ItemId, Pack } from '../content/types';
 import { gameOf, itemsOf } from '../content/types';
+import { formatShort } from '../engine/dates';
 import { READY_AT, readiness, topicReadiness, type ProgressMap } from '../engine/progress';
+import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
 
 interface Props {
   pack: Pack;
@@ -8,6 +10,11 @@ interface Props {
   /** `game` is given when a whole game is started, so it can tick off today's task for that game. */
   onStart: (title: string, pool: Item[], game?: Game) => void;
   onTable: (group: string) => void;
+  mockResults: Record<string, MockResult>;
+  writing: Record<string, WrittenArgument>;
+  items: Map<ItemId, Item>;
+  onArguments: () => void;
+  onMock: (id: string) => void;
 }
 
 const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: string }[] = [
@@ -16,9 +23,10 @@ const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: str
   { game: 'which-system', title: 'Which system?', blurb: 'Monarchy, democracy or dictatorship', icon: '🏛️', tone: 'green' },
   { game: 'which-responsibility', title: 'Which responsibility?', blurb: 'What is the government doing here?', icon: '🛡️', tone: 'orange' },
   { game: 'quiz', title: 'Quick Quiz', blurb: 'Why, how and who questions', icon: '💡', tone: 'yellow' },
+  { game: 'write', title: 'Say it or write it', blurb: 'Full-sentence answers, checked for the key ideas', icon: '🎤', tone: 'blue' },
 ];
 
-export function Practise({ pack, progress, onStart, onTable }: Props) {
+export function Practise({ pack, progress, onStart, onTable, mockResults, writing, items, onArguments, onMock }: Props) {
   const all = itemsOf(pack);
   const groups = [...new Set(all.flatMap((it) => (it.type === 'table' ? [it.group] : [])))];
 
@@ -46,6 +54,36 @@ export function Practise({ pack, progress, onStart, onTable }: Props) {
           );
         })}
       </div>
+
+      {((pack.arguments?.length ?? 0) > 0 || (pack.mocks?.length ?? 0) > 0) && (
+        <section className="card" aria-labelledby="exam-h">
+          <h2 id="exam-h">Exam practice</h2>
+          <ul className="topic-buttons">
+            {(pack.arguments?.length ?? 0) > 0 && (
+              <li>
+                <button type="button" onClick={onArguments}>
+                  <span className="topic-name">🧩 Argument Builder</span>
+                  <span className="pct">{Object.keys(writing).length} of {pack.arguments!.length} written</span>
+                </button>
+              </li>
+            )}
+            {(pack.mocks ?? []).map((m) => {
+              const r = mockResults[m.id];
+              const sc = r ? mockScore(r, items) : null;
+              return (
+                <li key={m.id}>
+                  <button type="button" onClick={() => onMock(m.id)}>
+                    <span className="topic-name">📝 {m.title}</span>
+                    <span className={r ? 'pct ready' : 'pct'}>
+                      {r && sc ? `✓ ${formatShort(r.date)} · Part A ${sc.partARight}/${sc.partATotal}` : `About ${m.minutes} min`}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <section className="card" aria-labelledby="topics-h">
         <h2 id="topics-h">By topic</h2>

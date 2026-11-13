@@ -56,6 +56,39 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
     }
   });
 
+  it('has written questions with key ideas the app can look for', () => {
+    const shorts = items.filter((i) => i.type === 'short');
+    expect(shorts.length).toBeGreaterThanOrEqual(15);
+    for (const it of shorts) {
+      if (it.type !== 'short') continue;
+      expect(it.ideas.length, it.id).toBeGreaterThanOrEqual(2);
+      for (const idea of it.ideas) expect(idea.words.length, `${it.id}: ${idea.label}`).toBeGreaterThanOrEqual(1);
+      if (it.need !== undefined) expect(it.need, it.id).toBeLessThan(it.ideas.length);
+      expect(it.model.length, it.id).toBeGreaterThan(30);
+      // A written question is one more wording of a thing she also meets in quick questions.
+      expect(items.some((o) => o.type !== 'short' && conceptOf(o) === conceptOf(it)), it.id).toBe(true);
+    }
+    for (const it of items) if (it.type === 'term') expect(it.ideas?.length ?? 0, it.id).toBeGreaterThanOrEqual(2);
+  });
+
+  it('has mock exams and arguments that point at real questions', () => {
+    const ids = new Set(items.filter((i) => i.type === 'short').map((i) => i.id));
+    const args = new Set((pack.arguments ?? []).map((a) => a.id));
+    expect(pack.arguments?.length).toBe(6);
+    expect(pack.mocks?.length).toBe(2);
+    for (const m of pack.mocks ?? []) {
+      expect(m.partA.length, m.id).toBe(6);
+      expect(m.partB.length, m.id).toBe(2);
+      for (const id of m.partA) expect(ids.has(id), `${m.id}: ${id}`).toBe(true);
+      for (const id of m.partB) expect(args.has(id), `${m.id}: ${id}`).toBe(true);
+    }
+    // The two papers do not repeat each other.
+    const [a, b] = pack.mocks ?? [];
+    expect([...a.partA, ...a.partB].filter((id) => [...b.partA, ...b.partB].includes(id))).toEqual([]);
+    const planned = pack.plan.find((d) => d.mock)?.mock;
+    expect(pack.mocks?.some((m) => m.id === planned)).toBe(true);
+  });
+
   it('has enough questions for each game', () => {
     const count = (g: string) => items.filter((i) => gameOf(i) === g).length;
     expect(count('key-terms')).toBeGreaterThanOrEqual(10);

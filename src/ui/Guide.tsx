@@ -35,9 +35,14 @@ const STEPS: { icon: string; title: string; text: string }[] = [
     text: 'Something counts as fully learned when you get it right on three different days. A little each day beats one long evening before the exam.',
   },
   {
-    icon: '✍️',
-    title: 'Use full sentences',
-    text: 'The test asks for definitions and explanations in sentences. On a flashcard, say or type the whole definition before you flip. In "Which responsibility?", write the one sentence saying why it matters.',
+    icon: '🎤',
+    title: 'Say it in full sentences',
+    text: 'The test asks for definitions and explanations in sentences. When a question has a microphone, tap it and say your whole answer out loud, or type it. The app checks it for the key ideas and then shows your teacher\'s wording. If it misheard you, tap "The app missed something I said". Flashcards read themselves aloud when you flip them: listen, and say it along with the voice.',
+  },
+  {
+    icon: '🧩',
+    title: 'Build an argument, then sit the mock exam',
+    text: 'Half the test is thinking critically. The Argument Builder gives you four boxes: your argument, a country example, how power is distributed, and another view. The day before the exam, the Mock Exam lets you practise the whole test and shows you what to fix. In the Mock Exam you write every answer, just like the real test.',
   },
   {
     icon: '📋',
@@ -65,7 +70,7 @@ export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; o
       </div>
 
       <section className="card" aria-labelledby="steps-h">
-        <h2 id="steps-h">Seven steps</h2>
+        <h2 id="steps-h">Eight steps</h2>
         <ol className="guide-steps">
           {STEPS.map((s, i) => (
             <li key={s.title}>
@@ -116,7 +121,7 @@ export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; o
           <li>The parent view shows how long she studied each day and whether she finished the day's tasks.</li>
           <li>The most useful help: ask her to explain one confusing pair out loud, without notes.</li>
           <li>Two short rounds a day matter more than one long one. Praise coming back, not scores.</li>
-          <li>Everything is saved on this phone only. Nothing is sent anywhere.</li>
+          <li>Everything is saved on this phone only. The one exception is the microphone: speaking an answer uses the phone's own speech service (Apple or Google), which needs the internet. Typed answers never leave the phone.</li>
         </ul>
         <button type="button" className="btn ghost" onClick={onParent}>Open the parent view: study time, day by day</button>
       </section>

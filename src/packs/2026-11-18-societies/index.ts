@@ -1,6 +1,7 @@
 // Exam pack: Individuals & Societies, "How Are Societies Governed?", 18 November 2026.
 // Every question comes from IS_STUDIED.md (the teacher's slides, glossary and revision list).
-import type { Pack } from '../../content/types';
+import type { Pack, Topic } from '../../content/types';
+import { argumentQuestions, mocks } from './arguments';
 import { g1 } from './g1';
 import { g2 } from './g2';
 import { g3 } from './g3';
@@ -10,6 +11,10 @@ import { s2 } from './s2';
 import { s3 } from './s3';
 import { s4 } from './s4';
 import { s5 } from './s5';
+import { written } from './written';
+
+/** Adds a topic's written questions to its other questions. */
+const withWritten = (t: Topic): Topic => ({ ...t, items: [...t.items, ...(written[t.id] ?? [])] });
 
 export const pack: Pack = {
   id: '2026-11-18-societies',
@@ -17,7 +22,9 @@ export const pack: Pack = {
   title: 'How Are Societies Governed?',
   date: '2026-11-18',
   criteria: ['A: knowing and understanding', 'D: thinking critically'],
-  topics: [g1, g2, g3, g4, s1, s2, s3, s4, s5],
+  topics: [g1, g2, g3, g4, s1, s2, s3, s4, s5].map(withWritten),
+  arguments: argumentQuestions,
+  mocks,
   plan: [
     {
       day: -4, label: 'Key terms, why we need government, the four responsibilities', topics: ['G1', 'G3', 'G4'],
@@ -28,12 +35,11 @@ export const pack: Pack = {
       extras: [{ kind: 'table', group: 'The five countries' }],
     },
     {
-      day: -2, label: 'Confusing pairs and comparing the systems', topics: ['G2', 'S5', 'D1'],
-      extras: [{ kind: 'game', game: 'this-or-that' }, { kind: 'table', group: 'The three systems' }],
+      day: -2, label: 'Confusing pairs, comparing the systems, and one argument', topics: ['G2', 'S5'],
+      extras: [{ kind: 'game', game: 'this-or-that' }, { kind: 'argument' }],
     },
     {
-      day: -1, label: 'Mixed quiz of everything', mock: 'mock-1',
-      extras: [{ kind: 'table', group: 'The five countries' }],
+      day: -1, label: 'Mock exam, then a mixed quiz of everything', mock: 'mock-1',
     },
   ],
   examTips: [

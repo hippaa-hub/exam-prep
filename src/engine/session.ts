@@ -13,6 +13,10 @@ export const WARM_UP_SIZE = 8;
 export const REVIEW_SHARE = 4;
 /** Table rows are long questions; keep a round from turning into all tables. */
 const MAX_TABLE_ROWS = 2;
+/** Written answers take a minute or two each, so a round has only a couple of them. */
+export const MAX_WRITTEN = 2;
+/** A round made only of written answers is kept short. */
+export const WRITTEN_ROUND_SIZE = 4;
 
 interface Group {
   concept: ConceptId;
@@ -43,9 +47,9 @@ function ranked(groups: Group[], progress: ProgressMap, today: DateKey, rng: Rng
 }
 
 /** One wording of a concept: a fresh one if there is one, otherwise the one asked longest ago. */
-function variant(g: Group, progress: ProgressMap, rng: Rng, allowTable: boolean): Item {
-  const plain = g.items.filter((it) => it.type !== 'table');
-  const pool = allowTable || plain.length === 0 ? g.items : plain;
+function variant(g: Group, progress: ProgressMap, rng: Rng, allowTable: boolean, allowWritten: boolean): Item {
+  const allowed = g.items.filter((it) => (allowTable || it.type !== 'table') && (allowWritten || it.type !== 'short'));
+  const pool = allowed.length > 0 ? allowed : g.items;
   const recent = progress[g.concept]?.recent ?? [];
   const fresh = pool.filter((it) => !recent.includes(it.id));
   if (fresh.length > 0) return fresh[Math.floor(rng() * fresh.length)];
@@ -54,9 +58,11 @@ function variant(g: Group, progress: ProgressMap, rng: Rng, allowTable: boolean)
 
 function pickVariants(groups: Group[], progress: ProgressMap, rng: Rng): Item[] {
   let tables = 0;
+  let writtenCount = 0;
   return groups.map((g) => {
-    const it = variant(g, progress, rng, tables < MAX_TABLE_ROWS);
+    const it = variant(g, progress, rng, tables < MAX_TABLE_ROWS, writtenCount < MAX_WRITTEN);
     if (it.type === 'table') tables++;
+    if (it.type === 'short') writtenCount++;
     return it;
   });
 }
@@ -115,11 +121,16 @@ export function buildPracticeSession(
     .map((it, i) => ({ it, i, k: key(it) }))
     .sort((a, b) => a.k - b.k || a.i - b.i)
     .map((x) => x.it);
+  // A drill of written answers only (the "Write it" game) is kept short; elsewhere they are rationed.
+  const allWritten = pool.length > 0 && pool.every((it) => it.type === 'short');
+  const limit = allWritten ? Math.min(size, WRITTEN_ROUND_SIZE) : size;
   const out: Item[] = [];
   let tables = 0;
+  let writtenCount = 0;
   for (const it of order) {
-    if (out.length >= size) break;
+    if (out.length >= limit) break;
     if (it.type === 'table' && tables++ >= MAX_TABLE_ROWS) continue;
+    if (it.type === 'short' && !allWritten && writtenCount++ >= MAX_WRITTEN) continue;
     out.push(it);
   }
   return shuffle(out, rng).map((it) => it.id);

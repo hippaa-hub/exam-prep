@@ -1,10 +1,15 @@
 // One question on screen. Each kind of item has its own way of being answered;
 // all of them report a single outcome and then show the marking.
-import { useMemo, useState } from 'react';
-import type { ChoiceItem, Item, MatchItem, OrderItem, PairItem, TableItem, TermItem } from '../content/types';
+import { useEffect, useMemo, useState } from 'react';
+import type { ChoiceItem, Item, MatchItem, OrderItem, PairItem, ShortItem, TableItem, TermItem } from '../content/types';
+import { checkIdeas, hasEnoughWords, verdictSentence } from '../engine/check';
 import type { Outcome } from '../engine/progress';
 import { shuffle } from '../engine/rng';
+import { DictationBox } from './Dictation';
 import { FillRows, type FillRow } from './FillRows';
+import { IdeaVerdict } from './IdeaVerdict';
+import { ListenRow } from './ListenRow';
+import { readAloudOn, speak, stopSpeaking } from './speech';
 
 interface ViewProps<T extends Item> {
   item: T;
@@ -22,6 +27,7 @@ export function ItemView(props: ViewProps<Item>) {
     case 'match': return <MatchView {...props} item={item} />;
     case 'table': return <TableRowView {...props} item={item} />;
     case 'order': return <OrderView {...props} item={item} />;
+    case 'short': return <ShortView {...props} item={item} />;
   }
 }
 
@@ -201,33 +207,111 @@ function OrderView({ item, locked, onResult }: ViewProps<OrderItem>) {
 }
 
 function TermView({ item, locked, onResult }: ViewProps<TermItem>) {
-  const [flipped, setFlipped] = useState(false);
+  // 'front': the term only. 'checked': she answered and the app judged it. 'shown': she did not know, so it was shown to her.
+  const [stage, setStage] = useState<'front' | 'checked' | 'shown'>('front');
   const [typed, setTyped] = useState('');
+  const [aloud, setAloud] = useState(readAloudOn);
+  const cardText = `${item.term}. ${item.definition}`;
+
+  // Stop reading when she moves on to the next question.
+  useEffect(() => stopSpeaking, []);
+
+  const check = () => {
+    setStage('checked');
+    // The app says the verdict, then reads the card.
+    if (aloud && item.ideas) speak(`${verdictSentence({ ideas: item.ideas }, checkIdeas(typed, item.ideas).found)} ${cardText}`);
+  };
+  const show = () => {
+    setStage('shown');
+    if (aloud) speak(cardText); // the card reads itself once it is turned over
+  };
+  const listen = <ListenRow text={cardText} aloud={aloud} onAloud={setAloud} />;
+
   return (
     <div className="item">
       <div className="kicker">Key term</div>
       <div className="term-card">
         <div className="term">{item.term}</div>
-        {!flipped && <p className="hint">Say the definition out loud or in your head. You can type it too.</p>}
+        {stage === 'front' && <p className="hint">{item.ideas ? 'Say or type what it means.' : 'Say the definition, then flip the card.'}</p>}
       </div>
-      {!flipped ? (
+
+      {stage === 'front' && item.ideas && (
         <>
-          <textarea className="term-input" rows={3} value={typed} onChange={(e) => setTyped(e.target.value)}
-            placeholder="Type the definition (you can skip this)" aria-label="Your definition" />
-          <button type="button" className="btn primary" onClick={() => setFlipped(true)}>Flip the card</button>
+          <DictationBox value={typed} onChange={setTyped} rows={3} label="Your definition"
+            placeholder="Tap the microphone and say the definition, or type it." />
+          <button type="button" className="btn primary" disabled={!hasEnoughWords(typed)} onClick={check}>Check my answer</button>
+          <button type="button" className="text-link" onClick={show}>I don't know yet. Show me.</button>
         </>
-      ) : (
+      )}
+      {stage === 'checked' && item.ideas && (
         <>
-          {typed.trim() && (
-            <div className="yours"><span>You wrote</span>{typed.trim()}</div>
-          )}
+          <div className="yours"><span>You said</span>{typed.trim()}</div>
+          <IdeaVerdict ideas={item.ideas} text={typed} modelLabel="The teacher's definition" model={item.definition}
+            onDone={onResult} disabled={locked} />
+          {listen}
+        </>
+      )}
+      {stage === 'shown' && item.ideas && (
+        <>
+          <section className="verdict retry" role="status">
+            <h3 className="verdict-word">Not yet</h3>
+            <p className="verdict-detail">Read it and listen to it. This one will come back.</p>
+          </section>
           <div className="teacher"><span>The teacher's definition</span>{item.definition}</div>
+          {listen}
+          <button type="button" className="btn primary" disabled={locked} onClick={() => onResult('wrong')}>Continue</button>
+        </>
+      )}
+
+      {/* A card with no key ideas listed cannot be checked by the app, so she rates herself. */}
+      {!item.ideas && stage === 'front' && (
+        <button type="button" className="btn primary" onClick={show}>Flip the card</button>
+      )}
+      {!item.ideas && stage !== 'front' && (
+        <>
+          <div className="teacher"><span>The teacher's definition</span>{item.definition}</div>
+          {listen}
           <p className="hint">How close were you?</p>
           <div className="rate" role="group" aria-label="How close were you?">
             <button type="button" className="btn rate-good" disabled={locked} onClick={() => onResult('right')}>Knew it</button>
             <button type="button" className="btn rate-almost" disabled={locked} onClick={() => onResult('almost')}>Almost</button>
             <button type="button" className="btn rate-notyet" disabled={locked} onClick={() => onResult('wrong')}>Not yet</button>
           </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** A question answered in full sentences: she says or writes it, then the app checks it for the key ideas. */
+function ShortView({ item, locked, onResult }: ViewProps<ShortItem>) {
+  const [text, setText] = useState('');
+  const [checked, setChecked] = useState(false);
+  const [aloud, setAloud] = useState(readAloudOn);
+  const modelText = `The teacher's wording. ${item.model}`;
+
+  useEffect(() => stopSpeaking, []);
+
+  const check = () => {
+    setChecked(true);
+    // The app says the verdict, then reads the teacher's wording.
+    if (aloud) speak(`${verdictSentence(item, checkIdeas(text, item.ideas).found)} ${modelText}`);
+  };
+
+  return (
+    <div className="item">
+      <Prompt text={item.prompt} kicker="Say it or write it" />
+      <DictationBox value={text} onChange={setText} readOnly={checked} rows={5} label="Your answer"
+        placeholder="Answer in full sentences, as you will in the test." />
+      {!checked ? (
+        <button type="button" className="btn primary" disabled={!hasEnoughWords(text)} onClick={check}>
+          Check my answer
+        </button>
+      ) : (
+        <>
+          <IdeaVerdict ideas={item.ideas} need={item.need} text={text} modelLabel="The teacher's wording" model={item.model}
+            onDone={onResult} disabled={locked} />
+          <ListenRow text={modelText} aloud={aloud} onAloud={setAloud} />
         </>
       )}
     </div>

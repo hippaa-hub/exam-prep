@@ -2,6 +2,7 @@ import { del, get, set } from 'idb-keyval';
 import type { SessionRecord } from '../engine/plan';
 import type { ProgressMap } from '../engine/progress';
 import type { StudyTime } from '../engine/time';
+import type { MockResult, WrittenArgument } from '../engine/writing';
 
 /** Everything saved for one exam pack. */
 export interface PackSave {
@@ -12,6 +13,12 @@ export interface PackSave {
   daysDone?: string[];
   /** Seconds spent answering, per day. */
   studyTime?: StudyTime;
+  /** Her latest Argument Builder answer for each question. */
+  writing?: Record<string, WrittenArgument>;
+  /** Her latest result for each mock exam. */
+  mockResults?: Record<string, MockResult>;
+  /** Unfinished writing, so nothing is lost if the app is closed half-way. Keyed by question or mock id. */
+  drafts?: Record<string, string[]>;
 }
 
 export interface Settings {

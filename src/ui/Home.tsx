@@ -23,6 +23,8 @@ interface Props {
   tomorrow?: string;
   /** True until the Guide has been opened once. */
   showGuideHint: boolean;
+  /** True when another day is being previewed with ?today= in the address. */
+  preview?: boolean;
   onTask: (task: Task) => void;
   /** A free round, once the tasks are done (or after the exam). */
   onExtra: () => void;
@@ -60,7 +62,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 }
 
 export function Home({
-  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, onTask, onExtra, onPractise, onGuide, onParent,
+  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, onTask, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = packReadiness(pack, progress);
   const cd = countdown(plan.daysToGo);
@@ -80,6 +82,8 @@ export function Home({
         </div>
         <span className="points" aria-label={`${points} points`}>⭐ {points}</span>
       </header>
+
+      {preview && <p className="preview-note" role="note">Preview: showing {formatLong(today)}. Remove "?today=…" from the address to go back to the real day.</p>}
 
       <section className="card countdown-card" aria-label="Countdown and readiness">
         <div className="countdown">
@@ -132,7 +136,7 @@ export function Home({
 
         {finished ? (
           <>
-            <p className="done-today">✓ Today's preparation is finished. Well done!</p>
+            <p className="done-today">{plan.phase === 'exam-day' ? '✓ Warm-up done. Good luck in your exam!' : "✓ Today's preparation is finished. Well done!"}</p>
             {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
             <button type="button" className="btn ghost" onClick={onExtra}>Extra practice</button>
           </>
@@ -154,7 +158,7 @@ export function Home({
           <span className="link-icon" aria-hidden="true">📖</span>
           <span>
             <strong>New here? How to get ready</strong>
-            <span className="muted">Seven steps to use these days well. One minute to read.</span>
+            <span className="muted">Eight steps to use these days well. One minute to read.</span>
           </span>
           <span className="chev" aria-hidden="true">›</span>
         </button>

@@ -23,9 +23,11 @@ interface Props {
   next?: { title: string; start: () => void };
   /** True once every task of the day is done. */
   dayDone: boolean;
+  /** True on the day of the exam: the end of the warm-up wishes her luck. */
+  examDay?: boolean;
 }
 
-export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, onExit, onFix, next: nextTask, dayDone }: Props) {
+export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, onExit, onFix, next: nextTask, dayDone, examDay = false }: Props) {
   const [run, setRun] = useState(() => startRun(spec.ids));
   const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean } | null>(null);
   const [fixed, setFixed] = useState(0);
@@ -42,7 +44,7 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
   if (finished) {
     return (
       <Summary spec={spec} summary={summarise(run)} items={items} fixed={fixed}
-        mistakeCount={mistakeCount} onExit={onExit} onFix={onFix} next={nextTask} dayDone={dayDone} />
+        mistakeCount={mistakeCount} onExit={onExit} onFix={onFix} next={nextTask} dayDone={dayDone} examDay={examDay} />
     );
   }
 
@@ -55,9 +57,11 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
     const saved = onAnswer(id, outcome, !again || spec.kind === 'fix');
     if (saved.fixed) setFixed((n) => n + 1);
     // A miss comes back later in this session. In Fix My Mistakes a right answer comes back too, until it is right twice.
-    const askAgain = outcome !== 'right' || (spec.kind === 'fix' && saved.progress.fix !== undefined);
-    if (item.type === 'term') {
-      // Flashcards have already shown the teacher's definition, so move straight on.
+    let askAgain = outcome !== 'right' || (spec.kind === 'fix' && saved.progress.fix !== undefined);
+    // A written answer takes a while, so it is repeated at most once, and only after a real miss.
+    if (item.type === 'short' && spec.kind !== 'fix') askAgain = outcome === 'wrong' && !again;
+    if (item.type === 'term' || item.type === 'short') {
+      // These have already shown the teacher's wording, so move straight on.
       setRun((r) => answerRun(r, outcome, askAgain));
       window.scrollTo(0, 0);
     } else {
@@ -103,9 +107,9 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
   );
 }
 
-function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, next, dayDone }: {
+function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, next, dayDone, examDay }: {
   spec: SessionSpec; summary: RunSummary; items: Map<ItemId, Item>; fixed: number; mistakeCount: number;
-  onExit: () => void; onFix: () => void; next?: { title: string; start: () => void }; dayDone: boolean;
+  onExit: () => void; onFix: () => void; next?: { title: string; start: () => void }; dayDone: boolean; examDay: boolean;
 }) {
   const points = POINTS_SESSION + fixed * POINTS_FIXED_MISTAKE;
   const allRight = summary.missed.length === 0;
@@ -114,7 +118,7 @@ function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, nex
       <Confetti />
       <div className="summary-card">
         <div className="summary-lola"><Mascot mood={allRight || (spec.guided && dayDone) ? 'cheer' : 'happy'} size={132} /></div>
-        <h1>{spec.kind === 'fix' ? 'Good fixing!' : spec.guided ? 'Task done!' : 'Round done!'}</h1>
+        <h1>{examDay && spec.guided ? 'You are ready!' : spec.kind === 'fix' ? 'Good fixing!' : spec.guided ? 'Task done!' : 'Round done!'}</h1>
         <p className="summary-score">
           <strong>{summary.firstTimeRight}</strong> of <strong>{summary.asked}</strong> right first time
         </p>
@@ -123,8 +127,10 @@ function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, nex
 
       {spec.guided && dayDone && (
         <section className="card tint-good day-done" role="status">
-          <h2>🎉 Today's preparation is finished!</h2>
-          <p>That is everything for today. Close the app and rest. See you tomorrow.</p>
+          <h2>{examDay ? '🍀 Good luck in your exam!' : "🎉 Today's preparation is finished!"}</h2>
+          <p>{examDay
+            ? 'Warm-up done. You have practised this for days. Read each question twice, write in full sentences, and show what you know.'
+            : 'That is everything for today. Close the app and rest. See you tomorrow.'}</p>
         </section>
       )}
 

@@ -1,12 +1,14 @@
 // The parent's view: how long Adele studied, whether she finished each day, and how ready she is.
 // Kept apart from Adele's own screens.
-import type { DateKey, Pack } from '../content/types';
+import type { DateKey, Item, ItemId, Pack } from '../content/types';
+import { ARGUMENT_BOXES, ARGUMENT_CHECKLIST } from '../content/types';
 import { formatLong, formatShort } from '../engine/dates';
 import type { SessionRecord, TodayPlan } from '../engine/plan';
 import { READY_AT, packReadiness, topicReadiness, type ProgressMap } from '../engine/progress';
 import { accuracy, dayReports } from '../engine/report';
 import type { Task } from '../engine/tasks';
 import { formatDuration, totalSeconds, type StudyTime } from '../engine/time';
+import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
 import { Ring } from './Ring';
 
 interface Props {
@@ -16,6 +18,9 @@ interface Props {
   sessions: SessionRecord[];
   daysDone: DateKey[];
   studyTime?: StudyTime;
+  mockResults: Record<string, MockResult>;
+  writing: Record<string, WrittenArgument>;
+  items: Map<ItemId, Item>;
   today: DateKey;
   tasks: Task[];
   mistakeCount: number;
@@ -24,7 +29,7 @@ interface Props {
   onChangeCode: () => void;
 }
 
-export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, today, tasks, mistakeCount, name, onClose, onChangeCode }: Props) {
+export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, name, onClose, onChangeCode }: Props) {
   const reports = dayReports(pack, sessions, studyTime, daysDone, today);
   const todayReport = reports.find((r) => r.day === today);
   const doneCount = tasks.filter((t) => t.done).length;
@@ -98,6 +103,51 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, to
             left open does not add to it. "Questions" counts finished rounds only.
           </p>
         </section>
+
+        {((pack.mocks?.length ?? 0) > 0 || (pack.arguments?.length ?? 0) > 0) && (
+          <section className="card" aria-labelledby="p-exam">
+            <h2 id="p-exam">Exam practice</h2>
+            <ul className="facts">
+              {(pack.mocks ?? []).map((m) => {
+                const r = mockResults[m.id];
+                const sc = r ? mockScore(r, items) : null;
+                return (
+                  <li key={m.id}>
+                    <span>{m.title}{r ? ` · ${formatShort(r.date)} · ${formatDuration(r.seconds)}` : ''}</span>
+                    <strong>{r && sc ? `A ${sc.partARight}/${sc.partATotal} · B ${sc.partBTicks}/${sc.partBTotal}` : 'Not done'}</strong>
+                  </li>
+                );
+              })}
+              {(pack.arguments?.length ?? 0) > 0 && (
+                <li><span>Arguments written</span><strong>{Object.keys(writing).length} of {pack.arguments!.length}</strong></li>
+              )}
+            </ul>
+            <p className="muted small">
+              Part A counts answers with the key ideas. Part B counts her own ticks against a {ARGUMENT_CHECKLIST.length}-point checklist.
+              It is her own marking: practice, not a grade.
+            </p>
+            {(pack.arguments ?? []).filter((q) => writing[q.id]).map((q) => (
+              <details key={q.id} className="written">
+                <summary>{q.prompt}</summary>
+                <p className="muted small">
+                  Written {formatShort(writing[q.id].date)} · she ticked {writing[q.id].ticks.filter(Boolean).length} of {ARGUMENT_CHECKLIST.length}
+                </p>
+                {ARGUMENT_BOXES.map((b, i) => <p key={b.label}><em>{b.label}:</em> {writing[q.id].boxes[i]?.trim() || '(nothing written)'}</p>)}
+              </details>
+            ))}
+            {(pack.mocks ?? []).filter((m) => mockResults[m.id]).map((m) => (
+              <details key={m.id} className="written">
+                <summary>Her answers in {m.title}</summary>
+                {mockResults[m.id].partA.map((a) => (
+                  <p key={a.id}><em>{items.get(a.id)?.prompt}</em><br />{a.text.trim() || '(nothing written)'}</p>
+                ))}
+                {mockResults[m.id].partB.map((b) => (
+                  <p key={b.id}><em>{pack.arguments?.find((q) => q.id === b.id)?.prompt}</em><br />{b.boxes.map((x) => x.trim()).filter(Boolean).join(' ') || '(nothing written)'}</p>
+                ))}
+              </details>
+            ))}
+          </section>
+        )}
 
         <section className="card" aria-labelledby="p-ready">
           <div className="ready-head">
