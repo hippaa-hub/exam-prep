@@ -27,6 +27,8 @@ const pack: Pack = {
 };
 const friday = () => new Date(2026, 10, 13, 17, 0);
 const tuesday = () => new Date(2026, 10, 17, 17, 0);
+/** After the exam there are no daily tasks, so Home offers "More practice" straight away. */
+const later = () => new Date(2026, 10, 20, 17, 0);
 
 afterEach(() => {
   cleanup();
@@ -35,9 +37,9 @@ afterEach(() => {
 
 const type = (label: string | RegExp, text: string) => fireEvent.change(screen.getByRole('textbox', { name: label }), { target: { value: text } });
 
-/** Goes to the Practise tab. */
+/** Opens the extra practice page from Home. */
 async function openPractise(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(within(await screen.findByRole('navigation')).getByRole('button', { name: /Practise/ }));
+  await user.click(await screen.findByRole('button', { name: 'More practice' }));
 }
 
 /** Opens the "Say it or write it" game, which asks the written question. */
@@ -51,7 +53,7 @@ describe('a written answer', () => {
   it('is checked by the app for its key ideas, after she has written it', async () => {
     const user = userEvent.setup();
     const store = memoryStore();
-    render(<App store={store} packs={[pack]} now={friday} />);
+    render(<App store={store} packs={[pack]} now={later} />);
     await openWritten(user);
 
     // Nothing is given away before she answers, and two words are not an answer.
@@ -71,7 +73,7 @@ describe('a written answer', () => {
   it('counts as right when every key idea is there, spelling slips included', async () => {
     const user = userEvent.setup();
     const store = memoryStore();
-    render(<App store={store} packs={[pack]} now={friday} />);
+    render(<App store={store} packs={[pack]} now={later} />);
     await openWritten(user);
     type('Your answer', 'Government is the instutions. Governance is the process of deciding.');
     await user.click(screen.getByRole('button', { name: 'Check my answer' }));
@@ -84,7 +86,7 @@ describe('a written answer', () => {
   it('lets her correct the app when it missed something she said', async () => {
     const user = userEvent.setup();
     const store = memoryStore();
-    render(<App store={store} packs={[pack]} now={friday} />);
+    render(<App store={store} packs={[pack]} now={later} />);
     await openWritten(user);
     type('Your answer', 'One is the rulers and the other is the way they rule.');
     await user.click(screen.getByRole('button', { name: 'Check my answer' }));
@@ -95,6 +97,21 @@ describe('a written answer', () => {
     expect(screen.getByRole('status')).toHaveTextContent('✓ Correct!You had the key ideas.');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(store.current?.packs.p2.progress.c1.level).toBe(1);
+  });
+});
+
+describe('not knowing a written question yet', () => {
+  it('shows the teacher\'s wording as a first look, without counting a mistake', async () => {
+    const user = userEvent.setup();
+    const store = memoryStore();
+    render(<App store={store} packs={[pack]} now={later} />);
+    await openWritten(user);
+    expect(screen.queryByText(MODEL)).toBeNull();
+    await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
+    expect(screen.getByRole('status')).toHaveTextContent('New for you');
+    expect(screen.getByText(MODEL)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(store.current?.packs.p2.progress.c1.fix).toBeUndefined();
   });
 });
 
@@ -117,7 +134,7 @@ describe('saying the answer', () => {
   it('types what she says into the box, and the app checks it', async () => {
     (window as unknown as Record<string, unknown>).SpeechRecognition = FakeRecognition;
     const user = userEvent.setup();
-    render(<App store={memoryStore()} packs={[pack]} now={friday} />);
+    render(<App store={memoryStore()} packs={[pack]} now={later} />);
     await openWritten(user);
 
     await user.click(screen.getByRole('button', { name: /Say your answer/ }));
@@ -135,7 +152,7 @@ describe('saying the answer', () => {
   it('explains what to do if the microphone is not allowed', async () => {
     (window as unknown as Record<string, unknown>).SpeechRecognition = FakeRecognition;
     const user = userEvent.setup();
-    render(<App store={memoryStore()} packs={[pack]} now={friday} />);
+    render(<App store={memoryStore()} packs={[pack]} now={later} />);
     await openWritten(user);
     await user.click(screen.getByRole('button', { name: /Say your answer/ }));
     act(() => { FakeRecognition.last!.onerror?.({ error: 'not-allowed' }); FakeRecognition.last!.onend?.(); });
@@ -145,7 +162,7 @@ describe('saying the answer', () => {
 
   it('points to the keyboard microphone on phones without in-app speech', async () => {
     const user = userEvent.setup();
-    render(<App store={memoryStore()} packs={[pack]} now={friday} />);
+    render(<App store={memoryStore()} packs={[pack]} now={later} />);
     await openWritten(user);
     expect(screen.queryByRole('button', { name: /Say your answer/ })).toBeNull();
     expect(screen.getByText(/microphone key on your keyboard/)).toBeInTheDocument();
@@ -156,7 +173,7 @@ describe('the Argument Builder', () => {
   it('shows the example answer only after she has written her own, and saves her answer', async () => {
     const user = userEvent.setup();
     const store = memoryStore();
-    render(<App store={store} packs={[pack]} now={friday} />);
+    render(<App store={store} packs={[pack]} now={later} />);
     await openPractise(user);
     await user.click(screen.getByRole('button', { name: /Argument Builder/ }));
     await user.click(screen.getByRole('button', { name: /Is democracy the fairest system/ }));
@@ -271,25 +288,43 @@ describe('reading a flashcard aloud', () => {
   it('reads the card when she says she does not know it yet, and not before', async () => {
     const voice = fakeVoice();
     const user = userEvent.setup();
-    const store = memoryStore();
-    render(<App store={store} packs={[cards]} now={friday} />);
+    render(<App store={memoryStore()} packs={[cards]} now={later} />);
     await openCards(user);
     expect(voice.spoken).toEqual([]);
     expect(screen.queryByText(DEFINITION)).toBeNull();
     await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
     expect(voice.spoken).toEqual([`Rules. ${DEFINITION}`]);
-    expect(screen.getByRole('status')).toHaveTextContent('Not yet');
     await user.click(screen.getByRole('button', { name: /Hear it again/ }));
     expect(voice.spoken).toHaveLength(2);
+  });
+
+  it('treats a card she has never seen as a first look, not a mistake; after that, not knowing it counts', async () => {
+    fakeVoice();
+    const user = userEvent.setup();
+    const store = memoryStore();
+    render(<App store={store} packs={[cards]} now={later} />);
+    await openCards(user);
+
+    // First time: new for her. It is shown, and does not go to Fix My Mistakes.
+    await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
+    expect(screen.getByRole('status')).toHaveTextContent('New for you');
     await user.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(store.current?.packs.p3.progress.t1.fix).toBe(0); // it waits in Fix My Mistakes
+    expect(store.current?.packs.p3.progress.t1.fix).toBeUndefined();
+    expect(store.current?.packs.p3.progress.t1.level).toBe(0);
+    expect(store.current?.packs.p3.progress.t1.seen).toBe(1);
+
+    // It comes back in the same round. Still not knowing it now counts as "Not yet", and goes to Fix.
+    await user.click(await screen.findByRole('button', { name: /I don't know yet/ }));
+    expect(screen.getByRole('status')).toHaveTextContent('Not yet');
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(store.current?.packs.p3.progress.t1.fix).toBe(0);
   });
 
   it('judges her definition itself, and says and writes Correct, Almost or Not yet', async () => {
     const voice = fakeVoice();
     const user = userEvent.setup();
     const store = memoryStore();
-    render(<App store={store} packs={[cards]} now={friday} />);
+    render(<App store={store} packs={[cards]} now={later} />);
     await openCards(user);
     expect(screen.queryByRole('button', { name: 'Knew it' })).toBeNull(); // she does not rate herself
 
@@ -310,7 +345,7 @@ describe('reading a flashcard aloud', () => {
   it('can be switched off, and stays off for the next card', async () => {
     const voice = fakeVoice();
     const user = userEvent.setup();
-    render(<App store={memoryStore()} packs={[cards]} now={friday} />);
+    render(<App store={memoryStore()} packs={[cards]} now={later} />);
     await openCards(user);
     await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
     await user.click(screen.getByRole('button', { name: 'Read aloud: on' }));
@@ -328,7 +363,7 @@ describe('reading a flashcard aloud', () => {
     w.speechSynthesis.getVoices = () => [{ name: 'Daniel', lang: 'en-GB' }, { name: 'Martha', lang: 'en-GB' }, { name: 'Samantha', lang: 'en-US' }, { name: 'Nicky', lang: 'en-US' }];
     w.speechSynthesis.speak = (u) => { used.push(u.voice?.name); };
     const user = userEvent.setup();
-    render(<App store={memoryStore()} packs={[cards]} now={friday} />);
+    render(<App store={memoryStore()} packs={[cards]} now={later} />);
     await openCards(user);
     await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
     expect(used).toEqual(['Nicky']);
@@ -337,10 +372,77 @@ describe('reading a flashcard aloud', () => {
 
   it('works quietly on a phone with no voice', async () => {
     const user = userEvent.setup();
-    render(<App store={memoryStore()} packs={[cards]} now={friday} />);
+    render(<App store={memoryStore()} packs={[cards]} now={later} />);
     await openCards(user);
     await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
     expect(screen.getByText(DEFINITION)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Hear it again/ })).toBeNull();
+  });
+});
+
+describe('explaining an answer', () => {
+  const explained: Pack = {
+    ...pack, id: 'p4', arguments: [], mocks: [],
+    meanings: {
+      Power: 'Power is the ability to influence people. Having power is not the same as having the right.',
+      Authority: 'Authority is the recognised, accepted right to make decisions.',
+    },
+    simple: { e1: 'Parliament is where the laws of a country are made.', t9: 'Rules are what a group agrees to do.' },
+    examples: { e1: ['The UK Parliament', 'The National Diet in Japan'], t9: ['Class rules', 'The rules of a game'] },
+    topics: [{ id: 'T', title: 'Topic', short: 'Topic', items: [
+      { ...choice('e1', 'Which institution debates and passes laws?', 'Parliament', ['Courts'], 'Parliament debates and passes laws.'),
+        whyNot: { Courts: 'Courts interpret laws. They do not pass them.' } },
+    ] }],
+  };
+
+  it('says why her choice is not right and why the right answer is, then just why when she is right', async () => {
+    const user = userEvent.setup();
+    render(<App store={memoryStore()} packs={[explained]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+
+    await user.click(screen.getByRole('button', { name: 'Courts' }));
+    const wrong = screen.getByRole('status');
+    expect(wrong).toHaveTextContent('Why not "Courts"?');
+    expect(wrong).toHaveTextContent('Courts interpret laws. They do not pass them.');
+    expect(wrong).toHaveTextContent('Why "Parliament"?');
+    expect(wrong).toHaveTextContent('Parliament is where the laws of a country are made.'); // in simple words...
+    expect(wrong).toHaveTextContent("Your teacher's words: Parliament debates and passes laws."); // ...and the teacher's
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    // The question comes back; this time she is right, and still gets the reason.
+    await user.click(await screen.findByRole('button', { name: 'Parliament' }));
+    const right = screen.getByRole('status');
+    expect(right).toHaveTextContent('✓ Correct');
+    expect(right).toHaveTextContent('Why is that right?');
+    expect(right).toHaveTextContent('Parliament debates and passes laws.');
+    expect(right).not.toHaveTextContent('Why not');
+    expect(right).toHaveTextContent('Parliament is where the laws of a country are made.');
+    expect(right).toHaveTextContent('Examples: The UK Parliament · The National Diet in Japan');
+  });
+
+  it('gives the teacher\'s definition and the same thing in simple words on a flashcard, and reads both', async () => {
+    const w = window as unknown as Record<string, unknown>;
+    const spoken: string[] = [];
+    w.SpeechSynthesisUtterance = class { constructor(public text: string) {} };
+    w.speechSynthesis = { speak: (u: { text: string }) => spoken.push(u.text), cancel: () => {}, getVoices: () => [] };
+    const DEFINITION = 'Agreed instructions that guide behaviour in a group.';
+    const cards: Pack = {
+      ...explained, id: 'p5',
+      topics: [{ id: 'T', title: 'Topic', short: 'Topic', items: [
+        term('t9', 'Rules', DEFINITION, [idea('Agreed instructions', 'agreed'), idea('They guide behaviour in a group', 'group')]),
+      ] }],
+    };
+    const user = userEvent.setup();
+    render(<App store={memoryStore()} packs={[cards]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+    expect(screen.queryByText('Rules are what a group agrees to do.')).toBeNull(); // not before she answers
+    await user.click(screen.getByRole('button', { name: /I don't know yet/ }));
+    expect(screen.getByText(DEFINITION)).toBeInTheDocument();
+    expect(screen.getByText('Rules are what a group agrees to do.')).toBeInTheDocument();
+    expect(screen.getByText('Class rules')).toBeInTheDocument();
+    expect(screen.getByText('The rules of a game')).toBeInTheDocument();
+    expect(spoken).toEqual([`Rules. ${DEFINITION} In simple words: Rules are what a group agrees to do. For example: Class rules; The rules of a game.`]);
+    delete w.SpeechSynthesisUtterance;
+    delete w.speechSynthesis;
   });
 });

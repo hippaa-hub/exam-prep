@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import type { Idea } from '../content/types';
 import { checkIdeas, closeness, outcomeOfTicks, VERDICT_WORDS } from '../engine/check';
 import type { Outcome } from '../engine/progress';
+import { SimpleBox } from './SimpleBox';
 
 interface Props {
   ideas: Idea[];
@@ -14,13 +15,17 @@ interface Props {
   text: string;
   modelLabel: string;
   model: string;
+  /** The same thing in simple words, shown under the teacher's wording. */
+  simple?: string;
+  /** A few short examples, shown with the simple words. */
+  examples?: string[];
   onDone: (outcome: Outcome, ticks: boolean[]) => void;
   /** The label on the button ("Continue" unless said otherwise). */
   doneLabel?: string;
   disabled?: boolean;
 }
 
-export function IdeaVerdict({ ideas, need, text, modelLabel, model, onDone, doneLabel = 'Continue', disabled = false }: Props) {
+export function IdeaVerdict({ ideas, need, text, modelLabel, model, simple, examples, onDone, doneLabel = 'Continue', disabled = false }: Props) {
   const check = useMemo(() => checkIdeas(text, ideas), [text, ideas]);
   const [ticks, setTicks] = useState(check.found);
   const [editing, setEditing] = useState(false);
@@ -65,6 +70,7 @@ export function IdeaVerdict({ ideas, need, text, modelLabel, model, onDone, done
       </section>
 
       <div className="teacher"><span>{modelLabel}</span>{model}</div>
+      <SimpleBox simple={simple} examples={examples} />
 
       <button type="button" className="btn primary" disabled={disabled} onClick={() => onDone(outcome, ticks)}>{doneLabel}</button>
       {!editing && (

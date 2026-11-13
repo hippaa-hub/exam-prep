@@ -1,8 +1,8 @@
 export type Tab = 'home' | 'practise' | 'mistakes' | 'guide';
 
+// Practise is not in the bar: it is extra, and Home offers it once the day's tasks are finished.
 const TABS: { tab: Tab; label: string; icon: string }[] = [
   { tab: 'home', label: 'Home', icon: '🏠' },
-  { tab: 'practise', label: 'Practise', icon: '🎯' },
   { tab: 'mistakes', label: 'Fix', icon: '🔧' },
   { tab: 'guide', label: 'Guide', icon: '📖' },
 ];

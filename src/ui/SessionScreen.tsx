@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SessionSpec } from '../App';
 import type { Item, ItemId, Pack } from '../content/types';
-import { answerText, shortLabel } from '../content/types';
+import { answerText, examplesFor, shortLabel, simpleWords } from '../content/types';
+import { explainChoice } from '../engine/explain';
 import type { ConceptProgress, Outcome } from '../engine/progress';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from '../engine/rewards';
 import { answerRun, currentId, isFinished, runFraction, startRun, summarise, type RunSummary } from '../engine/session';
@@ -15,7 +16,10 @@ interface Props {
   pack: Pack;
   items: Map<ItemId, Item>;
   mistakeCount: number;
-  onAnswer: (id: ItemId, outcome: Outcome, credit?: boolean) => { progress: ConceptProgress; fixed: boolean };
+  /** `firstLook`: she said "I don't know yet"; if the thing is new to her, that is not counted as a mistake. */
+  onAnswer: (id: ItemId, outcome: Outcome, credit?: boolean, firstLook?: boolean) => { progress: ConceptProgress; fixed: boolean };
+  /** True if she has never met the thing this question is about. */
+  isNew: (id: ItemId) => boolean;
   onFinish: (summary: RunSummary) => void;
   onExit: () => void;
   onFix: () => void;
@@ -27,9 +31,9 @@ interface Props {
   examDay?: boolean;
 }
 
-export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, onExit, onFix, next: nextTask, dayDone, examDay = false }: Props) {
+export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer, onFinish, onExit, onFix, next: nextTask, dayDone, examDay = false }: Props) {
   const [run, setRun] = useState(() => startRun(spec.ids));
-  const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean } | null>(null);
+  const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean; chosen?: string } | null>(null);
   const [fixed, setFixed] = useState(0);
   const reported = useRef(false);
   const finished = isFinished(run);
@@ -52,9 +56,12 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
   const item = items.get(id)!;
   const again = (run.asks[id] ?? 0) > 0;
 
-  const handleResult = (outcome: Outcome) => {
+  // Is this thing new to her? Then "I don't know yet" is a first look, not a mistake.
+  const fresh = isNew(id) && !again;
+
+  const handleResult = (outcome: Outcome, chosen?: string, dontKnow?: boolean) => {
     // A repeat straight after a miss earns no credit, except in Fix My Mistakes, where the repeats are the point.
-    const saved = onAnswer(id, outcome, !again || spec.kind === 'fix');
+    const saved = onAnswer(id, outcome, !again || spec.kind === 'fix', dontKnow === true);
     if (saved.fixed) setFixed((n) => n + 1);
     // A miss comes back later in this session. In Fix My Mistakes a right answer comes back too, until it is right twice.
     let askAgain = outcome !== 'right' || (spec.kind === 'fix' && saved.progress.fix !== undefined);
@@ -65,7 +72,7 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
       setRun((r) => answerRun(r, outcome, askAgain));
       window.scrollTo(0, 0);
     } else {
-      setResult({ outcome, askAgain });
+      setResult({ outcome, askAgain, chosen });
     }
   };
 
@@ -77,7 +84,14 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
   };
 
   const right = result?.outcome === 'right';
-  const showAnswer = result && !right && (item.type === 'choice' || item.type === 'pair' || item.type === 'order');
+  // For tap-an-answer questions: why the right answer is right, and why her choice was not.
+  const why = result && (item.type === 'choice' || item.type === 'pair') ? explainChoice(pack, item, result.chosen) : null;
+  const showAnswer = result && !right && item.type === 'order';
+  const simple = simpleWords(pack, item);
+  const examples = examplesFor(pack, item);
+  const exampleLine = examples && examples.length > 0 && (
+    <p className="example-line"><em>{examples.length === 1 ? 'Example: ' : 'Examples: '}</em>{examples.join(' · ')}</p>
+  );
 
   return (
     <div className="session">
@@ -92,14 +106,38 @@ export function SessionScreen({ spec, items, mistakeCount, onAnswer, onFinish, o
 
       <main className="session-body">
         {again && !result && <div className="again-tag">Back again. You've got this.</div>}
-        <ItemView key={`${id}:${run.index}`} item={item} locked={result !== null} onResult={handleResult} />
+        <ItemView key={`${id}:${run.index}`} item={item} locked={result !== null} onResult={handleResult} simple={simple} examples={examples} fresh={fresh} />
       </main>
 
       {result && (
         <footer className={`feedback ${right ? 'good' : 'retry'}`} role="status">
           <h2 className="feedback-head">{right ? '✓ Correct!' : 'Not quite. This one will come back.'}</h2>
           {showAnswer && <div className="feedback-answer"><span>Answer</span>{answerText(item)}</div>}
-          {item.explain && <p className="feedback-explain">{item.explain}</p>}
+          {why ? (
+            <div className="why-list">
+              {why.chosen && (
+                <div className="why not">
+                  <span>Why not "{why.chosen}"?</span>
+                  <p>{why.whyNot}</p>
+                </div>
+              )}
+              <div className="why yes">
+                <span>{right ? 'Why is that right?' : `Why "${why.correct}"?`}</span>
+                {simple && <p>{simple}</p>}
+                {exampleLine}
+                {why.whyRight && (
+                  <p className={simple ? 'teacher-words' : undefined}>
+                    {simple && <em>Your teacher's words: </em>}{why.whyRight}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="why-list">
+              {simple && <div className="why yes"><span>In simple words</span><p>{simple}</p>{exampleLine}</div>}
+              {item.explain && <p className="feedback-explain">{simple && <em>Your teacher's words: </em>}{item.explain}</p>}
+            </div>
+          )}
           <button type="button" className="btn primary" onClick={next} autoFocus>Continue</button>
         </footer>
       )}

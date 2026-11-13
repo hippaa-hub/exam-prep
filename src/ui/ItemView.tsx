@@ -9,13 +9,24 @@ import { DictationBox } from './Dictation';
 import { FillRows, type FillRow } from './FillRows';
 import { IdeaVerdict } from './IdeaVerdict';
 import { ListenRow } from './ListenRow';
+import { SimpleBox, spokenHelp } from './SimpleBox';
 import { readAloudOn, speak, stopSpeaking } from './speech';
 
 interface ViewProps<T extends Item> {
   item: T;
   /** True once she has answered: the view shows the marking and nothing can be changed. */
   locked: boolean;
-  onResult: (outcome: Outcome) => void;
+  /**
+   * `chosen` is the option she tapped, so the app can explain why it was or was not right.
+   * `dontKnow` is true when she said "I don't know yet" instead of answering.
+   */
+  onResult: (outcome: Outcome, chosen?: string, dontKnow?: boolean) => void;
+  /** True if she has never met this thing before: not knowing it yet is then a first look, not a mistake. */
+  fresh?: boolean;
+  /** The answer explained in simple words, shown beside the teacher's wording once she has answered. */
+  simple?: string;
+  /** A few short examples, shown with the simple words. */
+  examples?: string[];
 }
 
 export function ItemView(props: ViewProps<Item>) {
@@ -69,7 +80,7 @@ function ChoiceView({ item, locked, onResult }: ViewProps<ChoiceItem>) {
   const pick = (i: number) => {
     if (locked) return;
     setPicked(i);
-    if (!twoStep) onResult(i === item.answer ? 'right' : 'wrong');
+    if (!twoStep) onResult(i === item.answer ? 'right' : 'wrong', item.options[i]);
   };
 
   return (
@@ -89,7 +100,7 @@ function ChoiceView({ item, locked, onResult }: ViewProps<ChoiceItem>) {
           <textarea id={`why-${item.id}`} rows={2} value={why} readOnly={locked}
             onChange={(e) => setWhy(e.target.value)} placeholder="It matters because…" />
           {!locked && (
-            <button type="button" className="btn primary" onClick={() => onResult(picked === item.answer ? 'right' : 'wrong')}>
+            <button type="button" className="btn primary" onClick={() => onResult(picked === item.answer ? 'right' : 'wrong', item.options[picked])}>
               Check
             </button>
           )}
@@ -104,7 +115,7 @@ function PairView({ item, locked, onResult }: ViewProps<PairItem>) {
   const pick = (i: number) => {
     if (locked) return;
     setPicked(i);
-    onResult(i === item.answer ? 'right' : 'wrong');
+    onResult(i === item.answer ? 'right' : 'wrong', item.options[i]);
   };
   return (
     <div className="item">
@@ -206,12 +217,13 @@ function OrderView({ item, locked, onResult }: ViewProps<OrderItem>) {
   );
 }
 
-function TermView({ item, locked, onResult }: ViewProps<TermItem>) {
+function TermView({ item, locked, onResult, simple, examples, fresh }: ViewProps<TermItem>) {
   // 'front': the term only. 'checked': she answered and the app judged it. 'shown': she did not know, so it was shown to her.
   const [stage, setStage] = useState<'front' | 'checked' | 'shown'>('front');
   const [typed, setTyped] = useState('');
   const [aloud, setAloud] = useState(readAloudOn);
-  const cardText = `${item.term}. ${item.definition}`;
+  const cardText = `${item.term}. ${item.definition}${spokenHelp(simple, examples)}`;
+  const simpleBox = <SimpleBox simple={simple} examples={examples} />;
 
   // Stop reading when she moves on to the next question.
   useEffect(() => stopSpeaking, []);
@@ -247,19 +259,17 @@ function TermView({ item, locked, onResult }: ViewProps<TermItem>) {
         <>
           <div className="yours"><span>You said</span>{typed.trim()}</div>
           <IdeaVerdict ideas={item.ideas} text={typed} modelLabel="The teacher's definition" model={item.definition}
-            onDone={onResult} disabled={locked} />
+            simple={simple} examples={examples} onDone={(outcome) => onResult(outcome)} disabled={locked} />
           {listen}
         </>
       )}
       {stage === 'shown' && item.ideas && (
         <>
-          <section className="verdict retry" role="status">
-            <h3 className="verdict-word">Not yet</h3>
-            <p className="verdict-detail">Read it and listen to it. This one will come back.</p>
-          </section>
+          <FirstLookOrNotYet fresh={fresh} />
           <div className="teacher"><span>The teacher's definition</span>{item.definition}</div>
+          {simpleBox}
           {listen}
-          <button type="button" className="btn primary" disabled={locked} onClick={() => onResult('wrong')}>Continue</button>
+          <button type="button" className="btn primary" disabled={locked} onClick={() => onResult('wrong', undefined, true)}>Continue</button>
         </>
       )}
 
@@ -270,6 +280,7 @@ function TermView({ item, locked, onResult }: ViewProps<TermItem>) {
       {!item.ideas && stage !== 'front' && (
         <>
           <div className="teacher"><span>The teacher's definition</span>{item.definition}</div>
+          {simpleBox}
           {listen}
           <p className="hint">How close were you?</p>
           <div className="rate" role="group" aria-label="How close were you?">
@@ -283,12 +294,28 @@ function TermView({ item, locked, onResult }: ViewProps<TermItem>) {
   );
 }
 
+/** What she sees after "I don't know yet": a first look if it is new to her, otherwise "Not yet". */
+function FirstLookOrNotYet({ fresh }: { fresh?: boolean }) {
+  return fresh ? (
+    <section className="verdict first-look" role="status">
+      <h3 className="verdict-word">New for you</h3>
+      <p className="verdict-detail">Read it and listen to it. It will come back in a moment, so you can try.</p>
+    </section>
+  ) : (
+    <section className="verdict retry" role="status">
+      <h3 className="verdict-word">Not yet</h3>
+      <p className="verdict-detail">Read it and listen to it. This one will come back.</p>
+    </section>
+  );
+}
+
 /** A question answered in full sentences: she says or writes it, then the app checks it for the key ideas. */
-function ShortView({ item, locked, onResult }: ViewProps<ShortItem>) {
+function ShortView({ item, locked, onResult, simple, examples, fresh }: ViewProps<ShortItem>) {
   const [text, setText] = useState('');
   const [checked, setChecked] = useState(false);
+  const [shown, setShown] = useState(false);
   const [aloud, setAloud] = useState(readAloudOn);
-  const modelText = `The teacher's wording. ${item.model}`;
+  const modelText = `The teacher's wording. ${item.model}${spokenHelp(simple, examples)}`;
 
   useEffect(() => stopSpeaking, []);
 
@@ -297,6 +324,23 @@ function ShortView({ item, locked, onResult }: ViewProps<ShortItem>) {
     // The app says the verdict, then reads the teacher's wording.
     if (aloud) speak(`${verdictSentence(item, checkIdeas(text, item.ideas).found)} ${modelText}`);
   };
+  const show = () => {
+    setShown(true);
+    if (aloud) speak(modelText);
+  };
+
+  if (shown) {
+    return (
+      <div className="item">
+        <Prompt text={item.prompt} kicker="Say it or write it" />
+        <FirstLookOrNotYet fresh={fresh} />
+        <div className="teacher"><span>The teacher's wording</span>{item.model}</div>
+        <SimpleBox simple={simple} examples={examples} />
+        <ListenRow text={modelText} aloud={aloud} onAloud={setAloud} />
+        <button type="button" className="btn primary" disabled={locked} onClick={() => onResult('wrong', undefined, true)}>Continue</button>
+      </div>
+    );
+  }
 
   return (
     <div className="item">
@@ -304,13 +348,16 @@ function ShortView({ item, locked, onResult }: ViewProps<ShortItem>) {
       <DictationBox value={text} onChange={setText} readOnly={checked} rows={5} label="Your answer"
         placeholder="Answer in full sentences, as you will in the test." />
       {!checked ? (
-        <button type="button" className="btn primary" disabled={!hasEnoughWords(text)} onClick={check}>
-          Check my answer
-        </button>
+        <>
+          <button type="button" className="btn primary" disabled={!hasEnoughWords(text)} onClick={check}>
+            Check my answer
+          </button>
+          <button type="button" className="text-link" onClick={show}>I don't know yet. Show me.</button>
+        </>
       ) : (
         <>
           <IdeaVerdict ideas={item.ideas} need={item.need} text={text} modelLabel="The teacher's wording" model={item.model}
-            onDone={onResult} disabled={locked} />
+            simple={simple} examples={examples} onDone={(outcome) => onResult(outcome)} disabled={locked} />
           <ListenRow text={modelText} aloud={aloud} onAloud={setAloud} />
         </>
       )}

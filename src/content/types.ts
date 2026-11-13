@@ -47,6 +47,8 @@ export interface ChoiceItem extends ItemBase {
   options: string[];
   answer: number;
   set?: ChoiceSet;
+  /** Why a wrong option is wrong, keyed by the option's text. */
+  whyNot?: Record<string, string>;
 }
 
 /** This or That: one statement, two buttons. */
@@ -54,6 +56,8 @@ export interface PairItem extends ItemBase {
   type: 'pair';
   options: [string, string];
   answer: 0 | 1;
+  /** Why the other option is wrong, keyed by the option's text. */
+  whyNot?: Record<string, string>;
 }
 
 /** Match each thing on the left to the right answer from a shared set. */
@@ -167,6 +171,15 @@ export interface Pack {
   plan: PlanDay[];
   /** Advice for the test itself, from the teacher's material. Shown in the Guide. */
   examTips?: { title: string; points: string[] }[];
+  /** What each answer option means, in plain words, for explaining right and wrong answers. */
+  meanings?: Record<string, string>;
+  /**
+   * "In simple words": a short everyday explanation shown beside the teacher's wording.
+   * Keyed by a question's id, or by the thing to know it belongs to.
+   */
+  simple?: Record<string, string>;
+  /** A few short examples for each definition or idea, keyed like `simple`. */
+  examples?: Record<string, string[]>;
   /** The critical-thinking questions for the Argument Builder. */
   arguments?: ArgumentItem[];
   /** Practice exams. */
@@ -199,6 +212,16 @@ export function conceptOf(item: Item): ConceptId {
 /** The different things to know behind a list of questions, in order of first appearance. */
 export function conceptsOf(items: readonly Item[]): ConceptId[] {
   return [...new Set(items.map(conceptOf))];
+}
+
+/** The explanation in simple words for a question: its own, or the one for the thing it tests. */
+export function simpleWords(pack: Pick<Pack, 'simple'>, item: Item): string | undefined {
+  return pack.simple?.[item.id] ?? pack.simple?.[conceptOf(item)];
+}
+
+/** A few short examples for a question's definition or idea, if the pack has them. */
+export function examplesFor(pack: Pick<Pack, 'examples'>, item: Item): string[] | undefined {
+  return pack.examples?.[item.id] ?? pack.examples?.[conceptOf(item)];
 }
 
 /** A short name for a question, for lists (the mistakes list, the end-of-session summary). */

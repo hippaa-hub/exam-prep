@@ -28,6 +28,7 @@ interface Props {
   onTask: (task: Task) => void;
   /** A free round, once the tasks are done (or after the exam). */
   onExtra: () => void;
+  /** Opens the extra practice page. Offered only when the day's tasks are finished (or there are none). */
   onPractise: () => void;
   onGuide: () => void;
   /** Opens the parent's view (study time and the day-by-day tracker). */
@@ -56,7 +57,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
   }
   if (!next) return { text: `Hi ${name}!`, mood: 'wave' };
   if (doneCount === 0) {
-    return { text: `Hi ${name}! ${tasks.length} tasks for today. ${next.tip}`, mood: 'wave' };
+    return { text: `Hi ${name}! ${tasks.length} tasks for today. They open one at a time. ${next.tip}`, mood: 'wave' };
   }
   return { text: `Task ${doneCount + 1} of ${tasks.length}. ${next.tip}`, mood: next.kind === 'fix' ? 'think' : 'happy' };
 }
@@ -122,12 +123,23 @@ export function Home({
                     <span className="task-num" aria-hidden="true">✓</span>
                     <span className="task-text"><strong>{t.title}</strong><small>Done</small></span>
                   </div>
-                ) : (
-                  <button type="button" className={t === next ? 'task next' : 'task'} onClick={() => onTask(t)}>
+                ) : t === next ? (
+                  <button type="button" className="task next" onClick={() => onTask(t)}>
                     <span className="task-num" aria-hidden="true">{i + 1}</span>
                     <span className="task-text"><strong>{t.title}</strong><small>{t.detail}</small></span>
                     <span className="chev" aria-hidden="true">›</span>
                   </button>
+                ) : (
+                  // Later tasks stay locked until the one before is finished, so she does them in order.
+                  <div className="task locked" aria-disabled="true">
+                    <span className="task-num" aria-hidden="true">{i + 1}</span>
+                    <span className="task-text">
+                      <strong>{t.title}</strong>
+                      <small>Opens when you finish task {tasks.indexOf(next!) + 1}</small>
+                    </span>
+                    <span className="lock" aria-hidden="true">🔒</span>
+                    <span className="sr-only">Locked</span>
+                  </div>
                 )}
               </li>
             ))}
@@ -138,7 +150,7 @@ export function Home({
           <>
             <p className="done-today">{plan.phase === 'exam-day' ? '✓ Warm-up done. Good luck in your exam!' : "✓ Today's preparation is finished. Well done!"}</p>
             {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
-            <button type="button" className="btn ghost" onClick={onExtra}>Extra practice</button>
+            <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>
           </>
         ) : next ? (
           <button type="button" className="btn primary big" onClick={() => onTask(next)}>
@@ -146,10 +158,13 @@ export function Home({
             <small>{next.title}</small>
           </button>
         ) : (
-          <button type="button" className="btn primary big" onClick={onExtra}>
-            Practise
-            <small>A mixed quiz of everything</small>
-          </button>
+          <>
+            <button type="button" className="btn primary big" onClick={onExtra}>
+              Mixed quiz
+              <small>A mixed quiz of everything</small>
+            </button>
+            <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>
+          </>
         )}
       </section>
 
@@ -205,7 +220,6 @@ export function Home({
           {seenCount(all, progress)} of {things} things to know tried. Each one counts as fully learned once it has been
           right on three different days, so the ring grows day by day. A topic is ready at {READY_AT}%.
         </p>
-        <button type="button" className="btn ghost" onClick={onPractise}>Practise any topic</button>
       </section>
 
       <p className="muted small center">Your progress is saved on this phone only.</p>

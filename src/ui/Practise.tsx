@@ -15,10 +15,11 @@ interface Props {
   items: Map<ItemId, Item>;
   onArguments: () => void;
   onMock: (id: string) => void;
+  onBack: () => void;
 }
 
 const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: string }[] = [
-  { game: 'key-terms', title: 'Key Terms', blurb: 'Flashcards: say it, flip, rate yourself', icon: '🗂️', tone: 'blue' },
+  { game: 'key-terms', title: 'Key Terms', blurb: 'Flashcards: say what it means, and the app checks it', icon: '🗂️', tone: 'blue' },
   { game: 'this-or-that', title: 'This or That', blurb: 'The pairs that are easy to mix up', icon: '⚖️', tone: 'purple' },
   { game: 'which-system', title: 'Which system?', blurb: 'Monarchy, democracy or dictatorship', icon: '🏛️', tone: 'green' },
   { game: 'which-responsibility', title: 'Which responsibility?', blurb: 'What is the government doing here?', icon: '🛡️', tone: 'orange' },
@@ -26,15 +27,16 @@ const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: str
   { game: 'write', title: 'Say it or write it', blurb: 'Full-sentence answers, checked for the key ideas', icon: '🎤', tone: 'blue' },
 ];
 
-export function Practise({ pack, progress, onStart, onTable, mockResults, writing, items, onArguments, onMock }: Props) {
+export function Practise({ pack, progress, onStart, onTable, mockResults, writing, items, onArguments, onMock, onBack }: Props) {
   const all = itemsOf(pack);
   const groups = [...new Set(all.flatMap((it) => (it.type === 'table' ? [it.group] : [])))];
 
   return (
     <>
       <header className="page-head">
-        <h1>Practise</h1>
-        <p>Pick a game. Each round starts with the questions you know least.</p>
+        <button type="button" className="back-link" onClick={onBack}>‹ Back to Home</button>
+        <h1>More practice</h1>
+        <p>Extra, for when today's tasks are done. Pick a game. Each round starts with the questions you know least.</p>
       </header>
 
       <div className="tiles">

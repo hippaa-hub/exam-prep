@@ -12,7 +12,7 @@ const STEPS: { icon: string; title: string; text: string }[] = [
   {
     icon: '▶️',
     title: "Every day, finish today's tasks",
-    text: `Home lists a few tasks for the day: two rounds of up to ${TODAY_SIZE} questions, one special activity, and Fix My Mistakes. Press Start and follow them in order. When all are ticked, today's preparation is finished. Stop there.`,
+    text: `Home lists a few tasks for the day: two rounds of up to ${TODAY_SIZE} questions, one special activity, and Fix My Mistakes. They open one at a time, so just press Start. When all are ticked, today's preparation is finished. If you want more, "More practice" appears then.`,
   },
   {
     icon: '🧠',
@@ -47,7 +47,7 @@ const STEPS: { icon: string; title: string; text: string }[] = [
   {
     icon: '📋',
     title: 'Fill the tables from memory',
-    text: 'The test asks you to compare systems and countries. In Practise, fill the two tables without looking, check, and try again until every row is right.',
+    text: 'The test asks you to compare systems and countries. When a table is one of your tasks, fill it without looking, check it, and try again until every row is right.',
   },
 ];
 

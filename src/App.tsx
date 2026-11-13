@@ -142,10 +142,15 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const byId = new Map<ItemId, Item>(itemsOf(pack).map((it) => [it.id, it]));
 
   /** Save one answer straight away, so nothing is lost if the app is closed mid-session. */
-  const answer = (id: ItemId, outcome: Outcome, credit = true, countTime = true): { progress: ConceptProgress; fixed: boolean } => {
+  const answer = (
+    id: ItemId, outcome: Outcome, credit = true, countTime = true, dontKnow = false,
+  ): { progress: ConceptProgress; fixed: boolean } => {
     const concept = conceptOf(byId.get(id)!);
     const before = (savedRef.current?.packs[pack.id] ?? emptyPackSave()).progress[concept];
-    const after = applyAnswer(before, outcome, today, id, credit);
+    // "I don't know yet" about something she has never met is a first look, not a mistake:
+    // it is recorded as seen, stays at level 0 and does not go to Fix My Mistakes.
+    const firstLook = dontKnow && (before?.seen ?? 0) === 0;
+    const after = applyAnswer(before, firstLook ? 'almost' : outcome, today, id, credit);
     const fixed = before?.fix !== undefined && after.fix === undefined;
     // Study time: the time since the last answer, ignoring long pauses.
     const tick = now().getTime();
@@ -307,7 +312,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         spec={view.spec}
         items={byId}
         pack={pack}
-        onAnswer={answer}
+        onAnswer={(id, outcome, credit, firstLook) => answer(id, outcome, credit, true, firstLook)}
+        isNew={(id) => (currentSave().progress[conceptOf(byId.get(id)!)]?.seen ?? 0) === 0}
         onFinish={(summary) => finish(view.spec, summary)}
         onExit={() => goTab(view.spec.kind === 'practice' && !view.spec.guided ? 'practise' : 'home')}
         onFix={() => startFix(false)}
@@ -403,6 +409,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             onTable={(group) => openTable(group)}
             onArguments={() => go({ name: 'arguments' })}
             onMock={(id) => openMock(id)}
+            onBack={() => goTab('home')}
           />
         )}
         {tab === 'guide' && <Guide pack={pack} today={today} onParent={() => go({ name: 'parent', key: nextKey.current++ })} />}

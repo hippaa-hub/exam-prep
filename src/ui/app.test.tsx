@@ -61,8 +61,14 @@ describe('the app', () => {
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '0% ready' })).toBeInTheDocument();
     // Home lists today's tasks and Lola says how to do the first one.
-    expect(screen.getByRole('list', { name: "Today's tasks" })).toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent(/3 tasks for today\. Close your notes and answer from memory/);
+    // The bottom bar has no Practise: it is extra, and only offered when the day's tasks are finished.
+    const bar = screen.getByRole('navigation');
+    expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['🏠Home', '🔧Fix', '📖Guide']);
+    expect(screen.queryByRole('button', { name: 'More practice' })).toBeNull();
+    const list = screen.getByRole('list', { name: "Today's tasks" });
+    expect(within(list).getAllByRole('button')).toHaveLength(1); // only the first task can be opened
+    expect(within(list).getByRole('button')).toHaveTextContent('Round 1');
+    expect(screen.getByRole('status')).toHaveTextContent(/3 tasks for today\. They open one at a time\. Say or type your answers from memory/);
     expect(screen.getByText('Exam: Wednesday 18 November')).toBeInTheDocument();
   });
 
@@ -81,7 +87,16 @@ describe('the app', () => {
     // Reopen: same saved data, a fresh app. Round 1 is ticked and the mistake is waiting in today's tasks.
     render(<App store={store} packs={[pack]} now={friday} />);
     expect(await screen.findByText('1 of 3 done')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /Fix My Mistakes.*1 question waiting/ }));
+
+    // Tasks open one at a time: Round 2 is next, and Fix My Mistakes stays locked until it is finished.
+    const tasks = screen.getByRole('list', { name: "Today's tasks" });
+    expect(within(tasks).getByRole('button', { name: /Round 2/ })).toBeInTheDocument();
+    expect(within(tasks).queryByRole('button', { name: /Fix My Mistakes/ })).toBeNull();
+    expect(within(tasks).getByText('Opens when you finish task 2')).toBeInTheDocument();
+
+    // The Fix tab is always open, so the mistake itself can still be found there.
+    await user.click(within(screen.getByRole('navigation')).getByRole('button', { name: /Fix/ }));
+    await user.click(screen.getByRole('button', { name: 'Fix 1 question' }));
     expect(screen.getByText('Where does power come from in a democracy?')).toBeInTheDocument();
 
     // Right twice, and it leaves the list.
@@ -91,8 +106,7 @@ describe('the app', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.getByText('Good fixing!')).toBeInTheDocument();
 
-    // Fixing it left nothing else to practise today, so that was the last task: the day is finished.
-    expect(screen.getByText(/Today's preparation is finished!/)).toBeInTheDocument();
+    // Fixing it left nothing else to practise today, so every task is now done.
     await user.click(screen.getByRole('button', { name: 'Done' }));
     expect(within(screen.getByRole('main')).getByText('3 of 3 done')).toBeInTheDocument();
     expect(store.current?.packs['test-pack'].daysDone).toEqual(['2026-11-13']);
@@ -108,6 +122,10 @@ describe('the app', () => {
     expect(screen.getByText(/Today's preparation is finished!/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.getByText(/Today's preparation is finished. Well done!/)).toBeInTheDocument();
+    // Now that everything is ticked, extra practice is offered.
+    await user.click(screen.getByRole('button', { name: 'More practice' }));
+    expect(screen.getByRole('heading', { name: 'More practice' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Back to Home/ }));
     expect(store.current?.packs['test-pack'].sessions).toHaveLength(1);
     expect(store.current?.packs['test-pack'].points).toBe(10);
     expect(screen.getByRole('img', { name: '33% ready' })).toBeInTheDocument(); // right once, on one day

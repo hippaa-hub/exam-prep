@@ -3,7 +3,7 @@
 // She writes every answer: there is no microphone and nothing is read aloud here.
 import { useEffect, useRef, useState } from 'react';
 import type { Item, ItemId, MockExam, Pack, ShortItem } from '../content/types';
-import { ARGUMENT_BOXES, ARGUMENT_CHECKLIST } from '../content/types';
+import { ARGUMENT_BOXES, ARGUMENT_CHECKLIST, examplesFor, simpleWords } from '../content/types';
 import { formatDuration } from '../engine/time';
 import { mockScore, whatToFix, type MockAnswerA, type MockAnswerB, type MockResult } from '../engine/writing';
 import { ArgumentBoxes, ArgumentText, Checklist, emptyTicks } from './ArgumentBoxes';
@@ -172,7 +172,7 @@ export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, 
               <>
                 <div className="yours"><span>Your answer</span>{answers[page].trim() || '(nothing written)'}</div>
                 <IdeaVerdict key={page} ideas={partA[page].ideas} need={partA[page].need} text={answers[page]}
-                  modelLabel="The teacher's wording" model={partA[page].model}
+                  modelLabel="The teacher's wording" model={partA[page].model} simple={simpleWords(pack, partA[page])} examples={examplesFor(pack, partA[page])}
                   doneLabel={page < total - 1 ? 'Next answer' : 'See my result'}
                   onDone={(_outcome, ticks) => {
                     const a = ticksA.map((t, i) => (i === page ? ticks : t));

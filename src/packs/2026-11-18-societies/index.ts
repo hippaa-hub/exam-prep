@@ -11,10 +11,15 @@ import { s2 } from './s2';
 import { s3 } from './s3';
 import { s4 } from './s4';
 import { s5 } from './s5';
+import { examples, meanings, simple, whyNot } from './why';
 import { written } from './written';
 
-/** Adds a topic's written questions to its other questions. */
-const withWritten = (t: Topic): Topic => ({ ...t, items: [...t.items, ...(written[t.id] ?? [])] });
+/** Adds a topic's written questions to its other questions, and the reasons why wrong answers are wrong. */
+const withWritten = (t: Topic): Topic => ({
+  ...t,
+  items: [...t.items, ...(written[t.id] ?? [])].map((it) =>
+    ((it.type === 'choice' || it.type === 'pair') && whyNot[it.id] ? { ...it, whyNot: whyNot[it.id] } : it)),
+});
 
 export const pack: Pack = {
   id: '2026-11-18-societies',
@@ -23,6 +28,9 @@ export const pack: Pack = {
   date: '2026-11-18',
   criteria: ['A: knowing and understanding', 'D: thinking critically'],
   topics: [g1, g2, g3, g4, s1, s2, s3, s4, s5].map(withWritten),
+  meanings,
+  simple,
+  examples,
   arguments: argumentQuestions,
   mocks,
   plan: [

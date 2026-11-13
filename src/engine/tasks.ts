@@ -30,13 +30,13 @@ export const GAME_TITLES: Record<Game, string> = {
 };
 
 const GAME_TIPS: Record<Game, string> = {
-  'key-terms': 'Say the whole definition out loud before you flip the card. Be honest when you rate yourself.',
-  'this-or-that': 'Go slowly. These are the pairs that lose marks, so read each one twice.',
-  'which-system': 'Look for the clue: who holds the power, and how did they get it?',
+  'key-terms': 'Say or type what each word means, and I will check it. Then read the simple words and the examples.',
+  'this-or-that': 'Go slowly: these pairs are easy to mix up. After each one, read why your choice was right or not.',
+  'which-system': 'Look for the clue: who holds the power, and how did they get it? Then read why.',
   'which-responsibility': 'Pick the responsibility, then write one sentence saying why it matters.',
   tables: 'Fill every box without looking, then check.',
-  quiz: 'Answer from memory, then read the teacher\'s wording.',
-  write: 'Write full sentences, as you will in the test. Then tick the ideas you really had.',
+  quiz: 'Answer from memory. Then read why the right answer is right.',
+  write: 'Say or type a full sentence, as you will in the test. I will tell you how close you were.',
 };
 
 export const gameTaskId = (game: Game) => `game:${game}`;
@@ -76,7 +76,7 @@ export function tasksFor(
   if (plan.mock) {
     tasks.push({
       id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: 'Like the real test · about 35 min',
-      tip: 'Do it like the real test: notes closed, and write every answer in full sentences. You mark it at the end, and it shows you what to fix.',
+      tip: 'Do it like the real test: notes closed, and write every answer yourself. No microphone here. At the end it shows you what to fix.',
       done: didTask(mockTaskId(plan.mock)),
     });
   }
@@ -84,7 +84,7 @@ export function tasksFor(
   tasks.push({
     id: 'round-1', kind: 'round', title: plan.mock ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
-    tip: "Close your notes and answer from memory. After each answer, read your teacher's wording once in your head.",
+    tip: 'Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
     done: rounds >= 1,
   });
 
@@ -104,7 +104,7 @@ export function tasksFor(
     } else {
       tasks.push({
         id: ARGUMENT_TASK, kind: 'argument', title: 'Argument Builder', detail: 'One question · about 10 min',
-        tip: 'Fill all four boxes in your own words: your argument, a country example, how power is distributed, and another view. The example answer comes after you finish.',
+        tip: 'Say or type your own ideas in all four boxes: your argument, a country example, how power is distributed, and another view.',
         done: didTask(ARGUMENT_TASK),
       });
     }
@@ -117,7 +117,7 @@ export function tasksFor(
     tasks.push({
       id: 'round-2', kind: 'round', title: 'Round 2: what is left',
       detail: round2Done ? 'Done' : rounds >= 1 ? questions(size) : 'After round 1',
-      tip: 'A second go at what is left, with a few things from earlier days mixed in. Coming back to them is what makes them stay.',
+      tip: 'A second go at what you met today, with a few things from earlier days. Try to answer before you tap "I don\'t know yet".',
       done: round2Done,
     });
   }
@@ -128,7 +128,7 @@ export function tasksFor(
   tasks.push({
     id: 'fix', kind: 'fix', title: 'Fix My Mistakes',
     detail: mistakes > 0 ? `${mistakes} question${mistakes === 1 ? '' : 's'} waiting` : 'Nothing to fix',
-    tip: 'Each question leaves the list when you get it right twice. Mistakes here are useful: they show what to practise.',
+    tip: 'These are the ones you missed. Each one leaves the list when you get it right twice.',
     done: before && (mistakes === 0 || fixedToday),
   });
   return tasks;

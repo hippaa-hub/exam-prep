@@ -5,9 +5,9 @@ import type { Topic } from '../../content/types';
 const GK: [string, string] = ['Gaining power', 'Keeping power'];
 const DD: [string, string] = ['Democracy', 'Dictatorship'];
 const CP: [string, string] = ['Censorship', 'Propaganda'];
-const gained = 'How power is gained: military coup, revolution, manipulated elections, political crisis.';
-const kept = 'How power is kept: control of the military and security forces, censorship, suppression of opposition, propaganda, fear and intimidation.';
-const features = 'Features of dictatorship: concentrated power; opposition restricted; elections absent or not genuinely competitive; limited freedom of speech; controlled media; security forces, censorship and intimidation.';
+const gained = 'This is a way of gaining power. Power is gained by a military coup, a revolution, manipulated elections or a political crisis.';
+const kept = 'This is a way of keeping power. Power is kept by controlling the military and security forces, censorship, suppressing opposition, propaganda, and fear and intimidation.';
+const features = 'This is a dictatorship. Power is concentrated, opposition is restricted, elections are absent or not really competitive, and the media are controlled.';
 const cp = 'Censorship is controlling information. Propaganda is shaping public opinion in a leader\'s favour.';
 
 export const s3: Topic = {

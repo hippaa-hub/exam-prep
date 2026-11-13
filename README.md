@@ -12,13 +12,24 @@ No login, no server, no adverts.
   task is next and how to do it well.
 - **Today's tasks**: Round 1 of today's questions, the day's special activity (flashcards, a table, This or That,
   or the Argument Builder), Round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
-  After each task the app offers the next. When every task is ticked, **today's preparation is finished**,
+  The tasks open one at a time: only the next one can be started, and the ones after it are grey and locked
+  until it is finished. After each task the app offers the next. When every task is ticked, **today's preparation is finished**,
   the day gets a tick in the plan, and she is told to stop. The day before the exam starts with the **Mock Exam**;
   exam morning is a three-minute warm-up and a good-luck message.
 - **Say it or write it**: questions answered in full sentences, as in the test. She taps the microphone and says
   her answer (or types it). Only then does the app check it for the key ideas, say which it found and which are
   missing, and show the teacher's wording. Spelling slips are accepted and the right spelling is shown.
   If the app misheard, "The app missed something I said" lets her correct it. Flashcards work the same way.
+- **Why right, why not**: after every multiple-choice or this-or-that question the app says, in short plain sentences
+  for a Grade 7 reader, why her choice was not right and why the right answer is. When she is right it still says why.
+  The reasons live in `src/packs/<pack>/why.ts`; a check makes sure every option has one.
+- **In simple words, with examples**: wherever the teacher's definition or wording is shown (flashcards, written
+  answers, the "why" after a question), the same thing is given in one plain sentence with a few short examples,
+  and read aloud with it on flashcards.
+  The teacher's wording is what to write in the test; the simple words are there to make it make sense.
+- **First look**: the first time she meets a definition or written question and taps "I don't know yet", it is
+  shown and read to her and comes back later in the round, but it is not counted as a mistake. After that,
+  not knowing it counts as "Not yet" and goes to Fix My Mistakes.
 - **Flashcards read themselves aloud** when flipped (the term, then the teacher's definition), with "Hear it again"
   and a switch to turn reading off. This uses the phone's own voice and works without the internet.
 - **Argument Builder**: the teacher's six thinking questions. Four boxes (argument, country example, how power
@@ -27,8 +38,10 @@ No login, no server, no adverts.
   there is no microphone and nothing is read aloud in the mock exam. No help until she hands in.
   Then marking against the teacher's wording, and a "what to fix" list; missed Part A answers go to Fix My Mistakes.
   Unfinished writing is saved, so closing the app half-way loses nothing.
-- **Practise**: Key Terms, This or That, Which system?, Which responsibility?, Quick Quiz, Say it or write it,
-  the two tables, the Argument Builder, both mock exams, and practice by topic. For extra practice.
+- **More practice** (extra): Key Terms, This or That, Which system?, Which responsibility?, Quick Quiz,
+  Say it or write it, the two tables, the Argument Builder, both mock exams, and practice by topic.
+  It is not in the bottom bar (Home, Fix, Guide). Home offers it only once the day's tasks are all ticked,
+  because the daily tasks already cover everything she needs for the test.
 - **Fix**: only the questions she missed, until each is right twice.
 - **For parents** (a small link at the bottom of Home, and in the Guide): how long she studied today and on each day,
   whether she finished each day's tasks, questions answered, mock exam results, her written arguments and exam

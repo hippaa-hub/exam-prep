@@ -2,10 +2,10 @@
 import { choice, resp, withConcepts } from '../../content/build';
 import type { Topic } from '../../content/types';
 
-const order = 'Maintaining public order: laws and regulations, public safety, preventing crime, resolving disputes.';
-const protect = 'Protecting citizens: safety and rights, emergencies, defence.';
-const services = 'Providing public services: education, healthcare, roads, water.';
-const enforce = 'Enforcing laws: making sure laws are followed, investigating, legal consequences.';
+const order = 'This is maintaining public order. That means laws and regulations, public safety, preventing crime and resolving disputes.';
+const protect = 'This is protecting citizens. That means safety and rights, emergencies and defence.';
+const services = 'This is providing public services. That means education, healthcare, roads and water.';
+const enforce = 'This is enforcing laws. That means making sure laws are followed, investigating, and legal consequences.';
 
 export const g4: Topic = {
   id: 'G4',
@@ -17,8 +17,8 @@ export const g4: Topic = {
     resp('g4-schools', 'The government funds public schools.', 'Providing public services', services),
     resp('g4-earthquake', 'Emergency services respond to an earthquake.', 'Protecting citizens', protect),
     resp('g4-courts', 'Courts deal with people who break the law.', 'Enforcing laws', enforce),
-    resp('g4-stealing', 'A person is arrested for stealing.', 'Enforcing laws', 'Enforcing laws. It protects property rights.'),
-    resp('g4-hospital', 'The government builds a hospital.', 'Providing public services', 'Providing public services. It gives people access to healthcare.'),
+    resp('g4-stealing', 'A person is arrested for stealing.', 'Enforcing laws', 'This is enforcing laws: someone broke the law and faces the consequences. It protects property rights.'),
+    resp('g4-hospital', 'The government builds a hospital.', 'Providing public services', 'This is providing public services: a hospital gives people access to healthcare.'),
 
     // New situations, same four responsibilities
     resp('g4-defence', "The armed forces defend the country.", 'Protecting citizens', protect),

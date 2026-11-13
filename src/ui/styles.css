@@ -162,6 +162,11 @@ button { cursor: pointer; touch-action: manipulation; }
 button.task:active { border-bottom-width: 2px; transform: translateY(2px); }
 .task.next { border-color: var(--accent); background: var(--accent-soft); }
 .task.done { border-bottom-width: 2px; background: transparent; border-color: transparent; padding-top: 4px; padding-bottom: 4px; min-height: 48px; }
+.task.locked { background: #f1f1f1; border-color: #e2e2e2; border-bottom-width: 2px; color: #9a9a9a; }
+.task.locked .task-text strong { color: #8a8a8a; }
+.task.locked .task-text small { color: #9a9a9a; }
+.task.locked .task-num { background: #e9e9e9; border-color: #dcdcdc; color: #a3a3a3; }
+.lock { flex: none; font-size: 1.05rem; opacity: 0.6; filter: grayscale(1); }
 .task-num {
   width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 900;
   background: var(--bg); color: var(--ink-soft); border: 2px solid var(--line);
@@ -240,6 +245,7 @@ button.task:active { border-bottom-width: 2px; transform: translateY(2px); }
 /* ---- Practise ---- */
 .page-head { display: flex; flex-direction: column; gap: 4px; }
 .page-head p { color: var(--ink-soft); }
+.back-link { align-self: flex-start; min-height: 44px; padding: 4px 8px 4px 0; border: 0; background: transparent; color: var(--accent-dark); font-weight: 800; font-size: 0.95rem; }
 .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .tile {
   background: var(--card); border: 2px solid var(--line); border-bottom-width: 4px; border-radius: var(--radius); padding: 14px;
@@ -373,6 +379,7 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .verdict { border-radius: 14px; padding: 14px; border: 2px solid; display: flex; flex-direction: column; gap: 8px; }
 .verdict.good { background: var(--green-soft); border-color: var(--green); color: var(--green-ink); }
 .verdict.retry { background: var(--orange-soft); border-color: var(--orange); color: var(--orange-ink); }
+.verdict.first-look { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent-dark); }
 .verdict-word { font-size: 1.5rem; font-weight: 900; line-height: 1.1; }
 .verdict-detail { font-weight: 800; }
 .closeness { display: flex; gap: 6px; }
@@ -431,6 +438,13 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .yours { background: #fff; }
 .teacher { background: var(--green-soft); border-color: var(--green); color: var(--green-ink); font-weight: 800; }
 .yours span, .teacher span, .feedback-answer span { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.8; }
+.simple { border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; font-size: 1.02rem; font-weight: 700; background: var(--blue-soft); border: 2px solid #9fd8f7; color: #0a4563; }
+.simple span { font-size: 0.75rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; }
+.simple p + span { margin-top: 8px; }
+.examples { display: flex; flex-direction: column; gap: 4px; }
+.examples li { position: relative; padding-left: 18px; }
+.examples li::before { content: ''; position: absolute; left: 3px; top: 0.6em; width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+.why .example-line { font-size: 0.92rem; }
 .rate { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .rate .btn { padding: 8px 4px; font-size: 0.92rem; min-height: 60px; color: #fff; }
 .rate-good { background: var(--green); box-shadow: 0 4px 0 var(--green-dark); color: #173a00 !important; }
@@ -456,6 +470,17 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .feedback.retry { background: var(--orange-soft); border-color: var(--orange); color: var(--orange-ink); }
 .feedback-answer { display: flex; flex-direction: column; font-weight: 800; white-space: pre-line; }
 .feedback-explain { font-size: 0.98rem; font-weight: 700; }
+.why-list { display: flex; flex-direction: column; gap: 8px; }
+.why { border-radius: 12px; padding: 10px 12px; background: rgba(255, 255, 255, 0.72); border-left: 5px solid; display: flex; flex-direction: column; gap: 2px; }
+.why span { font-size: 0.86rem; font-weight: 900; }
+.why p { font-size: 0.98rem; font-weight: 700; color: var(--ink); line-height: 1.4; }
+.why .teacher-words { font-size: 0.9rem; font-weight: 600; color: var(--ink-soft); margin-top: 4px; }
+.why em, .feedback-explain em { font-style: normal; font-weight: 800; }
+.why.not { border-color: var(--orange); }
+.why.not span { color: var(--orange-ink); }
+.why.yes { border-color: var(--green); }
+.why.yes span { color: var(--green-ink); }
+.feedback { max-height: 78dvh; overflow-y: auto; }
 @keyframes rise { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 /* Argument Builder and the mock exam */
