@@ -1,0 +1,211 @@
+import type { DateKey, Pack } from '../content/types';
+import { conceptsOf, itemsOf } from '../content/types';
+import { addDays, formatLong, formatShort } from '../engine/dates';
+import type { TodayPlan } from '../engine/plan';
+import { READY_AT, packReadiness, seenCount, topicReadiness, type ProgressMap } from '../engine/progress';
+import { nextTask, type Task } from '../engine/tasks';
+import { Mascot, type Mood } from './Mascot';
+import { Ring } from './Ring';
+
+interface Props {
+  pack: Pack;
+  plan: TodayPlan;
+  progress: ProgressMap;
+  points: number;
+  today: DateKey;
+  name: string;
+  /** Today's tasks, in order. When all are done, the preparation for today is finished. */
+  tasks: Task[];
+  finished: boolean;
+  /** The days on which every task was finished. */
+  daysDone: DateKey[];
+  /** What tomorrow is for, if there is a tomorrow before the exam. */
+  tomorrow?: string;
+  /** True until the Guide has been opened once. */
+  showGuideHint: boolean;
+  onTask: (task: Task) => void;
+  /** A free round, once the tasks are done (or after the exam). */
+  onExtra: () => void;
+  onPractise: () => void;
+  onGuide: () => void;
+  /** Opens the parent's view (study time and the day-by-day tracker). */
+  onParent: () => void;
+}
+
+function countdown(daysToGo: number): { big: string; small: string } {
+  if (daysToGo > 1) return { big: String(daysToGo), small: 'days to go' };
+  if (daysToGo === 1) return { big: '1', small: 'day to go' };
+  if (daysToGo === 0) return { big: 'Today', small: 'is exam day' };
+  return { big: 'Done', small: 'past exam' };
+}
+
+/** What Lola says on Home: always the one next thing to do, and how to do it well. */
+function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: string): { text: string; mood: Mood } {
+  const next = nextTask(tasks);
+  const doneCount = tasks.filter((t) => t.done).length;
+  if (plan.phase === 'past') return { text: `The exam is done. Well done, ${name}! You can still practise here.`, mood: 'happy' };
+  if (plan.phase === 'exam-day') {
+    return finished
+      ? { text: `Warm-up done. You are ready, ${name}. Go and show what you know. Good luck!`, mood: 'cheer' }
+      : { text: `Today is the day, ${name}! One quick warm-up of your weakest questions. Nothing new.`, mood: 'wave' };
+  }
+  if (finished) {
+    return { text: "Today's preparation is finished! Close the app and rest. Your brain keeps working on it while you sleep.", mood: 'cheer' };
+  }
+  if (!next) return { text: `Hi ${name}!`, mood: 'wave' };
+  if (doneCount === 0) {
+    return { text: `Hi ${name}! ${tasks.length} tasks for today. ${next.tip}`, mood: 'wave' };
+  }
+  return { text: `Task ${doneCount + 1} of ${tasks.length}. ${next.tip}`, mood: next.kind === 'fix' ? 'think' : 'happy' };
+}
+
+export function Home({
+  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, onTask, onExtra, onPractise, onGuide, onParent,
+}: Props) {
+  const ready = packReadiness(pack, progress);
+  const cd = countdown(plan.daysToGo);
+  const topicName = (id: string) => pack.topics.find((t) => t.id === id)?.short ?? id;
+  const all = itemsOf(pack);
+  const things = conceptsOf(all).length;
+  const lola = lolaSays(plan, tasks, finished, name);
+  const next = nextTask(tasks);
+  const doneCount = tasks.filter((t) => t.done).length;
+
+  return (
+    <>
+      <header className="home-head">
+        <div>
+          <div className="eyebrow">{pack.subject}</div>
+          <h1>{pack.title}</h1>
+        </div>
+        <span className="points" aria-label={`${points} points`}>⭐ {points}</span>
+      </header>
+
+      <section className="card countdown-card" aria-label="Countdown and readiness">
+        <div className="countdown">
+          <div className="countdown-main"><strong>{cd.big}</strong><span>{cd.small}</span></div>
+          <small>Exam: {formatLong(pack.date)}</small>
+        </div>
+        <Ring value={ready} size={84} />
+      </section>
+
+      <div className="hero">
+        <Mascot mood={lola.mood} size={104} />
+        <div className="bubble" role="status">{lola.text}</div>
+      </div>
+
+      <section className={finished ? 'card today-card tint-good' : 'card today-card'} aria-labelledby="today-h">
+        <div className="card-top">
+          <span className="card-kicker">Today · {formatShort(today)}</span>
+          {tasks.length > 0 && <span className="count-chip">{doneCount} of {tasks.length} done</span>}
+        </div>
+        <h2 id="today-h">{plan.label}</h2>
+        {plan.catchUp.length > 0 && (
+          <ul className="chip-list">
+            {plan.topics.map((t) => (
+              <li key={t} className={plan.catchUp.includes(t) ? 'catch-up' : undefined}>{topicName(t)}</li>
+            ))}
+          </ul>
+        )}
+        {plan.catchUp.length > 0 && <p className="muted small">A day was missed, so the plan is spread over the days left.</p>}
+
+        {tasks.length > 0 && (
+          <ol className="tasks" aria-label="Today's tasks">
+            {tasks.map((t, i) => (
+              <li key={t.id}>
+                {t.done ? (
+                  <div className="task done">
+                    <span className="task-num" aria-hidden="true">✓</span>
+                    <span className="task-text"><strong>{t.title}</strong><small>Done</small></span>
+                  </div>
+                ) : (
+                  <button type="button" className={t === next ? 'task next' : 'task'} onClick={() => onTask(t)}>
+                    <span className="task-num" aria-hidden="true">{i + 1}</span>
+                    <span className="task-text"><strong>{t.title}</strong><small>{t.detail}</small></span>
+                    <span className="chev" aria-hidden="true">›</span>
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {finished ? (
+          <>
+            <p className="done-today">✓ Today's preparation is finished. Well done!</p>
+            {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
+            <button type="button" className="btn ghost" onClick={onExtra}>Extra practice</button>
+          </>
+        ) : next ? (
+          <button type="button" className="btn primary big" onClick={() => onTask(next)}>
+            {doneCount === 0 ? 'Start' : 'Next task'}
+            <small>{next.title}</small>
+          </button>
+        ) : (
+          <button type="button" className="btn primary big" onClick={onExtra}>
+            Practise
+            <small>A mixed quiz of everything</small>
+          </button>
+        )}
+      </section>
+
+      {showGuideHint && (
+        <button type="button" className="card link-card tint-accent" onClick={onGuide}>
+          <span className="link-icon" aria-hidden="true">📖</span>
+          <span>
+            <strong>New here? How to get ready</strong>
+            <span className="muted">Seven steps to use these days well. One minute to read.</span>
+          </span>
+          <span className="chev" aria-hidden="true">›</span>
+        </button>
+      )}
+
+      <section className="card" aria-labelledby="plan-h">
+        <h2 id="plan-h">The plan</h2>
+        <ol className="plan">
+          {pack.plan.map((d) => {
+            const date = addDays(pack.date, d.day);
+            const state = date === today ? 'now' : date < today ? 'past' : 'next';
+            const done = daysDone.includes(date);
+            return (
+              <li key={d.day} className={done ? `${state} finished` : state}>
+                <span className="plan-date">{formatShort(date)}</span>
+                <span className="plan-label">{d.label}{done && <span className="plan-tick"> ✓<span className="sr-only"> finished</span></span>}</span>
+              </li>
+            );
+          })}
+          <li className={pack.date === today ? 'now' : pack.date < today ? 'past' : 'next'}>
+            <span className="plan-date">{formatShort(pack.date)}</span>
+            <span className="plan-label">Exam day: a three-minute warm-up</span>
+          </li>
+        </ol>
+      </section>
+
+      <section className="card" aria-labelledby="ready-h">
+        <h2 id="ready-h">How ready am I?</h2>
+        <ul className="topics">
+          {pack.topics.map((t) => {
+            const pct = topicReadiness(t, progress);
+            return (
+              <li key={t.id}>
+                <div className="topic-line">
+                  <span>{t.short}</span>
+                  <span className={pct >= READY_AT ? 'pct ready' : 'pct'}>{pct >= READY_AT ? '✓ ' : ''}{pct}%</span>
+                </div>
+                <div className="meter"><div className={pct >= READY_AT ? 'meter-fill ready' : 'meter-fill'} style={{ width: `${pct}%` }} /></div>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="muted small">
+          {seenCount(all, progress)} of {things} things to know tried. Each one counts as fully learned once it has been
+          right on three different days, so the ring grows day by day. A topic is ready at {READY_AT}%.
+        </p>
+        <button type="button" className="btn ghost" onClick={onPractise}>Practise any topic</button>
+      </section>
+
+      <p className="muted small center">Your progress is saved on this phone only.</p>
+      <button type="button" className="text-link" onClick={onParent}>For parents</button>
+    </>
+  );
+}

@@ -1,0 +1,82 @@
+// G3: why societies need government; institutions and their jobs; the three levels of decisions.
+import { choice, level, match, withConcepts } from '../../content/build';
+import type { Topic } from '../../content/types';
+
+const levels = 'Individual: your own choices, inside the law. Local: councils (waste collection, parks). National: the state (education policy, laws, healthcare, taxes).';
+const model = 'Societies need governments because people have different needs, interests and opinions, and they need an organised system to make collective decisions.';
+
+export const g3: Topic = {
+  id: 'G3',
+  title: 'Why societies need government',
+  short: 'Why government?',
+  items: withConcepts([
+    choice('g3-why-1', 'Societies need governments because people have different needs, interests and opinions. So what do they need?',
+      'An organised system to make collective decisions',
+      ['One person who decides everything', 'A society with no rules', 'A king or queen'], model),
+    choice('g3-why-2', 'Why do governments establish and enforce laws?',
+      'To maintain public order and protect citizens',
+      ['To stop citizens taking part', 'To keep power in one family', 'To replace public services'],
+      'Governments establish and enforce laws to maintain public order and protect citizens.'),
+    choice('g3-why-3', 'Which services does the model answer say governments provide?',
+      'Education, healthcare and transport',
+      ['Censorship and propaganda', 'Referendums and initiatives', 'Inheritance and succession'],
+      'They also provide services such as education, healthcare and transport.'),
+    choice('g3-why-4', 'Without effective governance, what becomes harder?',
+      'Resolving conflicts, protecting rights and organising shared resources',
+      ['Choosing a monarch', 'Holding a military coup', 'Agreeing classroom rules'],
+      'Without effective governance it is harder to resolve conflicts, protect rights and organise shared resources.'),
+    choice('g3-island', 'On the island, the class organised a community, made decisions and set rules. What is the link to real societies?',
+      'Real societies face the same problems, with millions of people',
+      ['Real societies do not need rules', 'Only islands need leaders', 'Real societies never disagree'],
+      'Real societies face the same problems with millions of people.'),
+
+    match('g3-inst', 'Match each institution to its job.', [
+      ['Parliament', 'Debates and passes laws'],
+      ['Courts', 'Interpret laws and resolve disputes'],
+      ['Police', 'Enforce laws and keep people safe'],
+      ['Local government', 'Provides local services'],
+    ], 'Institutions are established organisations that perform important functions in society.'),
+    choice('g3-inst-parl', 'Which institution debates and passes laws?', 'Parliament', ['Courts', 'Police', 'Hospitals']),
+    choice('g3-inst-courts', 'Which institution interprets laws and resolves disputes?', 'Courts', ['Parliament', 'Police', 'Schools']),
+    choice('g3-inst-check', 'Do all institutions belong to the government?',
+      'No. Some exist to check the government',
+      ['Yes, every institution is part of the government', 'No. Institutions have nothing to do with society', 'Yes, and they all make laws'],
+      'Not all institutions belong to the government; some exist to check it.'),
+
+    level('g3-lv-1', 'A council repairs a playground.', 'Local', levels),
+    level('g3-lv-2', 'Education policy is set for the whole country.', 'National', levels),
+    level('g3-lv-3', 'You make your own choices, inside the law.', 'Individual', levels),
+    level('g3-lv-4', 'Waste collection and parks.', 'Local', levels),
+    level('g3-lv-5', 'Laws, healthcare and taxes.', 'National', levels),
+    level('g3-lv-6', 'A council makes rules about waste, to keep the community healthy.', 'Local',
+      'Council makes waste rules: local governance, healthy communities.'),
+
+    choice('g3-laws-1', 'Which of these is a reason why laws matter?',
+      'They create order and predictability',
+      ['They concentrate power in one leader', 'They restrict opposition', 'They replace institutions'],
+      'Laws protect rights and safety, prevent harm, resolve conflicts, set responsibilities, and create order and predictability.'),
+    choice('g3-laws-2', 'Laws matter for five reasons. Which list is right?',
+      'Protect rights and safety, prevent harm, resolve conflicts, set responsibilities, create order',
+      ['Protect leaders, prevent elections, end debate, set taxes, control media',
+        'Choose monarchs, pass on power, hold referendums, write constitutions, appoint lords',
+        'Build roads, run schools, open hospitals, supply water, collect waste'],
+      'Laws protect rights and safety, prevent harm, resolve conflicts, set responsibilities, and create order and predictability.'),
+    choice('g3-fn-1', 'One thing governments do is "manage public resources". What does that mean?',
+      'Taxes and spending', ['Police and courts', 'Referendums', 'Censorship'],
+      'The six functions: make and carry out laws, maintain public order, protect citizens, provide public services, manage public resources (taxes and spending), make collective decisions.'),
+    choice('g3-fn-2', 'Which of these is one of the six things governments do?',
+      'Make collective decisions', ['Suppress opposition', 'Inherit power', 'Control the media'],
+      'The six functions: make and carry out laws, maintain public order, protect citizens, provide public services, manage public resources (taxes and spending), make collective decisions.'),
+    choice('g3-part-1', 'In a democracy, which is a way citizens influence decisions?',
+      'Voting', ['Censorship', 'A military coup', 'Inheritance'],
+      'In democracies citizens influence decisions by voting, public discussion, elected representatives and peaceful participation.'),
+    choice('g3-part-2', 'Citizens give their opinions on a proposed law. What is this an example of?',
+      'Political participation', ['Enforcing laws', 'Censorship', 'Public services'],
+      'Citizens give opinions on a proposed law: political participation. It makes governance legitimate.'),
+  ], [
+    ['g3-why-government', /^g3-(why|island)/],
+    ['g3-institutions', /^g3-inst/],
+    ['g3-levels', /^g3-lv-/],
+    ['g3-laws-and-functions', /^g3-(laws|fn|part)-/],
+  ]),
+};
