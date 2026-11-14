@@ -48,15 +48,14 @@ describe("the parent's tracker", () => {
   });
 });
 
-describe('the report message for a parent', () => {
+describe('the report sent to a parent', () => {
   const sessions = [rec('2026-11-14', 15, 9), rec('2026-11-14', 10, 8), rec('2026-11-16', 15, 15)];
   const time = { '2026-11-14': 1260, '2026-11-16': 540 };
   const reports = dayReports(pack, sessions, time, ['2026-11-14'], '2026-11-16');
 
   it('says how long she studied today, what she finished and how ready she is', () => {
-    const text = reportMessage({ name: 'Adele', today: '2026-11-16', reports, tasksDone: 2, tasksTotal: 4, ready: 41.6, daysToGo: 2 });
+    const text = reportMessage({ today: '2026-11-16', reports, tasksDone: 2, tasksTotal: 4, ready: 41.6, daysToGo: 2 });
     expect(text.split('\n')).toEqual([
-      "Adele's exam prep · Mon 16 Nov",
       'Studied today: 9 min',
       'Tasks done: 2 of 4',
       'Questions: 15, 100% right first time',
@@ -69,9 +68,8 @@ describe('the report message for a parent', () => {
   });
 
   it('marks a finished day and leaves out the score when nothing was completed', () => {
-    const text = reportMessage({ name: 'Adele', today: '2026-11-14', reports: dayReports(pack, [], { '2026-11-14': 30 }, [], '2026-11-14'), tasksDone: 3, tasksTotal: 3, ready: 0, daysToGo: 1 });
+    const text = reportMessage({ today: '2026-11-14', reports: dayReports(pack, [], { '2026-11-14': 30 }, [], '2026-11-14'), tasksDone: 3, tasksTotal: 3, ready: 0, daysToGo: 1 });
     expect(text.split('\n')).toEqual([
-      "Adele's exam prep · Sat 14 Nov",
       'Studied today: under 1 min',
       'All 3 tasks finished ✓',
       'Ready for the exam: 0% · exam tomorrow',
@@ -79,7 +77,7 @@ describe('the report message for a parent', () => {
   });
 
   it('still makes sense on a day with no study at all', () => {
-    const text = reportMessage({ name: 'Adele', today: '2026-11-15', reports: [], tasksDone: 0, tasksTotal: 4, ready: 10, daysToGo: 3 });
+    const text = reportMessage({ today: '2026-11-15', reports: [], tasksDone: 0, tasksTotal: 4, ready: 10, daysToGo: 3 });
     expect(text).toContain('Studied today: 0 min');
     expect(text).toContain('Tasks done: 0 of 4');
   });

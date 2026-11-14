@@ -28,6 +28,8 @@ export interface Settings {
   guideSeen?: boolean;
   /** The code for the parent view, in scrambled form. */
   parentPin?: string;
+  /** The private channel for notifications to a parent's phone. Unset means notifications are off. */
+  notifyTopic?: string;
 }
 
 export interface Saved {

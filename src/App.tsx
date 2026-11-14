@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Item, ItemId, Pack, TopicId } from './content/types';
+import type { DateKey, Item, ItemId, Pack, TopicId } from './content/types';
 import { ARGUMENT_CHECKLIST } from './content/types';
 import { conceptOf, gameOf, itemsOf } from './content/types';
 import { addDays, dateKeyOf } from './engine/dates';
+import { isTopic, RESUME_MS, startNote, stopNote, testNote } from './engine/notify';
 import { pickPack, planFor, type SessionKind } from './engine/plan';
 import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outcome } from './engine/progress';
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
 import { buildFixSession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
 import { ARGUMENT_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
-import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
+import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
 import { packs as allPacks } from './packs';
 import { emptyPackSave, emptySaved, idbStore, type PackSave, type Saved, type Store } from './storage/db';
+import { ntfyPublish, type Publish } from './storage/notify';
 import { ArgumentList } from './ui/ArgumentList';
 import { ArgumentScreen } from './ui/ArgumentScreen';
 import { Guide } from './ui/Guide';
@@ -58,9 +60,11 @@ interface AppProps {
   store?: Store;
   packs?: Pack[];
   now?: () => Date;
+  /** Sends a notification to the parent's phone. Only used once a parent has turned notifications on. */
+  publish?: Publish;
 }
 
-export function App({ store = idbStore, packs = allPacks, now = () => new Date() }: AppProps) {
+export function App({ store = idbStore, packs = allPacks, now = () => new Date(), publish = ntfyPublish }: AppProps) {
   const [saved, setSaved] = useState<Saved | null>(null);
   const [preview] = useState(previewDay);
   const [today, setToday] = useState(() => preview ?? dateKeyOf(now()));
@@ -69,6 +73,10 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const nextKey = useRef(1);
   /** When the current question came up, for the study-time counter. */
   const lastTick = useRef(0);
+  /** One stretch of studying, from opening a task until she finishes the day or leaves the app. */
+  const sitting = useRef<{ day: DateKey; startSeconds: number; hiddenAt?: number } | null>(null);
+  /** The day's report as of the last render, for the notification sent when the app is left. */
+  const reportRef = useRef('');
 
   // Load saved progress once. Opening the app with ?reset at the end of the address wipes it.
   useEffect(() => {
@@ -119,6 +127,88 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     const before = cur.packs[packId] ?? emptyPackSave();
     commit({ ...cur, packs: { ...cur.packs, [packId]: change(before) } });
   }, [commit]);
+
+  // ---- Notifications for a parent's phone (off unless a channel is set in the parent view) ----
+  const topic = saved?.settings.notifyTopic;
+  const studying = view.name === 'session' || view.name === 'table' || view.name === 'argument' || view.name === 'mock';
+  const viewKey = 'key' in view ? view.key : 0;
+  const packId = pack?.id;
+  /** What the listeners below need, as it is right now. */
+  const live = useRef<{ topic?: string; studying: boolean; today: DateKey; what?: string; seconds: () => number }>({ studying, today, seconds: () => 0 });
+  live.current = {
+    topic,
+    studying,
+    today,
+    what: view.name === 'session' ? view.spec.title
+      : view.name === 'table' ? `Table: ${view.group}`
+      : view.name === 'argument' ? 'Argument Builder'
+      : view.name === 'mock' ? 'Mock exam' : undefined,
+    seconds: () => secondsOn(savedRef.current?.packs[packId ?? '']?.studyTime, today),
+  };
+
+  /** She opened a task: tell the parent once, and remember where the study clock stood. */
+  const beginSitting = useCallback(() => {
+    const l = live.current;
+    if (!isTopic(l.topic) || sitting.current) return;
+    sitting.current = { day: l.today, startSeconds: l.seconds() };
+    void publish(l.topic, startNote(now(), l.today, l.what));
+  }, [publish, now]);
+
+  /** Send the report for the sitting that is open, if any. */
+  const reportSitting = useCallback((kind: 'finished' | 'stopped') => {
+    const l = live.current;
+    const s = sitting.current;
+    if (!isTopic(l.topic) || !s) return;
+    const sat = s.day === l.today ? l.seconds() - s.startSeconds : 0;
+    void publish(l.topic, stopNote(kind, now(), l.today, sat, reportRef.current));
+  }, [publish, now]);
+
+  // A task was opened.
+  useEffect(() => {
+    if (studying) beginSitting();
+  }, [studying, viewKey, topic, beginSitting]);
+
+  // The last task of the day was finished: send the report straight away.
+  const dayDone = !!packId && (saved?.packs[packId]?.daysDone ?? []).includes(today);
+  const wasDone = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (!saved) return;
+    if (wasDone.current === false && dayDone && sitting.current) {
+      reportSitting('finished');
+      sitting.current = null;
+    }
+    wasDone.current = dayDone;
+  }, [saved, dayDone, reportSitting]);
+
+  // She left the app (closed it, switched away, or the screen locked): send the report.
+  // Coming back within a few minutes continues the same sitting quietly.
+  useEffect(() => {
+    const onHide = () => {
+      const s = sitting.current;
+      if (!s || s.hiddenAt !== undefined) return;
+      reportSitting('stopped');
+      s.hiddenAt = now().getTime();
+    };
+    const onShow = () => {
+      const s = sitting.current;
+      if (!s || s.hiddenAt === undefined) return;
+      if (now().getTime() - s.hiddenAt < RESUME_MS) {
+        s.hiddenAt = undefined;
+        return;
+      }
+      sitting.current = null;
+      if (live.current.studying) beginSitting();
+    };
+    const onVisibility = () => (document.visibilityState === 'hidden' ? onHide() : onShow());
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', onHide);
+    window.addEventListener('pageshow', onShow);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', onHide);
+      window.removeEventListener('pageshow', onShow);
+    };
+  }, [now, beginSitting, reportSitting]);
 
   const go = useCallback((v: View) => {
     if (v.name === 'session' || v.name === 'table') lastTick.current = now().getTime(); // start the clock
@@ -172,9 +262,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
-  /** What a parent gets when she taps "Send my report": today's numbers and the days before. */
-  const reportText = reportMessage({
-    name: saved.settings.name,
+  // The day's report, kept ready for the notification to a parent's phone.
+  reportRef.current = reportMessage({
     today,
     reports: dayReports(pack, save.sessions, save.studyTime, save.daysDone ?? [], today),
     tasksDone: tasks.filter((t) => t.done).length,
@@ -374,6 +463,12 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             tasks={tasks}
             mistakeCount={mistakes.length}
             name={saved.settings.name}
+            notifyTopic={isTopic(saved.settings.notifyTopic) ? saved.settings.notifyTopic : undefined}
+            onNotifyTopic={(notifyTopic) => {
+              const { notifyTopic: _old, ...settings } = savedRef.current!.settings;
+              commit({ ...savedRef.current!, settings: notifyTopic ? { ...settings, notifyTopic } : settings });
+            }}
+            onTestNotify={(t) => publish(t, testNote(now()))}
             onClose={() => goTab('home')}
             onChangeCode={changeCode}
           />
@@ -402,7 +497,6 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             tomorrow={plan.daysToGo > 0 ? planFor(pack, save.sessions, addDays(today, 1)).label : undefined}
             showGuideHint={!saved.settings.guideSeen}
             preview={preview !== null}
-            reportText={reportText}
             onTask={startTask}
             onExtra={() => startToday(false)}
             onPractise={() => goTab('practise')}

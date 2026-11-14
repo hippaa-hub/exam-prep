@@ -55,7 +55,6 @@ export function accuracy(r: Pick<DayReport, 'asked' | 'firstTimeRight'>): number
 }
 
 export interface ReportInput {
-  name: string;
   today: DateKey;
   /** One line per day, as from dayReports (any order). */
   reports: readonly DayReport[];
@@ -70,12 +69,12 @@ export interface ReportInput {
 export const REPORT_EARLIER_DAYS = 6;
 
 /**
- * The report as a short text message, for sending from Adele's phone to a parent's phone.
- * Nothing is sent by the app itself: the phone's own share sheet (WhatsApp, Messages...) does it.
+ * The day's report as a few short lines of text, for the notification sent to a parent's phone.
+ * It has no name in it.
  */
-export function reportMessage({ name, today, reports, tasksDone, tasksTotal, ready, daysToGo }: ReportInput): string {
+export function reportMessage({ today, reports, tasksDone, tasksTotal, ready, daysToGo }: ReportInput): string {
   const now = reports.find((r) => r.day === today);
-  const lines = [`${name}'s exam prep · ${formatShort(today)}`, `Studied today: ${formatDuration(now?.seconds ?? 0)}`];
+  const lines = [`Studied today: ${formatDuration(now?.seconds ?? 0)}`];
   if (tasksTotal > 0) {
     lines.push(tasksDone >= tasksTotal ? `All ${tasksTotal} tasks finished ✓` : `Tasks done: ${tasksDone} of ${tasksTotal}`);
   }

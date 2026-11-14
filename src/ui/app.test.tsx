@@ -1,12 +1,13 @@
 // The checks from PLAN.md section 9, done by a robot: do a session, get something wrong on purpose,
 // close and reopen the app, and confirm the mistake comes back.
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { choice, pair, term } from '../content/build';
 import type { Pack } from '../content/types';
-import { memoryStore } from '../storage/db';
+import type { Note } from '../engine/notify';
+import { emptySaved, memoryStore } from '../storage/db';
 
 const pack: Pack = {
   id: 'test-pack', subject: 'Individuals & Societies', title: 'Test exam', date: '2026-11-18', criteria: [],
@@ -164,16 +165,8 @@ describe('study time', () => {
     expect(screen.queryByText('3 min')).toBeNull();
     expect(screen.queryByText(/studied today/i)).toBeNull();
 
-    // ...but she can send the report to a parent's phone through the phone's own share sheet.
-    const share = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
-    await user.click(screen.getByRole('button', { name: /Send my report to my parent/ }));
-    expect(share).toHaveBeenCalledTimes(1);
-    const sent: string = share.mock.calls[0][0].text;
-    expect(sent).toContain("Adele's exam prep · Fri 13 Nov");
-    expect(sent).toContain('Studied today: 3 min');
-    expect(sent).toMatch(/All \d+ tasks? finished ✓/);
-    Reflect.deleteProperty(navigator, 'share');
+    // ...and no button for sending a report: a parent gets it without her doing anything.
+    expect(screen.queryByRole('button', { name: /report/i })).toBeNull();
 
     // ...the parent view does, with the day's tasks and questions.
     await user.click(screen.getByRole('button', { name: 'For parents' }));
@@ -228,5 +221,114 @@ describe('the parent code', () => {
     expect(screen.getByRole('heading', { name: 'Enter the parent code' })).toBeInTheDocument();
     await tapCode(user, '1357');
     expect(await screen.findByRole('heading', { name: 'Adele studied today' })).toBeInTheDocument();
+  });
+});
+
+describe("notifications for a parent's phone", () => {
+  const channel = 'prep-abcd-efgh-jkmn';
+  const withChannel = () => memoryStore({ ...emptySaved(), settings: { ...emptySaved().settings, notifyTopic: channel } });
+  /** Stands in for the notification service: remembers what was sent. */
+  const outbox = () => {
+    const sent: { topic: string; note: Note }[] = [];
+    return { sent, publish: vi.fn(async (topic: string, note: Note) => { sent.push({ topic, note }); return true; }) };
+  };
+  /** The phone's screen goes off (or the app is left), or comes back. */
+  const setVisible = (visible: boolean) => act(() => {
+    Object.defineProperty(document, 'visibilityState', { value: visible ? 'visible' : 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  afterEach(() => { Reflect.deleteProperty(document, 'visibilityState'); });
+
+  it('sends nothing at all until a parent has turned them on', async () => {
+    const user = userEvent.setup();
+    const box = outbox();
+    render(<App store={memoryStore()} packs={[pack]} now={friday} publish={box.publish} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+    await playSession(user, null);
+    setVisible(false);
+    expect(box.publish).not.toHaveBeenCalled();
+  });
+
+  it('tells the parent when she starts, and sends the report when she finishes the day', async () => {
+    const user = userEvent.setup();
+    const box = outbox();
+    const c = clock();
+    render(<App store={withChannel()} packs={[pack]} now={c.now} publish={box.publish} />);
+    await screen.findByRole('button', { name: /^Start/ });
+    expect(box.sent).toHaveLength(0); // opening the app is not studying
+
+    await user.click(screen.getByRole('button', { name: /^Start/ }));
+    expect(box.sent).toHaveLength(1);
+    expect(box.sent[0].topic).toBe(channel);
+    expect(box.sent[0].note.title).toBe('Study started');
+    expect(box.sent[0].note.message).toBe('Fri 13 Nov, 17:00 · Round 1');
+
+    c.forward(60);
+    await playSession(user, null);
+    expect(box.sent).toHaveLength(2);
+    const report = box.sent[1].note;
+    expect(report.title).toBe("Today's preparation finished");
+    expect(report.message).toContain('this sitting: 1 min');
+    expect(report.message).toContain('Studied today: 1 min');
+    expect(report.message).toMatch(/All \d+ tasks? finished ✓/);
+    expect(report.message).toContain('Questions: 3, 100% right first time');
+    // No name goes out.
+    expect(box.sent.map((m) => `${m.note.title} ${m.note.message}`).join(' ')).not.toMatch(/Adele/);
+
+    // Closing the app afterwards does not send the report a second time.
+    setVisible(false);
+    expect(box.sent).toHaveLength(2);
+  });
+
+  it('sends the report when she leaves the app half-way, and carries on quietly if she comes straight back', async () => {
+    const user = userEvent.setup();
+    const box = outbox();
+    const c = clock();
+    render(<App store={withChannel()} packs={[pack]} now={c.now} publish={box.publish} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+    expect(box.sent.map((m) => m.note.title)).toEqual(['Study started']);
+
+    c.forward(120);
+    setVisible(false);
+    expect(box.sent.map((m) => m.note.title)).toEqual(['Study started', 'Study stopped']);
+    expect(box.sent[1].note.message).toContain('Studied today: 0 min');
+
+    // Back after one minute: the same sitting, no new notification.
+    c.forward(60);
+    setVisible(true);
+    expect(box.sent).toHaveLength(2);
+
+    // Away for ten minutes, then back in the middle of the round: a new sitting.
+    setVisible(false);
+    expect(box.sent.map((m) => m.note.title)).toEqual(['Study started', 'Study stopped', 'Study stopped']);
+    c.forward(600);
+    setVisible(true);
+    expect(box.sent.map((m) => m.note.title)).toEqual(['Study started', 'Study stopped', 'Study stopped', 'Study started']);
+  });
+
+  it('is turned on, tested and turned off in the parent view', async () => {
+    const user = userEvent.setup();
+    const box = outbox();
+    const store = memoryStore();
+    render(<App store={store} packs={[pack]} now={friday} publish={box.publish} />);
+    await user.click(await screen.findByRole('button', { name: 'For parents' }));
+    await tapCode(user, '2468');
+    await screen.findByRole('heading', { name: 'Type the code again' });
+    await tapCode(user, '2468');
+    await screen.findByRole('heading', { name: 'Notifications on my phone' });
+    expect(store.current?.settings.notifyTopic).toBeUndefined();
+
+    await user.click(screen.getByRole('button', { name: 'Turn notifications on' }));
+    const made = store.current?.settings.notifyTopic;
+    expect(made).toMatch(/^prep-[a-z2-9]{4}-[a-z2-9]{4}-[a-z2-9]{4}$/);
+    expect(screen.getByText(made!)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Send a test' }));
+    expect(await screen.findByText(/Sent. Check your phone/)).toBeInTheDocument();
+    expect(box.sent).toEqual([{ topic: made, note: expect.objectContaining({ title: 'Test from the exam prep app' }) }]);
+
+    await user.click(screen.getByRole('button', { name: 'Turn notifications off' }));
+    expect(store.current?.settings.notifyTopic).toBeUndefined();
+    expect(screen.getByRole('button', { name: 'Turn notifications on' })).toBeInTheDocument();
   });
 });

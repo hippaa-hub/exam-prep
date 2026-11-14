@@ -4,7 +4,7 @@ A phone app for one Grade 7 student, with one job: get her ready for a specific 
 First exam: Individuals & Societies, "How Are Societies Governed?", Wednesday 18 November 2026.
 
 It is a web app that installs on the phone's home screen. Progress is saved on the phone only.
-No login, no server, no adverts.
+No login, no adverts. Nothing leaves the phone unless a parent turns on notifications (see below).
 
 ## What is built (Phases 1 and 2)
 
@@ -48,8 +48,11 @@ No login, no server, no adverts.
   answers to read, and readiness per topic. The student's own screens show no timer.
   Study time counts the time spent answering; breaks longer than 90 seconds are left out.
   It is behind a 4-digit code, chosen the first time it is opened and asked for every time after that.
-- **Send my report to my parent** (on Home): opens the phone's share sheet with a short text report (minutes studied,
-  tasks done, score, readiness, earlier days) to send by WhatsApp or Messages. The app itself sends nothing anywhere.
+- **Notifications on a parent's phone** (optional, off by default; turned on in the parent view): a notification when
+  she opens a task, and a report (minutes this sitting and today, tasks done, score, readiness, earlier days) when she
+  finishes the day's tasks or leaves the app. They go through the free [ntfy](https://ntfy.sh) service to a private,
+  randomly named channel made on her phone; the parent subscribes to that channel in the ntfy app or at ntfy.sh.
+  The messages hold numbers only, never a name. The channel name is stored on her phone only, never in this code.
 - **Guide**: eight steps on how to prepare, what the ring means, the teacher's requirements for the test, and a note for a parent.
 - 225 questions written only from the teacher's material, in the teacher's wording.
 
@@ -116,4 +119,4 @@ Home always shows the nearest upcoming exam. Nothing else in the app changes.
 - `src/content/` — the question types and small helpers for writing packs
 - `src/engine/` — levels, readiness, the countdown plan and session picking, with tests
 - `src/ui/` — the screens
-- `src/storage/` — saving progress on the phone (IndexedDB)
+- `src/storage/` — saving progress on the phone (IndexedDB), and sending the optional notifications

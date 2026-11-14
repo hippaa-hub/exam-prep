@@ -2,7 +2,9 @@
 // Kept apart from Adele's own screens.
 import type { DateKey, Item, ItemId, Pack } from '../content/types';
 import { ARGUMENT_BOXES, ARGUMENT_CHECKLIST } from '../content/types';
+import { useState } from 'react';
 import { formatLong, formatShort } from '../engine/dates';
+import { TOPIC_BYTES, topicFrom } from '../engine/notify';
 import type { SessionRecord, TodayPlan } from '../engine/plan';
 import { READY_AT, packReadiness, topicReadiness, type ProgressMap } from '../engine/progress';
 import { accuracy, dayReports } from '../engine/report';
@@ -10,6 +12,7 @@ import type { Task } from '../engine/tasks';
 import { formatDuration, totalSeconds, type StudyTime } from '../engine/time';
 import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
 import { Ring } from './Ring';
+import { ShareText } from './ShareText';
 
 interface Props {
   pack: Pack;
@@ -25,11 +28,74 @@ interface Props {
   tasks: Task[];
   mistakeCount: number;
   name: string;
+  /** The private channel for notifications to a parent's phone. Unset means they are off. */
+  notifyTopic?: string;
+  /** Turns notifications on (with a new channel) or off (undefined). */
+  onNotifyTopic: (topic: string | undefined) => void;
+  /** Sends a test notification. Resolves to true if it went out. */
+  onTestNotify: (topic: string) => Promise<boolean>;
   onClose: () => void;
   onChangeCode: () => void;
 }
 
-export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, name, onClose, onChangeCode }: Props) {
+/** Turning on notifications for a parent's own phone, and the steps to receive them. */
+function Notifications({ topic, onTopic, onTest }: { topic?: string; onTopic: Props['onNotifyTopic']; onTest: Props['onTestNotify'] }) {
+  const [test, setTest] = useState<'sending' | 'sent' | 'failed' | null>(null);
+  const turnOn = () => onTopic(topicFrom(crypto.getRandomValues(new Uint8Array(TOPIC_BYTES))));
+  const sendTest = async () => {
+    if (!topic) return;
+    setTest('sending');
+    setTest((await onTest(topic)) ? 'sent' : 'failed');
+  };
+
+  return (
+    <section className="card" aria-labelledby="p-notify">
+      <h2 id="p-notify">Notifications on my phone</h2>
+      {topic ? (
+        <>
+          <p><strong className="good">✓ On.</strong> You get a notification when she starts studying, and a report when she finishes the day's tasks or leaves the app.</p>
+          <ol className="notify-steps">
+            <li>On <strong>your own</strong> phone, install the free app <strong>ntfy</strong> (App Store or Google Play).</li>
+            <li>
+              Open ntfy, tap <strong>+</strong> and type this channel name exactly:
+              <code className="channel">{topic}</code>
+            </li>
+            <li>Come back here and tap "Send a test". Your phone should show it within a few seconds.</li>
+          </ol>
+          <p className="muted small">
+            On a computer, open ntfy.sh/{topic} in a browser instead. Keep the channel name private: anyone who knows it
+            can see the notifications. They hold study minutes and scores, never a name.
+          </p>
+          <div className="notify-actions">
+            <button type="button" className="btn primary" onClick={sendTest} disabled={test === 'sending'}>Send a test</button>
+            {test === 'sent' && <p className="good small center" role="status">✓ Sent. Check your phone.</p>}
+            {test === 'failed' && <p className="muted small center" role="status">Could not send it. Is the internet on?</p>}
+            <ShareText
+              text={`ntfy channel: ${topic}\nhttps://ntfy.sh/${topic}`}
+              label="Send the channel name to my phone"
+              copiedNote="Copied. Paste it into a message to yourself."
+            />
+            <button type="button" className="text-link" onClick={() => { setTest(null); onTopic(undefined); }}>Turn notifications off</button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="muted">
+            Get a notification on your own phone when she starts studying, and a report when she finishes the day's tasks
+            or leaves the app. She does not have to do anything.
+          </p>
+          <p className="muted small">
+            This uses the free ntfy service. While it is on, her study minutes and scores (never her name) are sent over
+            the internet to a private channel that only your phone knows. While it is off, nothing leaves this phone.
+          </p>
+          <button type="button" className="btn primary" onClick={turnOn}>Turn notifications on</button>
+        </>
+      )}
+    </section>
+  );
+}
+
+export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, name, notifyTopic, onNotifyTopic, onTestNotify, onClose, onChangeCode }: Props) {
   const reports = dayReports(pack, sessions, studyTime, daysDone, today);
   const todayReport = reports.find((r) => r.day === today);
   const doneCount = tasks.filter((t) => t.done).length;
@@ -173,7 +239,9 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
           </ul>
         </section>
 
-        <p className="muted small center">Everything here is saved on this phone only.</p>
+        <Notifications topic={notifyTopic} onTopic={onNotifyTopic} onTest={onTestNotify} />
+
+        <p className="muted small center">Her answers and progress are saved on this phone only.</p>
         <button type="button" className="text-link" onClick={onChangeCode}>Change the parent code</button>
       </main>
     </div>
