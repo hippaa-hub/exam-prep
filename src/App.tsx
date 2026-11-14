@@ -4,7 +4,8 @@ import { ARGUMENT_CHECKLIST } from './content/types';
 import { conceptOf, gameOf, itemsOf } from './content/types';
 import { addDays, dateKeyOf } from './engine/dates';
 import { pickPack, planFor, type SessionKind } from './engine/plan';
-import { applyAnswer, mistakeIds, type ConceptProgress, type Outcome } from './engine/progress';
+import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outcome } from './engine/progress';
+import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
 import { buildFixSession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
 import { ARGUMENT_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
@@ -171,6 +172,16 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
+  /** What a parent gets when she taps "Send my report": today's numbers and the days before. */
+  const reportText = reportMessage({
+    name: saved.settings.name,
+    today,
+    reports: dayReports(pack, save.sessions, save.studyTime, save.daysDone ?? [], today),
+    tasksDone: tasks.filter((t) => t.done).length,
+    tasksTotal: tasks.length,
+    ready: packReadiness(pack, progress),
+    daysToGo: plan.daysToGo,
+  });
 
   const finish = (spec: Pick<SessionSpec, 'kind' | 'topics' | 'task'>, summary: RunSummary) => {
     updatePack(pack.id, (p) => {
@@ -391,6 +402,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             tomorrow={plan.daysToGo > 0 ? planFor(pack, save.sessions, addDays(today, 1)).label : undefined}
             showGuideHint={!saved.settings.guideSeen}
             preview={preview !== null}
+            reportText={reportText}
             onTask={startTask}
             onExtra={() => startToday(false)}
             onPractise={() => goTab('practise')}

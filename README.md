@@ -48,6 +48,8 @@ No login, no server, no adverts.
   answers to read, and readiness per topic. The student's own screens show no timer.
   Study time counts the time spent answering; breaks longer than 90 seconds are left out.
   It is behind a 4-digit code, chosen the first time it is opened and asked for every time after that.
+- **Send my report to my parent** (on Home): opens the phone's share sheet with a short text report (minutes studied,
+  tasks done, score, readiness, earlier days) to send by WhatsApp or Messages. The app itself sends nothing anywhere.
 - **Guide**: eight steps on how to prepare, what the ring means, the teacher's requirements for the test, and a note for a parent.
 - 225 questions written only from the teacher's material, in the teacher's wording.
 

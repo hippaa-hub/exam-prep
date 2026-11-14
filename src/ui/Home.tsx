@@ -6,6 +6,7 @@ import { READY_AT, packReadiness, seenCount, topicReadiness, type ProgressMap } 
 import { nextTask, type Task } from '../engine/tasks';
 import { Mascot, type Mood } from './Mascot';
 import { Ring } from './Ring';
+import { SendReport } from './SendReport';
 
 interface Props {
   pack: Pack;
@@ -31,6 +32,8 @@ interface Props {
   /** Opens the extra practice page. Offered only when the day's tasks are finished (or there are none). */
   onPractise: () => void;
   onGuide: () => void;
+  /** The day's report as a text message, for sending to a parent's phone. */
+  reportText: string;
   /** Opens the parent's view (study time and the day-by-day tracker). */
   onParent: () => void;
 }
@@ -63,7 +66,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 }
 
 export function Home({
-  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, onTask, onExtra, onPractise, onGuide, onParent,
+  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, reportText, onTask, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = packReadiness(pack, progress);
   const cd = countdown(plan.daysToGo);
@@ -150,6 +153,7 @@ export function Home({
           <>
             <p className="done-today">{plan.phase === 'exam-day' ? '✓ Warm-up done. Good luck in your exam!' : "✓ Today's preparation is finished. Well done!"}</p>
             {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
+            <SendReport text={reportText} label="📨 Send my report to my parent" />
             <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>
           </>
         ) : next ? (
@@ -223,6 +227,7 @@ export function Home({
       </section>
 
       <p className="muted small center">Your progress is saved on this phone only.</p>
+      {!finished && <SendReport text={reportText} label="Send today's report to my parent" className="text-link" />}
       <button type="button" className="text-link" onClick={onParent}>For parents</button>
     </>
   );

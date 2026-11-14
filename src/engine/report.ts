@@ -1,8 +1,8 @@
 // The parent's tracker: what happened on each day.
 import type { DateKey, Pack } from '../content/types';
-import { addDays } from './dates';
+import { addDays, formatShort } from './dates';
 import type { SessionRecord } from './plan';
-import { secondsOn, type StudyTime } from './time';
+import { formatDuration, secondsOn, type StudyTime } from './time';
 
 export interface DayReport {
   day: DateKey;
@@ -52,4 +52,42 @@ export function dayReports(
 /** 'right first time' as a percentage, or null when nothing was answered. */
 export function accuracy(r: Pick<DayReport, 'asked' | 'firstTimeRight'>): number | null {
   return r.asked === 0 ? null : Math.round((r.firstTimeRight / r.asked) * 100);
+}
+
+export interface ReportInput {
+  name: string;
+  today: DateKey;
+  /** One line per day, as from dayReports (any order). */
+  reports: readonly DayReport[];
+  tasksDone: number;
+  tasksTotal: number;
+  /** Readiness for the exam, 0 to 100. */
+  ready: number;
+  daysToGo: number;
+}
+
+/** The most earlier days listed in one message. */
+export const REPORT_EARLIER_DAYS = 6;
+
+/**
+ * The report as a short text message, for sending from Adele's phone to a parent's phone.
+ * Nothing is sent by the app itself: the phone's own share sheet (WhatsApp, Messages...) does it.
+ */
+export function reportMessage({ name, today, reports, tasksDone, tasksTotal, ready, daysToGo }: ReportInput): string {
+  const now = reports.find((r) => r.day === today);
+  const lines = [`${name}'s exam prep · ${formatShort(today)}`, `Studied today: ${formatDuration(now?.seconds ?? 0)}`];
+  if (tasksTotal > 0) {
+    lines.push(tasksDone >= tasksTotal ? `All ${tasksTotal} tasks finished ✓` : `Tasks done: ${tasksDone} of ${tasksTotal}`);
+  }
+  const pct = now ? accuracy(now) : null;
+  if (now && pct !== null) lines.push(`Questions: ${now.asked}, ${pct}% right first time`);
+  const toGo = daysToGo > 1 ? ` · ${daysToGo} days to go` : daysToGo === 1 ? ' · exam tomorrow' : daysToGo === 0 ? ' · exam today' : '';
+  lines.push(`Ready for the exam: ${Math.round(ready)}%${toGo}`);
+
+  const earlier = reports.filter((r) => r.day < today).sort((a, b) => b.day.localeCompare(a.day)).slice(0, REPORT_EARLIER_DAYS);
+  if (earlier.length > 0) {
+    lines.push('', 'Earlier days:');
+    for (const r of earlier) lines.push(`${formatShort(r.day)}: ${formatDuration(r.seconds)}${r.finished ? ' ✓ finished' : ''}`);
+  }
+  return lines.join('\n');
 }

@@ -119,6 +119,7 @@ export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; o
         <h2 id="parent-h">For a parent</h2>
         <ul className="bullets">
           <li>The parent view shows how long she studied each day and whether she finished the day's tasks.</li>
+          <li>To see it on your own phone: on Home she taps "Send my report to my parent" and picks you in WhatsApp or Messages. The report is a short text with her minutes, tasks and score.</li>
           <li>The most useful help: ask her to explain one confusing pair out loud, without notes.</li>
           <li>Two short rounds a day matter more than one long one. Praise coming back, not scores.</li>
           <li>Everything is saved on this phone only. The one exception is the microphone: speaking an answer uses the phone's own speech service (Apple or Google), which needs the internet. Typed answers never leave the phone.</li>

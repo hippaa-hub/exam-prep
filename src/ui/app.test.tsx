@@ -2,7 +2,7 @@
 // close and reopen the app, and confirm the mistake comes back.
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { choice, pair, term } from '../content/build';
 import type { Pack } from '../content/types';
@@ -163,6 +163,17 @@ describe('study time', () => {
     // Adele's Home has no timer on it...
     expect(screen.queryByText('3 min')).toBeNull();
     expect(screen.queryByText(/studied today/i)).toBeNull();
+
+    // ...but she can send the report to a parent's phone through the phone's own share sheet.
+    const share = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { value: share, configurable: true });
+    await user.click(screen.getByRole('button', { name: /Send my report to my parent/ }));
+    expect(share).toHaveBeenCalledTimes(1);
+    const sent: string = share.mock.calls[0][0].text;
+    expect(sent).toContain("Adele's exam prep · Fri 13 Nov");
+    expect(sent).toContain('Studied today: 3 min');
+    expect(sent).toMatch(/All \d+ tasks? finished ✓/);
+    Reflect.deleteProperty(navigator, 'share');
 
     // ...the parent view does, with the day's tasks and questions.
     await user.click(screen.getByRole('button', { name: 'For parents' }));

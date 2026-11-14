@@ -185,6 +185,14 @@ button.task:active { border-bottom-width: 2px; transform: translateY(2px); }
   font-weight: 800; font-size: 0.9rem; text-decoration: underline; text-underline-offset: 3px;
 }
 
+/* ---- Send report to a parent ---- */
+.send-report { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.send-report .text-link { align-self: center; }
+.report-text {
+  width: 100%; padding: 10px 12px; border: 2px solid var(--line); border-radius: 14px; background: #fff;
+  font: inherit; font-size: 0.9rem; line-height: 1.4; color: var(--ink); resize: none;
+}
+
 /* ---- Parent code ---- */
 .gate { align-items: center; text-align: center; gap: 10px; padding-top: 16px; }
 .gate-lock { width: 64px; height: 64px; border-radius: 20px; background: var(--accent-soft); display: grid; place-items: center; font-size: 2rem; }
