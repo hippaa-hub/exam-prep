@@ -110,7 +110,7 @@ button { cursor: pointer; touch-action: manipulation; }
   color: var(--ink-soft); font-size: 1.35rem; font-weight: 800; display: grid; place-items: center;
 }
 
-/* ---- Lola ---- */
+/* ---- Adele (her own avatar) ---- */
 .hero { display: flex; gap: 12px; align-items: flex-end; }
 .bubble {
   position: relative; flex: 1; background: #fff; border: 2px solid var(--line); border-radius: 16px;
@@ -591,3 +591,10 @@ textarea:focus { outline: none; border-color: var(--blue); }
 
 /* ---- "You left the app" note ---- */
 .left-note { padding: 10px 12px; border-radius: 12px; border: 2px solid #f2c94c; background: #fffbe6; font-weight: 700; font-size: 0.9rem; line-height: 1.4; }
+
+/* Adele's avatar: a circle that matches the light-blue background of her waving clip */
+.mascot.avatar { border-radius: 50%; overflow: hidden; background: #eaf6ff; border: 3px solid #fff; box-shadow: 0 0 0 2px #ddd6fe; }
+.mascot.avatar img, .mascot.avatar video { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0%; display: block; transform: scale(1.5); transform-origin: 50% 12%; }
+.mascot.avatar video { cursor: pointer; }
+.mascot.avatar.wave img, .mascot.avatar.wave video { animation: none; }
+.summary-lola .mascot.avatar { margin: 0 auto; }

@@ -70,7 +70,7 @@ function trackText(plan: TodayPlan, ceiling: number, leftToday: number): string 
   return `Today you can reach ${ceiling}%. ${leftToday} ${leftToday === 1 ? 'thing is' : 'things are'} still waiting for a right answer today. Each one counts fully after three different days, so the ring finishes on exam morning.`;
 }
 
-/** What Lola says on Home: always the one next thing to do, and how to do it well. */
+/** What Adele's avatar says on Home: always the one next thing to do, and how to do it well. */
 function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: string): { text: string; mood: Mood } {
   const next = nextTask(tasks);
   const doneCount = tasks.filter((t) => t.done).length;
@@ -165,7 +165,7 @@ export function Home({
       </section>
 
       <div className="hero">
-        <Mascot mood={lola.mood} size={104} />
+        <Mascot mood={lola.mood} size={104} animate={lola.mood === 'wave'} />
         <div className="bubble" role="status">{lola.text}</div>
       </div>
 

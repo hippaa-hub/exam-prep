@@ -12,7 +12,7 @@ export interface Task {
   title: string;
   /** How long it is, in a few words. */
   detail: string;
-  /** How to do this task well. Lola says it on Home. */
+  /** How to do this task well. Shown in the speech bubble on Home. */
   tip: string;
   done: boolean;
   game?: Game;
