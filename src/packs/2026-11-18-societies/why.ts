@@ -69,7 +69,7 @@ export const meanings: Record<string, string> = {
   'A military coup': 'A military coup is when the army takes power by force. It is one way a dictator gains power.',
 };
 
-const DEM = 'Demos means people and kratos means power. Together: the power of the people.';
+const DEM = 'Demos means people and kratos means power or rule. Together: the power of the people, or rule by the people.';
 const STILL = 'Citizens in a dictatorship still do this. What they cannot really do is change the government by voting.';
 const FACT = 'That is a fact about a country. It does not say anything about how the country is governed.';
 const DICT_FEATURE = 'That is a feature of dictatorship. A constitutional monarchy has democratic institutions.';
@@ -228,7 +228,7 @@ export const whyNot: Record<string, Record<string, string>> = {
     'One leader or ruling group': 'That is where power sits in a dictatorship.',
     'The armed forces': 'The army holding power is a military dictatorship, not a democracy.',
   },
-  's2-q-greek': { 'King and law': DEM, 'Vote and country': DEM, 'One and rule': DEM },
+  's2-q-greek': { 'King and law': DEM, 'Vote and country': DEM, 'One and rule': 'Rule is half right: kratos means power or rule. But demos means people, not one.' },
   's2-q-elections': {
     'held, but with one party only': 'With one party there is no real choice. That is not a competitive election.',
     inherited: 'Elections are votes. Inheriting is how monarchs get power.',
@@ -394,7 +394,7 @@ export const simple: Record<string, string> = {
   's2-direct': 'In a direct democracy people vote on the questions themselves, not just on who will decide. Switzerland does this with referendums.',
   's2-representative': 'In a representative democracy people choose others to decide for them. They vote for representatives, who make the laws in parliament.',
   's2-democracy-basics': 'In a democracy the people are in charge. They choose their leaders in free and fair elections, and the law applies to everyone.',
-  's2-q-greek': 'The word democracy comes from Greek. Demos is people and kratos is power, so it means power of the people.',
+  's2-q-greek': 'The word democracy comes from Greek. Demos is people and kratos is power or rule, so it means power (or rule) of the people.',
   's2-q-mix': 'Most democracies use both: people elect representatives, and sometimes also vote on a question directly.',
   'w-direct-rep': 'Direct: people vote on the question themselves. Representative: people vote for others, who then decide for them.',
   's2-democracy-value': 'Democracy lets people take part, speak freely and remove leaders they do not like. But deciding together can be slow, and people may disagree.',

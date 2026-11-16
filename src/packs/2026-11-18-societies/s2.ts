@@ -37,7 +37,7 @@ export const s2: Topic = {
       ['Inheritance', 'One leader or ruling group', 'The armed forces'],
       'Power comes from the people, who take part directly or through elected representatives.'),
     choice('s2-q-greek', '"Democracy" comes from two Greek words, demos and kratos. What do they mean?', 'People and power',
-      ['King and law', 'Vote and country', 'One and rule'], 'Demos = people, kratos = power.'),
+      ['King and law', 'Vote and country', 'One and rule'], 'Demos = people, kratos = power / rule.'),
     choice('s2-q-elections', 'In a democracy, elections must be…', 'free, fair and competitive',
       ['held, but with one party only', 'inherited', 'controlled by the security forces'],
       'Features of democracy: citizens participate; elections are free, fair and competitive; choice of parties; leaders are accountable; the law applies to everyone.'),
