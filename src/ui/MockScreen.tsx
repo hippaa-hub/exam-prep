@@ -1,6 +1,6 @@
 // The mock exam: like the real test. No help and no answers until she hands in;
 // then she marks it against the teacher's wording, and it ends with "what to fix".
-// She writes every answer: there is no microphone and nothing is read aloud here.
+// She writes or says every answer (Jenia asked for the microphone here too, 17 Nov); nothing is read aloud.
 import { useEffect, useRef, useState } from 'react';
 import { useLeftApp } from './useLeftApp';
 import type { Item, ItemId, MockExam, Pack, ShortItem } from '../content/types';
@@ -123,7 +123,7 @@ export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, 
               <ul className="bullets">
                 <li><strong>Part A:</strong> {partA.length} questions on knowing and understanding. Answer in full sentences.</li>
                 <li><strong>Part B:</strong> {partB.length} questions on thinking critically. Build an argument in four boxes.</li>
-                <li>You write every answer, as in the real test. No microphone here.</li>
+                <li>Write your answers in full sentences, or say them with the microphone and fix the words. In the real test you will write.</li>
                 <li>Notes closed. No help and no answers until you hand in.</li>
                 <li>About {mock.minutes} minutes. The clock is only a guide: nobody stops you.</li>
                 <li>At the end you mark it yourself, and it shows you what to fix.</li>
@@ -142,9 +142,9 @@ export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, 
             </div>
             {isA ? (
               <DictationBox value={answers[page]} onChange={(t) => setAnswer(page, t)} rows={6} label="Your answer"
-                placeholder="Write your answer in full sentences." voice={false} />
+                placeholder="Write your answer in full sentences." />
             ) : (
-              <ArgumentBoxes idPrefix={`mock-${page}`} voice={false} boxes={boxesOf(page - partA.length)}
+              <ArgumentBoxes idPrefix={`mock-${page}`} boxes={boxesOf(page - partA.length)}
                 onChange={(b) => b.forEach((text, k) => setAnswer(partA.length + (page - partA.length) * PER_B + k, text))} />
             )}
             {over && <p className="muted small">You are past the suggested time. That is fine: finish your answer.</p>}

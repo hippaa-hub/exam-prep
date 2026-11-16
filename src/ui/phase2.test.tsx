@@ -201,7 +201,7 @@ describe('the Argument Builder', () => {
 
 describe('the Mock Exam', () => {
   it('is the last task the day before the exam, gives no help until she hands in, then says what to fix', async () => {
-    // Even on a phone that can listen and speak, the mock exam offers neither: she has to write.
+    // The mock exam offers the microphone (Jenia asked for it) but reads nothing aloud.
     const w = window as unknown as Record<string, unknown>;
     const spoken: string[] = [];
     w.SpeechRecognition = class { start() {} stop() {} abort() {} };
@@ -225,13 +225,13 @@ describe('the Mock Exam', () => {
 
     // Part A, then Part B. No teacher's wording and no example on the way.
     expect(screen.getByText('Part A · Question 1 of 1')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Say your answer|Say more/ })).toBeNull();
+    expect(screen.getByRole('button', { name: /Say your answer|Say more/ })).toBeInTheDocument();
     expect(screen.queryByText(/microphone key/)).toBeNull();
     type('Your answer', 'Government is the people who rule.');
     expect(screen.queryByText(MODEL)).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Next question' }));
     expect(screen.getByText('Part B · Question 1 of 1')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Say your answer|Say more/ })).toBeNull();
+    expect(screen.getAllByRole('button', { name: /Say your answer|Say more/ }).length).toBeGreaterThan(0);
     type('My argument', 'Democracy is the fairest system I think.');
     expect(screen.queryByText(EXAMPLE)).toBeNull();
 
