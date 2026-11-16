@@ -225,6 +225,10 @@ button.task:active { border-bottom-width: 2px; transform: translateY(2px); }
 .facts li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 2px solid var(--line); font-size: 0.98rem; }
 .facts strong { font-weight: 800; font-variant-numeric: tabular-nums; }
 .good { color: var(--green-dark); }
+.warn { color: #b3261e; font-weight: 700; }
+.file-btn { cursor: pointer; position: relative; }
+.restore-check { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 2px solid var(--accent); border-radius: 14px; background: #fff; }
+.restore-check p { margin: 0; }
 .days { width: 100%; border-collapse: collapse; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
 .days th, .days td { text-align: left; padding: 9px 6px 9px 0; border-top: 2px solid var(--line); vertical-align: top; }
 .days thead th { border-top: 0; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft); padding-top: 0; }
@@ -570,3 +574,17 @@ textarea:focus { outline: none; border-color: var(--blue); }
   .tiles { grid-template-columns: 1fr; }
   .tile { min-height: 0; }
 }
+
+/* ---- Sound switch and badges ---- */
+.head-right { display: flex; align-items: center; gap: 8px; flex: none; }
+.sound-btn { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--line); background: #fff; font-size: 1.15rem; line-height: 1; cursor: pointer; }
+.sound-btn:active { transform: translateY(2px); }
+.badges { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.badge-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border-radius: 14px; border: 2px solid var(--line); background: #fafafa; text-align: center; }
+.badge-icon { font-size: 1.7rem; line-height: 1.1; filter: grayscale(1); opacity: 0.45; }
+.badge-title { font-size: 0.74rem; font-weight: 800; line-height: 1.2; color: var(--ink-soft); }
+.badge-item.earned { background: #fffbe6; border-color: #f2c94c; }
+.badge-item.earned .badge-icon { filter: none; opacity: 1; }
+.badge-item.earned .badge-title { color: var(--ink); }
+.badge-item.fresh::after { content: 'New'; position: absolute; top: -8px; right: -4px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.66rem; font-weight: 800; }
+.badge-new { margin: 0; padding: 9px 12px; border-radius: 12px; background: #fffbe6; border: 2px solid #f2c94c; font-weight: 800; font-size: 0.92rem; }

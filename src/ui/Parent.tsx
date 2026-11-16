@@ -11,6 +11,8 @@ import { accuracy, dayReports } from '../engine/report';
 import type { Task } from '../engine/tasks';
 import { formatDuration, totalSeconds, type StudyTime } from '../engine/time';
 import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
+import type { Saved } from '../storage/db';
+import { Backup } from './Backup';
 import { Ring } from './Ring';
 import { ShareText } from './ShareText';
 
@@ -34,6 +36,10 @@ interface Props {
   onNotifyTopic: (topic: string | undefined) => void;
   /** Sends a test notification. Resolves to true if it went out. */
   onTestNotify: (topic: string) => Promise<boolean>;
+  /** Everything saved on this phone, for the backup. */
+  saved: Saved;
+  /** Replaces everything on this phone with a backup. */
+  onRestore: (saved: Saved) => void;
   onClose: () => void;
   onChangeCode: () => void;
 }
@@ -95,7 +101,7 @@ function Notifications({ topic, onTopic, onTest }: { topic?: string; onTopic: Pr
   );
 }
 
-export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, name, notifyTopic, onNotifyTopic, onTestNotify, onClose, onChangeCode }: Props) {
+export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, name, notifyTopic, onNotifyTopic, onTestNotify, saved, onRestore, onClose, onChangeCode }: Props) {
   const reports = dayReports(pack, sessions, studyTime, daysDone, today);
   const todayReport = reports.find((r) => r.day === today);
   const doneCount = tasks.filter((t) => t.done).length;
@@ -242,6 +248,8 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
         <Notifications topic={notifyTopic} onTopic={onNotifyTopic} onTest={onTestNotify} />
 
         <p className="muted small center">Her answers and progress are saved on this phone only.</p>
+        <Backup saved={saved} today={today} onRestore={onRestore} />
+
         <button type="button" className="text-link" onClick={onChangeCode}>Change the parent code</button>
       </main>
     </div>

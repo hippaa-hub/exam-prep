@@ -9,6 +9,7 @@ import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outc
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
 import { buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
+import { badgesFor } from './engine/rewards';
 import { ARGUMENT_TASK, GLOSSARY_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
@@ -25,6 +26,7 @@ import { Parent } from './ui/Parent';
 import { ParentGate } from './ui/ParentGate';
 import { Practise } from './ui/Practise';
 import { SessionScreen } from './ui/SessionScreen';
+import { setMuted } from './ui/sound';
 import { TabBar, type Tab } from './ui/TabBar';
 import { TableScreen } from './ui/TableScreen';
 
@@ -122,6 +124,10 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   }, [store]);
 
   const pack = useMemo(() => pickPack(packs, today), [packs, today]);
+
+  // The sound switch is saved with her settings.
+  const soundsOff = saved?.settings.muted ?? false;
+  useEffect(() => setMuted(soundsOff), [soundsOff]);
 
   const updatePack = useCallback((packId: string, change: (p: PackSave) => PackSave) => {
     const cur = savedRef.current;
@@ -480,6 +486,12 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
               commit({ ...savedRef.current!, settings: notifyTopic ? { ...settings, notifyTopic } : settings });
             }}
             onTestNotify={(t) => publish(t, testNote(now()))}
+            saved={saved}
+            onRestore={(backup) => {
+              // The code just typed on this phone stays, so restoring never locks the parent out.
+              const parentPin = savedRef.current?.settings.parentPin ?? backup.settings.parentPin;
+              commit({ ...backup, settings: { ...backup.settings, ...(parentPin ? { parentPin } : {}) } });
+            }}
             onClose={() => goTab('home')}
             onChangeCode={changeCode}
           />
@@ -504,6 +516,11 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             name={saved.settings.name}
             tasks={tasks}
             finished={finished}
+            badges={plan.phase === 'past' ? [] : badgesFor(pack, save)}
+            badgesSeen={save.badgesSeen}
+            onBadgesSeen={(ids) => updatePack(pack.id, (p) => ({ ...p, badgesSeen: ids }))}
+            muted={soundsOff}
+            onMute={(muted) => commit({ ...savedRef.current!, settings: { ...savedRef.current!.settings, muted } })}
             glossaryWords={glossary.length}
             glossaryDone={save.sessions.some((x) => x.date === today && x.task === GLOSSARY_TASK)}
             onGlossary={() => startGlossary(true)}

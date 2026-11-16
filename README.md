@@ -6,7 +6,7 @@ First exam: Individuals & Societies, "How Are Societies Governed?", Wednesday 18
 It is a web app that installs on the phone's home screen. Progress is saved on the phone only.
 No login, no adverts. Nothing leaves the phone unless a parent turns on notifications (see below).
 
-## What is built (Phases 1 and 2)
+## What is built (Phases 1, 2 and 3)
 
 - **Home**: days to go, the readiness ring, and **today's tasks**. Lola (the cat from the maths app) says which
   task is next and how to do it well.
@@ -59,7 +59,21 @@ No login, no adverts. Nothing leaves the phone unless a parent turns on notifica
 The look follows the maths app (Lola, outlined cards, chunky buttons, green for right, orange for "not yet").
 The main colour is violet instead of green so the two apps are easy to tell apart.
 
-Still to come (Phase 3): export/import, badges, sounds and the glossary cards.
+Phase 3 added:
+
+- **On track line** under the ring: whether she is keeping up with the plan, the highest readiness today can
+  reach, and how many things still need a right answer today. A thing gains one level per day at most,
+  so the ring cannot jump to 100% however long she practises.
+- **Part 2: Glossary words** (optional): the teacher's glossary as flashcards, offered on Home once the day's
+  tasks are finished. A round is half words she has met before and half new ones. These words are outside
+  the topics, so they do not count in the ring or in Fix My Mistakes.
+- **Badges** on Home, for effort and for keeping going, never for speed. They are worked out from what is
+  saved, so earlier progress counts. A new badge is announced once.
+- **Sounds**: a short chime for right, almost and not yet, and a little fanfare at the end of a round and for a
+  new badge. They are made in the browser, so they work offline. The 🔊 button on Home turns them off.
+  There are no sounds in the Mock Exam.
+- **Backup** in the parent view: "Save a backup" makes one small file with all her progress;
+  "Restore from a backup" puts it back on this phone or a new one, after asking first.
 
 ### About the microphone
 
@@ -110,7 +124,9 @@ Published automatically to GitHub Pages on every push to `main`.
 
 ## Adding the next exam
 
-Add a folder in `src/packs/` (copy `2026-11-18-societies`), write its topics, and list it in `src/packs/index.ts`.
+See **[NEW_EXAM_PACK.md](NEW_EXAM_PACK.md)**: what to collect from the teacher, what to ask for, and how the pack is built and checked.
+
+In short: add a folder in `src/packs/` (copy `2026-11-18-societies`), write its topics, and list it in `src/packs/index.ts`.
 Home always shows the nearest upcoming exam. Nothing else in the app changes.
 
 ## Where things are

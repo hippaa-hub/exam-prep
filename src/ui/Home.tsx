@@ -1,11 +1,14 @@
+import { useEffect, useState } from 'react';
 import type { DateKey, Pack } from '../content/types';
 import { conceptsOf, itemsOf } from '../content/types';
 import { addDays, formatLong, formatShort } from '../engine/dates';
 import type { TodayPlan } from '../engine/plan';
 import { READY_AT, dueCount, packCeilingToday, packReadiness, seenCount, topicReadiness, type ProgressMap } from '../engine/progress';
+import { newBadges, type Badge } from '../engine/rewards';
 import { nextTask, type Task } from '../engine/tasks';
 import { Mascot, type Mood } from './Mascot';
 import { Ring } from './Ring';
+import { play } from './sound';
 
 interface Props {
   pack: Pack;
@@ -26,6 +29,14 @@ interface Props {
   /** True when another day is being previewed with ?today= in the address. */
   preview?: boolean;
   onTask: (task: Task) => void;
+  /** Her badges, earned or not, and the ones she has already been shown. */
+  badges?: Badge[];
+  badgesSeen?: string[];
+  /** Called once the new badges have been shown, with every badge earned so far. */
+  onBadgesSeen?: (ids: string[]) => void;
+  /** True when the sounds are switched off. */
+  muted?: boolean;
+  onMute?: (muted: boolean) => void;
   /** How many glossary words the pack has. With any, Home offers Part 2 once the day's tasks are finished. */
   glossaryWords?: number;
   /** True once a round of glossary words has been done today. */
@@ -78,7 +89,8 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 }
 
 export function Home({
-  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary, onTask, onExtra, onPractise, onGuide, onParent,
+  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
+  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onTask, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = packReadiness(pack, progress);
   const cd = countdown(plan.daysToGo);
@@ -93,6 +105,18 @@ export function Home({
   const next = nextTask(tasks);
   const doneCount = tasks.filter((t) => t.done).length;
 
+  // Badges earned since she last looked are announced once: a sound, a banner and a "New" mark.
+  const [fresh] = useState(() => newBadges(badges, badgesSeen).map((b) => b.id));
+  useEffect(() => {
+    if (fresh.length === 0) return;
+    play('badge');
+    onBadgesSeen?.(badges.filter((b) => b.earned).map((b) => b.id));
+    // Only when Home opens: the list is fixed for this visit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const earnedCount = badges.filter((b) => b.earned).length;
+  const nextBadge = badges.find((b) => !b.earned);
+
   return (
     <>
       <header className="home-head">
@@ -100,7 +124,15 @@ export function Home({
           <div className="eyebrow">{pack.subject}</div>
           <h1>{pack.title}</h1>
         </div>
-        <span className="points" aria-label={`${points} points`}>⭐ {points}</span>
+        <div className="head-right">
+          {onMute && (
+            <button type="button" className="sound-btn" onClick={() => onMute(!muted)} aria-pressed={!muted}
+              aria-label={muted ? 'Sounds are off. Turn sounds on' : 'Sounds are on. Turn sounds off'}>
+              {muted ? '🔇' : '🔊'}
+            </button>
+          )}
+          <span className="points" aria-label={`${points} points`}>⭐ {points}</span>
+        </div>
       </header>
 
       {preview && <p className="preview-note" role="note">Preview: showing {formatLong(today)}. Remove "?today=…" from the address to go back to the real day.</p>}
@@ -202,6 +234,32 @@ export function Home({
           </>
         )}
       </section>
+
+      {badges.length > 0 && (
+        <section className="card" aria-labelledby="badges-h">
+          <div className="card-top">
+            <h2 id="badges-h">My badges</h2>
+            <span className="count-chip">{earnedCount} of {badges.length}</span>
+          </div>
+          {fresh.length > 0 && (
+            <p className="badge-new" role="status">
+              🎉 {fresh.length === 1 ? 'New badge' : `${fresh.length} new badges`}: {badges.filter((b) => fresh.includes(b.id)).map((b) => b.title).join(', ')}
+            </p>
+          )}
+          <ul className="badges">
+            {badges.map((b) => (
+              <li key={b.id} className={b.earned ? (fresh.includes(b.id) ? 'badge-item earned fresh' : 'badge-item earned') : 'badge-item'}>
+                <span className="badge-icon" aria-hidden="true">{b.earned ? b.icon : '🔒'}</span>
+                <span className="badge-title">{b.title}</span>
+                <span className="sr-only">{b.earned ? 'Earned' : `Not yet. ${b.how}`}</span>
+              </li>
+            ))}
+          </ul>
+          {nextBadge
+            ? <p className="muted small"><strong>Next badge: {nextBadge.title}.</strong> {nextBadge.how}</p>
+            : <p className="muted small"><strong>You have every badge.</strong> Well done!</p>}
+        </section>
+      )}
 
       {showGuideHint && (
         <button type="button" className="card link-card tint-accent" onClick={onGuide}>

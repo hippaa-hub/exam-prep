@@ -6,6 +6,7 @@ import { answerText, examplesFor, shortLabel, simpleWords } from '../content/typ
 import { explainChoice } from '../engine/explain';
 import type { ConceptProgress, Outcome } from '../engine/progress';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from '../engine/rewards';
+import { play } from './sound';
 import { answerRun, currentId, isFinished, runFraction, startRun, summarise, type RunSummary } from '../engine/session';
 import { Confetti } from './Confetti';
 import { ItemView } from './ItemView';
@@ -72,6 +73,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
       setRun((r) => answerRun(r, outcome, askAgain));
       window.scrollTo(0, 0);
     } else {
+      play(outcome);
       setResult({ outcome, askAgain, chosen });
     }
   };
@@ -151,6 +153,8 @@ function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, nex
 }) {
   const points = POINTS_SESSION + fixed * POINTS_FIXED_MISTAKE;
   const allRight = summary.missed.length === 0;
+  // A little fanfare when the round is finished.
+  useEffect(() => play('done'), []);
   return (
     <div className="summary">
       <Confetti />

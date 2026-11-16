@@ -2,7 +2,7 @@
 // all of them report a single outcome and then show the marking.
 import { useEffect, useMemo, useState } from 'react';
 import type { ChoiceItem, Item, MatchItem, OrderItem, PairItem, ShortItem, TableItem, TermItem } from '../content/types';
-import { checkIdeas, hasEnoughWords, verdictSentence } from '../engine/check';
+import { checkIdeas, hasEnoughWords, outcomeOfTicks, verdictSentence } from '../engine/check';
 import type { Outcome } from '../engine/progress';
 import { shuffle } from '../engine/rng';
 import { DictationBox } from './Dictation';
@@ -10,6 +10,7 @@ import { FillRows, type FillRow } from './FillRows';
 import { IdeaVerdict } from './IdeaVerdict';
 import { ListenRow } from './ListenRow';
 import { SimpleBox, spokenHelp } from './SimpleBox';
+import { play } from './sound';
 import { readAloudOn, speak, stopSpeaking } from './speech';
 
 interface ViewProps<T extends Item> {
@@ -230,6 +231,7 @@ function TermView({ item, locked, onResult, simple, examples, fresh }: ViewProps
 
   const check = () => {
     setStage('checked');
+    if (item.ideas) play(outcomeOfTicks({ ideas: item.ideas }, checkIdeas(typed, item.ideas).found));
     // The app says the verdict, then reads the card.
     if (aloud && item.ideas) speak(`${verdictSentence({ ideas: item.ideas }, checkIdeas(typed, item.ideas).found)} ${cardText}`);
   };
@@ -321,6 +323,7 @@ function ShortView({ item, locked, onResult, simple, examples, fresh }: ViewProp
 
   const check = () => {
     setChecked(true);
+    play(outcomeOfTicks(item, checkIdeas(text, item.ideas).found));
     // The app says the verdict, then reads the teacher's wording.
     if (aloud) speak(`${verdictSentence(item, checkIdeas(text, item.ideas).found)} ${modelText}`);
   };

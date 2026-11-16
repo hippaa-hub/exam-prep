@@ -332,3 +332,64 @@ describe("notifications for a parent's phone", () => {
     expect(screen.getByRole('button', { name: 'Turn notifications on' })).toBeInTheDocument();
   });
 });
+
+describe('Phase 3: sounds, badges and the backup', () => {
+  it('has a sound switch on Home that is remembered', async () => {
+    const user = userEvent.setup();
+    const store = memoryStore();
+    const first = render(<App store={store} packs={[pack]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: /Sounds are on/ }));
+    expect(screen.getByRole('button', { name: /Sounds are off/ })).toBeInTheDocument();
+    expect(store.current?.settings.muted).toBe(true);
+    first.unmount();
+    render(<App store={store} packs={[pack]} now={friday} />);
+    expect(await screen.findByRole('button', { name: /Sounds are off/ })).toBeInTheDocument();
+  });
+
+  it('gives badges for progress made before badges existed, and announces them once', async () => {
+    const store = memoryStore({
+      ...emptySaved(),
+      packs: { 'test-pack': { progress: {}, points: 10, sessions: [{ date: '2026-11-12', kind: 'today', topics: ['T'], asked: 3, firstTimeRight: 3 }] } },
+    });
+    const first = render(<App store={store} packs={[pack]} now={friday} />);
+    expect(await screen.findByText(/New badge: First round/)).toBeInTheDocument();
+    expect(screen.getByText(/Next badge: Day finished/)).toBeInTheDocument();
+    expect(store.current?.packs['test-pack'].badgesSeen).toEqual(['first-round']);
+    first.unmount();
+    render(<App store={store} packs={[pack]} now={friday} />);
+    expect(await screen.findByRole('heading', { name: 'My badges' })).toBeInTheDocument();
+    expect(screen.queryByText(/New badge/)).toBeNull();
+  });
+
+  it('restores a backup in the parent view, after asking first', async () => {
+    const user = userEvent.setup();
+    const store = memoryStore();
+    render(<App store={store} packs={[pack]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: 'For parents' }));
+    await tapCode(user, '1357');
+    await screen.findByRole('heading', { name: 'Type the code again' });
+    await tapCode(user, '1357');
+    expect(await screen.findByRole('heading', { name: 'Backup' })).toBeInTheDocument();
+
+    // A file that is not a backup is refused, and nothing changes.
+    const picker = screen.getByLabelText('Choose a backup file');
+    await user.upload(picker, new File(['not a backup'], 'notes.json', { type: 'application/json' }));
+    expect(await screen.findByText(/could not be read/)).toBeInTheDocument();
+
+    const backup = {
+      app: 'adele-exam-prep', version: 1, exportedOn: '2026-11-12',
+      data: {
+        ...emptySaved(),
+        packs: { 'test-pack': { progress: {}, points: 70, sessions: [{ date: '2026-11-12', kind: 'today', topics: ['T'], asked: 3, firstTimeRight: 2 }] } },
+      },
+    };
+    await user.upload(picker, new File([JSON.stringify(backup)], 'exam-prep-backup-2026-11-12.json', { type: 'application/json' }));
+    expect(await screen.findByRole('heading', { name: 'Replace the progress on this phone?' })).toBeInTheDocument();
+    expect(store.current?.packs['test-pack']?.points ?? 0).toBe(0); // nothing replaced until she confirms
+    await user.click(screen.getByRole('button', { name: 'Replace with the backup' }));
+    expect(await screen.findByText(/Backup restored/)).toBeInTheDocument();
+    expect(store.current?.packs['test-pack'].points).toBe(70);
+    // The code typed on this phone still works.
+    expect(store.current?.settings.parentPin).toBeTruthy();
+  });
+});
