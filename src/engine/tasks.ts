@@ -45,6 +45,7 @@ export const mockTaskId = (mock: string) => `mock:${mock}`;
 export const ARGUMENT_TASK = 'argument';
 /** Marks a finished round of glossary words (Part 2). It is optional, so it is not one of the day's tasks. */
 export const GLOSSARY_TASK = 'glossary';
+export const LATE_TASK = 'round-new';
 
 const minutes = (questions: number) => Math.max(2, Math.round(questions * 0.65));
 const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${minutes(n)} min`;
@@ -63,6 +64,10 @@ export function tasksFor(
   plan: TodayPlan, sessions: readonly SessionRecord[], today: DateKey, due: number, mistakes: number,
   /** Glossary words that join the last day's mixed round (0 when the pack has no glossary). */
   wordsInMix = 0,
+  /** Questions added late that she has not met yet: the last day's first task (0 = no such task). */
+  lateLeft = 0,
+  /** The planned mock exam's length, for its task card. */
+  mockMinutes = 35,
 ): Task[] {
   const todays = sessions.filter((s) => s.date === today);
   const rounds = todays.filter((s) => s.kind === 'today').length;
@@ -85,6 +90,15 @@ export function tasksFor(
     tasks.push({
       id: gameTaskId('key-terms'), kind: 'game', game: 'key-terms', title: GAME_TITLES['key-terms'],
       detail: 'Ten key terms · about 8 min', tip: GAME_TIPS['key-terms'], done: didTask(gameTaskId('key-terms')),
+    });
+  }
+
+  // The last day starts with the questions added after the slide-by-slide check, so none is met for the first time in the mock.
+  if (plan.mock && lateLeft > 0) {
+    tasks.push({
+      id: LATE_TASK, kind: 'round', title: 'New questions from the slides', detail: questions(lateLeft),
+      tip: 'These were added after checking every slide. Say or type your answers; new to you? Tap "I don\'t know yet" and read why.',
+      done: didTask(LATE_TASK),
     });
   }
 
@@ -147,7 +161,7 @@ export function tasksFor(
   // On the Mock Exam day the mock comes last: warmed up, mistakes fixed, then the real-test practice.
   if (plan.mock) {
     tasks.push({
-      id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: 'Like the real test · about 35 min',
+      id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: `Like the real test · about ${mockMinutes} min`,
       tip: 'Do it like the real test: notes closed, and write every answer yourself. No microphone here. At the end it shows you what to fix.',
       done: mockDone,
     });

@@ -8,9 +8,9 @@ import { pickPack, planFor, type SessionKind } from './engine/plan';
 import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outcome } from './engine/progress';
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
-import { buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, type RunSummary } from './engine/session';
+import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, type RunSummary } from './engine/session';
 import { badgesFor } from './engine/rewards';
-import { ARGUMENT_TASK, GLOSSARY_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
+import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
 import { packs as allPacks } from './packs';
@@ -269,7 +269,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const due = dueToday(pack, progress, plan, today);
   const glossary = glossaryOf(pack);
   const wordsInMix = glossary.length ? GLOSSARY_IN_MIX : 0;
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix);
+  const lateLeft = buildLateSession(pack, progress).length;
+  const mockMinutes = (pack.mocks ?? []).find((m) => m.id === plan.mock)?.minutes ?? 35;
+  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -290,7 +292,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length, wordsInMix);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes);
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -316,6 +318,11 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     const title = plan.phase === 'exam-day' ? 'Warm-up' : guided ? `Round ${Math.min(rounds + 1, 2)}` : 'Extra practice';
     const task = plan.phase === 'exam-day' ? 'warm-up' : rounds === 0 ? 'round-1' : 'round-2';
     open({ kind: 'today', title, topics: plan.topics, ids, task, guided, again: guided ? undefined : () => startToday(false) });
+  };
+  /** The last day's first task: the questions added after the slide-by-slide check. */
+  const startLate = () => {
+    const ids = buildLateSession(pack, currentSave().progress);
+    if (ids.length > 0) open({ kind: 'practice', title: 'New questions', topics: [], ids, task: LATE_TASK, guided: true });
   };
   const startFix = (guided = false) => {
     const ids = buildFixSession(pack, currentSave().progress);
@@ -366,7 +373,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   };
 
   const startTask = (task: Task) => {
-    if (task.kind === 'round' || task.kind === 'warm-up') startToday(true);
+    if (task.id === LATE_TASK) startLate();
+    else if (task.kind === 'round' || task.kind === 'warm-up') startToday(true);
     else if (task.kind === 'game') startPractice(task.title, all.filter((it) => gameOf(it) === task.game), task.id, true);
     else if (task.kind === 'table' && task.group) openTable(task.group, true);
     else if (task.kind === 'fix') startFix(true);

@@ -6,7 +6,7 @@ import { applyAnswer, type ProgressMap } from './progress';
 import { seeded } from './rng';
 import {
   answerRun, buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, currentId, dueToday, isFinished, startRun, summarise,
-  GLOSSARY_IN_MIX, MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE,
+  GLOSSARY_IN_MIX, MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE, buildLateSession,
 } from './session';
 
 const topic = (id: string, n: number) => ({
@@ -249,6 +249,15 @@ describe('the last day\'s mixed round', () => {
     expect(fromWords).toHaveLength(GLOSSARY_IN_MIX);
     expect(fromWords).not.toContain('v-18'); // never-on-the-slides words come last
     expect(fromWords).not.toContain('v-19');
+  });
+
+  it('the late-additions round holds every late question she has not met yet', () => {
+    const lateIds = ['A-3', 'B-7', 'C-11'];
+    const p: Pack = { ...pack, lateAdditions: lateIds };
+    expect([...buildLateSession(p, {}, seeded(4))].sort()).toEqual(lateIds);
+    const met: ProgressMap = { 'A-3': applyAnswer(undefined, 'right', tue, 'A-3') };
+    expect([...buildLateSession(p, met, seeded(4))].sort()).toEqual(['B-7', 'C-11']);
+    expect(buildLateSession(pack, {}, seeded(4))).toEqual([]);
   });
 
   it('adds no words on an ordinary day, or when the pack has no glossary', () => {

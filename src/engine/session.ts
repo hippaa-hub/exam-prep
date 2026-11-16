@@ -243,3 +243,15 @@ export function summarise(run: Run): RunSummary {
 export function runFraction(run: Run): number {
   return run.queue.length === 0 ? 1 : Math.min(1, run.index / run.queue.length);
 }
+
+/**
+ * The round of questions added late (after a slide-by-slide check): the last day's first task.
+ * A wording she has already met is left out, so the round shrinks as she goes.
+ */
+export function buildLateSession(pack: Pack, progress: ProgressMap, rng: Rng = Math.random): ItemId[] {
+  const byId = new Map(itemsOf(pack).map((it) => [it.id, it]));
+  const late = (pack.lateAdditions ?? [])
+    .map((id) => byId.get(id))
+    .filter((it): it is Item => !!it && !(progress[conceptOf(it)]?.recent ?? []).includes(it.id));
+  return shuffle(late, rng).map((it) => it.id);
+}

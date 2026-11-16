@@ -151,11 +151,13 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
   it('has mock exams and arguments that point at real questions', () => {
     const ids = new Set(items.filter((i) => i.type === 'short').map((i) => i.id));
     const args = new Set((pack.arguments ?? []).map((a) => a.id));
-    expect(pack.arguments?.length).toBe(6);
+    expect(pack.arguments?.length).toBe(7);
     expect(pack.mocks?.length).toBe(2);
+    // Mock 1 is the teacher's two exit tickets (12 written, 4 arguments); mock 2 holds the rest.
+    const sizes: Record<string, [number, number]> = { 'mock-1': [12, 4], 'mock-2': [6, 3] };
     for (const m of pack.mocks ?? []) {
-      expect(m.partA.length, m.id).toBe(6);
-      expect(m.partB.length, m.id).toBe(2);
+      expect(m.partA.length, m.id).toBe(sizes[m.id][0]);
+      expect(m.partB.length, m.id).toBe(sizes[m.id][1]);
       for (const id of m.partA) expect(ids.has(id), `${m.id}: ${id}`).toBe(true);
       for (const id of m.partB) expect(args.has(id), `${m.id}: ${id}`).toBe(true);
     }

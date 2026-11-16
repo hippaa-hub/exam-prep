@@ -30,6 +30,11 @@ export const argumentQuestions: ArgumentItem[] = [
     example: 'Democracy gives citizens the most power, and direct democracy most of all. First, power comes from the people: citizens choose their leaders in free, competitive elections. Second, leaders are accountable, so citizens can change the government. In Switzerland citizens even vote on issues themselves in referendums and can launch popular initiatives. In an absolute monarchy such as Saudi Arabia power is held by the monarch, and in a dictatorship it is concentrated in one leader or group. However, direct democracy has limits: complex issues can be hard for voters, and the majority may overlook minorities. Overall, citizens have the most power where they can vote freely and hold leaders to account.',
   },
   {
+    id: 'd-no-government',
+    prompt: 'Can a society function successfully without a government? Explain your opinion using at least two reasons.',
+    example: 'In my opinion a society cannot function successfully without a government. First, people have different needs, interests and opinions, so they need an organised system to make collective decisions. Second, governments establish and enforce laws to maintain public order and protect citizens; without them it becomes harder to resolve conflicts and protect rights. Third, nobody would provide public services such as education, healthcare and transport. Someone might say a small group, like our Shipwrecked island, can organise itself without a government. But even there the group chose leaders, made rules and settled disagreements, which is governance on a small scale, and a real country has millions of people. So a society needs organised governance to work.',
+  },
+  {
     id: 'd-why-power-matters',
     prompt: 'Why does understanding how power is distributed matter for citizens? Link your answer to fairness, accountability and participation.',
     example: 'Understanding how power is distributed matters because it shows citizens who decides, and whether they can take part. Where power comes from the people, as in the United Kingdom, citizens can participate by electing MPs, and leaders are accountable: they must explain and answer for their actions. Where power is concentrated, as in North Korea, opposition is not allowed, so decisions are harder to challenge and may be less fair. Some might say the system matters less than good leaders, and it is true that a system does not automatically guarantee good government. Still, citizens who understand where power lies can judge whether it is used fairly and how to take part.',
@@ -37,18 +42,24 @@ export const argumentQuestions: ArgumentItem[] = [
 ];
 
 export const mocks: MockExam[] = [
+  // Mock Exam 1 is the teacher's own two exit tickets, which she says map directly to Criteria A and D:
+  // Lesson 1 questions 1 to 6 and its final reflection, then Lesson 2 Part A 1 to 4 and Part B 5 to 7.
   {
     id: 'mock-1',
-    title: 'Mock Exam 1',
-    minutes: 35,
-    partA: ['w-government', 'w-gov-governance', 'w-power-authority', 'w-four', 'w-abs-const', 'w-dem-dict'],
-    partB: ['d-fairest', 'd-monarch-democratic'],
+    title: 'Mock Exam 1: the teacher\'s exit tickets',
+    minutes: 50,
+    partA: [
+      'w-government', 'w-gov-governance', 'w-power-authority', 'w-four', 'w-why-government', 'w-institution',
+      'w-monarchy', 'w-democracy', 'w-dictatorship', 'w-abs-const', 'w-direct-rep', 'w-examples',
+    ],
+    partB: ['d-no-government', 'd-uk-both', 'd-north-korea', 'd-most-power'],
   },
+  // Mock Exam 2: the rest of the teacher's written and critical-thinking questions.
   {
     id: 'mock-2',
     title: 'Mock Exam 2',
-    minutes: 35,
-    partA: ['w-why-government', 'w-institution', 'w-rules-laws', 'w-direct-rep', 'w-keep', 'w-heads'],
-    partB: ['d-north-korea', 'd-most-power'],
+    minutes: 40,
+    partA: ['w-dem-dict', 'w-rules-laws', 'w-heads', 'w-protects', 'w-gain', 'w-keep'],
+    partB: ['d-fairest', 'd-monarch-democratic', 'd-why-power-matters'],
   },
 ];

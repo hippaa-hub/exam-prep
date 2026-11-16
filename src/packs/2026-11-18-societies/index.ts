@@ -34,6 +34,16 @@ export const pack: Pack = {
   examples: { ...examples, ...glossaryExamples },
   glossary,
   glossaryLast,
+  // Added on 17 Nov after checking both decks slide by slide: the last day's round asks these first.
+  lateAdditions: [
+    'g2-pa-q-judge', 'g2-pa-q-fear', 'g2-rl-q-levels',
+    'g3-fn-six', 'g3-fn-laws', 'g3-fn-systems', 'g3-part-ways', 'g3-part-legit', 'g3-uf-fairness', 'g3-uf-made-of',
+    'g4-why-stealing', 'g4-why-hospital',
+    's1-q-succession', 's1-q-control',
+    's2-q-referendum', 's2-q-initiative', 's2-q-rep-adv', 's2-q-rep-when', 's2-q-ruleoflaw', 's2-q-equal',
+    's3-gk-why', 's4-q-japan-inherit', 's4-q-japan-symbol', 's4-q-japan-both', 's5-q-opposition', 's5-q-shape',
+    'w-no-government',
+  ],
   arguments: argumentQuestions,
   mocks,
   plan: [
