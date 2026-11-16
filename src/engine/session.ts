@@ -1,12 +1,14 @@
 // Choosing the questions for a session, and running it.
 import type { ConceptId, DateKey, Item, ItemId, Pack, TopicId } from '../content/types';
-import { conceptOf, itemsOf } from '../content/types';
+import { conceptOf, itemsOf, glossaryOf } from '../content/types';
 import type { TodayPlan } from './plan';
 import type { Outcome, ProgressMap } from './progress';
 import { isDue, mistakeIds, weakest } from './progress';
 import { shuffle, type Rng } from './rng';
 
 export const TODAY_SIZE = 15;
+/** On the last day the mixed round also brings in this many glossary words, so they are met inside the app. */
+export const GLOSSARY_IN_MIX = 10;
 export const PRACTICE_SIZE = 12;
 export const WARM_UP_SIZE = 8;
 /** Each round keeps a few places for things met on earlier days (a mixed review every day). */
@@ -103,7 +105,12 @@ export function buildTodaySession(
   let chosen = [...focusDue.slice(0, focusN), ...reviewDue.slice(0, reviewN)];
   if (chosen.length === 0) chosen = ranked([...focus, ...review], progress, today, rng).slice(0, size);
 
-  return shuffle(pickVariants(chosen, progress, rng), rng).map((it) => it.id);
+  const ids = pickVariants(chosen, progress, rng).map((it) => it.id);
+  // The last day's mixed round covers everything, so the glossary words join it (new words first).
+  const words = plan.phase === 'last-day'
+    ? buildGlossarySession(glossaryOf(pack), progress, today, rng, GLOSSARY_IN_MIX, pack.glossaryLast ?? [])
+    : [];
+  return shuffle([...ids, ...words], rng);
 }
 
 /**

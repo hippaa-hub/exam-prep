@@ -290,6 +290,121 @@ export const whyNot: Record<string, Record<string, string>> = {
     'The head of state': 'The King is the head of state.',
     'A court that resolves disputes': 'It is a council that gives advice. It is not a court.',
   },
+  'g2-pa-q-judge': {
+    'Yes. A judge only has authority when everyone agrees': 'Authority is the recognised right to decide. It does not depend on everyone agreeing.',
+    'Yes. People can cancel the decision by disagreeing': 'A legal decision stands whether or not people agree with it.',
+    'No. A judge has power, not authority': 'A judge has authority: the recognised, accepted right to decide cases.',
+  },
+  'g2-pa-q-fear': {
+    'Authority: the recognised right to decide': 'Respect or fear can give influence, but not a recognised right. That is power.',
+    'Both power and authority, always': 'Influence is power. Authority needs a recognised right, from laws, constitutions or accepted rules.',
+    'Neither power nor authority': 'Influencing people is exactly what power means.',
+  },
+  'g2-rl-q-levels': {
+    'Family, school and world': 'The lesson gives classroom, community and nation.',
+    'Village, city and continent': 'The lesson gives classroom, community and nation.',
+    'Local, national and international': 'Those are not the three levels of shared rules in the lesson: classroom, community and nation.',
+  },
+  'g3-fn-six': {
+    'Make laws, win elections, collect votes, run shops, build palaces, choose a monarch': 'Governments do not run shops or build palaces. The six things are laws, order, protection, services, resources and collective decisions.',
+    'Protect citizens, provide services, hold referendums, write a constitution, pick a leader, control the media': 'Controlling the media is what dictatorships do, not a job of every government.',
+    'Maintain order, enforce laws, make money, run businesses, defend the border, choose a religion': 'Governments manage public resources (taxes and spending); they do not run businesses or choose a religion.',
+  },
+  'g3-fn-laws': {
+    'who the head of state is': 'Laws are about behaviour: what is allowed, required or forbidden.',
+    'how much money each citizen earns': 'Laws set what is allowed, required or forbidden, not what each person earns.',
+    'which opinions people may hold': 'In a democracy people may hold their own opinions. Laws regulate behaviour.',
+  },
+  'g3-fn-systems': {
+    'They all distribute power in the same way': 'They do not. Monarchies, democracies and dictatorships distribute power differently.',
+    'They are all democratic': 'Not all governments are democratic. Dictatorships and absolute monarchies are not.',
+    'They all have a monarch': 'Only monarchies have a monarch. Switzerland, for example, has none.',
+  },
+  'g3-part-ways': {
+    'Only by voting once every few years': 'Voting matters, but citizens also take part through discussion, representatives and peaceful participation.',
+    'By obeying the leader without question': 'That describes a dictatorship, not a democracy.',
+    'They cannot: only the government decides': 'In a democracy power comes from the people, who influence decisions.',
+  },
+  'g3-part-legit': {
+    'The power of the monarch': 'Participation is about citizens, not monarchs.',
+    'The number of laws': 'Giving opinions does not create more laws by itself.',
+    'The budget for public services': 'Participation strengthens legitimacy, not the budget.',
+  },
+  'g3-uf-fairness': {
+    'Everyone earns the same money': 'Fairness is about equal treatment, rights and opportunities, not equal money.',
+    'Everyone agrees with the government': 'Fairness does not mean agreeing. It means equal treatment, rights and opportunities.',
+    'The strongest person decides': 'That is the opposite of fairness.',
+  },
+  'g3-uf-made-of': {
+    'Kings, queens and princes': 'A monarch is only one kind of head of state. A government is institutions, rules, people and responsibilities.',
+    'Roads, schools and hospitals': 'Those are public services the government provides, not what the government is made of.',
+    'Votes, ballots and candidates': 'Those belong to elections. A government is institutions, rules, people and responsibilities.',
+  },
+  'g4-why-stealing': {
+    'It provides a public service': 'Arresting a thief is enforcing the law, which protects property and safety.',
+    'It makes the thief a citizen': 'Enforcing the law does not change who is a citizen.',
+    'It gives the police more power': 'The point is to protect people\'s property rights and personal safety.',
+  },
+  'g4-why-hospital': {
+    'It enforces the law': 'A hospital is a public service, not law enforcement.',
+    'It protects the country from external threats': 'That is national defence. A hospital provides healthcare.',
+    'It keeps the roads safe': 'Roads are another public service. A hospital ensures access to healthcare.',
+  },
+  's1-q-succession': {
+    'Citizens elect the next monarch': 'Monarchs are not elected. The position is inherited through the royal family.',
+    'The prime minister chooses the next monarch': 'The prime minister leads the government; succession follows royal rules.',
+    'The strongest member of the family takes over': 'Succession follows established royal rules, not strength.',
+  },
+  's1-q-control': {
+    'Parliament checks the monarch': 'In an absolute monarchy the monarch is NOT checked by parliament.',
+    'Citizens elect the monarch': 'The position is inherited, in both kinds of monarchy.',
+    'The monarch has only ceremonial duties': 'That is a constitutional monarchy. An absolute monarch holds extensive power.',
+  },
+  's2-q-referendum': {
+    'An election of representatives': 'That is representative democracy. A referendum is a direct vote on one issue.',
+    'A speech by the head of state': 'A referendum is a vote by citizens, not a speech.',
+    'A law passed by parliament': 'In a referendum the citizens vote directly, instead of parliament deciding.',
+  },
+  's2-q-initiative': {
+    'The government proposes a new law': 'In a popular initiative it is the citizens who propose the change.',
+    'A judge changes the law': 'Judges interpret laws. A popular initiative comes from citizens.',
+    'Representatives vote on a budget': 'That is parliament at work. A popular initiative is a citizens\' proposal.',
+  },
+  's2-q-rep-adv': {
+    'Every citizen votes on every issue': 'That is direct democracy, and it is the opposite of the advantage: no vote needed for every decision.',
+    'The monarch makes quick decisions': 'That is an advantage claimed for absolute monarchy.',
+    'There are no elections to organise': 'Representative democracy needs elections to choose the representatives.',
+  },
+  's2-q-rep-when': {
+    'By voting directly on each issue': 'That is direct democracy, like Swiss referendums.',
+    'By inheriting a seat in parliament': 'Representatives are elected, not inherited.',
+    'By joining the armed forces': 'That is not political participation.',
+  },
+  's2-q-ruleoflaw': {
+    'Only citizens must obey the law': 'Leaders must obey it too. Everyone is subject to the law.',
+    'Leaders make the law and are above it': 'Nobody is above the law, including leaders.',
+    'The police decide what the law is': 'The police enforce the law. The rule of law means the same laws apply to all.',
+  },
+  's2-q-equal': {
+    'Yes. Every democracy protects rights in exactly the same way': 'Some democracies protect rights very well, others only partly.',
+    'No. Democracies do not protect rights at all': 'Democracies do protect rights, but not all equally well.',
+    'Yes. The word democracy guarantees it': 'A name guarantees nothing. It depends on how well the principles operate.',
+  },
+  's3-gk-why': {
+    'They make decisions quicker': 'Quick decisions are claimed for dictatorships. Free elections and free media let citizens challenge leaders.',
+    'They give the leader more power': 'They do the opposite: they let citizens hold leaders to account and replace them.',
+    'They are needed to collect taxes': 'Taxes are collected in every system. Free elections and media are about changing leaders.',
+  },
+  's5-q-opposition': {
+    'The police and the armed forces': 'Those are security forces. Opposition means parties or groups that challenge the government.',
+    'The head of state and the head of government': 'Those are the government, not the opposition.',
+    'Citizens who do not vote': 'Opposition actively challenges the government\'s policies; not voting is not opposition.',
+  },
+  's5-q-shape': {
+    'Only the name of the country': 'The way power is organised shapes decisions, leaders, participation and rights, far more than a name.',
+    'Only the size of the army': 'The arrangements shape who decides, how leaders are selected, participation and rights.',
+    'Only how much tax people pay': 'Taxes are one small part. The arrangements shape decisions, leaders, participation and rights.',
+  },
   's4-q-japan-inherit': {
     'Citizens elect the Emperor': 'Citizens elect members of the National Diet, not the Emperor.',
     'The National Diet chooses the Emperor': 'The Diet makes the laws. The Emperor\'s position passes down in the family.',

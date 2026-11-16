@@ -50,11 +50,20 @@ export const g4: Topic = {
       'Police and courts; traffic rules', ['Public schools and hospitals', 'National defence', 'Referendums'], order),
     choice('g4-example-protect', 'Which example goes with "protecting citizens"?',
       'Emergency services and national defence', ['Traffic rules', 'Public schools and hospitals', 'Elections'], protect),
+    // Slide 19 answer key: why the responsibility matters.
+    choice('g4-why-stealing', 'A person is arrested for stealing. Why does enforcing the law here matter?',
+      'It protects property rights and personal safety',
+      ['It provides a public service', 'It makes the thief a citizen', 'It gives the police more power'],
+      'Enforcing laws protects property rights and personal safety.'),
+    choice('g4-why-hospital', 'A government builds a new public hospital. Why does this matter?',
+      'It ensures access to healthcare regardless of income',
+      ['It enforces the law', 'It protects the country from external threats', 'It keeps the roads safe'],
+      'Providing public services such as healthcare ensures access for everyone, regardless of income.'),
   ], [
     ['g4-public-order', /^g4-(traffic|prevent|m-order|example-order)$/],
     ['g4-protecting', /^g4-(earthquake|defence|flood|m-protect|example-protect)$/],
-    ['g4-services', /^g4-(schools|hospital|roads|water|newschool|m-services)$/],
-    ['g4-enforcing', /^g4-(courts|stealing|investigate|consequence|m-enforce)$/],
+    ['g4-services', /^g4-(schools|hospital|roads|water|newschool|m-services|why-hospital)$/],
+    ['g4-enforcing', /^g4-(courts|stealing|investigate|consequence|m-enforce|why-stealing)$/],
     ['g4-all-four', /^g4-(list|judge)$/],
   ]),
 };

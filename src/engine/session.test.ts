@@ -6,7 +6,7 @@ import { applyAnswer, type ProgressMap } from './progress';
 import { seeded } from './rng';
 import {
   answerRun, buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, currentId, dueToday, isFinished, startRun, summarise,
-  MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE,
+  GLOSSARY_IN_MIX, MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE,
 } from './session';
 
 const topic = (id: string, n: number) => ({
@@ -232,5 +232,29 @@ describe('a round of glossary words', () => {
     // Everything right today already: it still gives a round, for extra practice.
     const done = met(all.map((w) => w.id), 'right', tue);
     expect(buildGlossarySession(all, done, tue, seeded(6))).toHaveLength(10);
+  });
+});
+
+describe('the last day\'s mixed round', () => {
+  const words = Array.from({ length: 20 }, (_, i) => term(`v-${i}`, `Word ${i}`, 'A definition.'));
+  const withWords: Pack = { ...pack, glossary: words, glossaryLast: ['v-18', 'v-19'] };
+  const tue = '2026-11-17';
+
+  it('brings in glossary words on top of the topic questions, new words first', () => {
+    const plan = planFor(withWords, [], tue);
+    expect(plan.phase).toBe('last-day');
+    const ids = buildTodaySession(withWords, {}, plan, tue, seeded(3));
+    const fromWords = ids.filter((id) => id.startsWith('v-'));
+    expect(ids).toHaveLength(TODAY_SIZE + GLOSSARY_IN_MIX);
+    expect(fromWords).toHaveLength(GLOSSARY_IN_MIX);
+    expect(fromWords).not.toContain('v-18'); // never-on-the-slides words come last
+    expect(fromWords).not.toContain('v-19');
+  });
+
+  it('adds no words on an ordinary day, or when the pack has no glossary', () => {
+    const ordinary = planFor(withWords, [], sat);
+    expect(buildTodaySession(withWords, {}, ordinary, sat, seeded(3)).some((id) => id.startsWith('v-'))).toBe(false);
+    const plan = planFor(pack, [], tue);
+    expect(buildTodaySession(pack, {}, plan, tue, seeded(3))).toHaveLength(TODAY_SIZE);
   });
 });

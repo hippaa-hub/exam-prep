@@ -1,6 +1,6 @@
 // Plays the real exam pack day by day, to check the plan is reachable in the time Adele has.
 import { describe, expect, it } from 'vitest';
-import { conceptOf, conceptsOf, itemsOf, type Pack } from '../content/types';
+import { allItemsOf, conceptOf, conceptsOf, itemsOf, type Pack } from '../content/types';
 import { packs } from '../packs';
 import { addDays } from './dates';
 import { planFor, type SessionRecord } from './plan';
@@ -13,7 +13,7 @@ interface Result { readiness: number; answersPerDay: number[]; topics: Record<st
 /** A learner who starts `firstDay` days before the exam, does up to `rounds` rounds a day and is right `accuracy` of the time. */
 function simulate(pack: Pack, firstDay: number, rounds: number, accuracy: number, seed: number): Result {
   const rng = seeded(seed);
-  const byId = new Map(itemsOf(pack).map((it) => [it.id, it]));
+  const byId = new Map(allItemsOf(pack).map((it) => [it.id, it]));
   let progress: ProgressMap = {};
   const sessions: SessionRecord[] = [];
   const answersPerDay: number[] = [];

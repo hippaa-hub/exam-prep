@@ -4,7 +4,7 @@
 // Levels are kept per concept, not per question: a concept (one key term, one country, one confusing pair)
 // has several question wordings, and Adele meets a different wording each time.
 import type { ConceptId, DateKey, Item, ItemId, Pack, Topic } from '../content/types';
-import { conceptOf, conceptsOf, itemsOf } from '../content/types';
+import { allItemsOf, conceptOf, conceptsOf, itemsOf } from '../content/types';
 
 export type Level = 0 | 1 | 2 | 3;
 
@@ -137,7 +137,8 @@ export function seenCount(items: readonly Item[], progress: ProgressMap): number
 
 /** The questions on the Fix My Mistakes list (the exact ones she missed), in pack order. */
 export function mistakeIds(pack: Pack, progress: ProgressMap): ItemId[] {
-  const all = itemsOf(pack);
+  // Glossary words count too: a missed word comes back here like any other question.
+  const all = allItemsOf(pack);
   const out: ItemId[] = [];
   for (const c of conceptsOf(all)) {
     const p = progress[c];

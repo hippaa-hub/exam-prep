@@ -93,6 +93,9 @@ describe("today's tasks", () => {
     const tue = '2026-11-17';
     const list = (sessions: SessionRecord[], due: number, mistakes: number) => tasksFor(planFor(withMock, sessions, tue), sessions, tue, due, mistakes);
     expect(list([], 20, 0).map((t) => t.id)).toEqual(['round-1', 'fix', 'mock:mock-1']);
+    // With a glossary, the mixed round's size includes the words that join it.
+    expect(tasksFor(planFor(withMock, [], tue), [], tue, 20, 0, 10)[0].detail).toMatch(/^25 questions/);
+    expect(list([], 20, 0)[0].detail).toMatch(/^15 questions/);
     expect(nextTask(list([], 20, 3))?.id).toBe('round-1');
     const round = [rec('today', 'round-1', tue)];
     expect(nextTask(list(round, 9, 3))?.id).toBe('fix');

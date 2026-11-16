@@ -61,6 +61,8 @@ const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${
  */
 export function tasksFor(
   plan: TodayPlan, sessions: readonly SessionRecord[], today: DateKey, due: number, mistakes: number,
+  /** Glossary words that join the last day's mixed round (0 when the pack has no glossary). */
+  wordsInMix = 0,
 ): Task[] {
   const todays = sessions.filter((s) => s.date === today);
   const rounds = todays.filter((s) => s.kind === 'today').length;
@@ -74,7 +76,7 @@ export function tasksFor(
     }];
   }
 
-  const size = Math.min(TODAY_SIZE, due || TODAY_SIZE);
+  const size = Math.min(TODAY_SIZE, due || TODAY_SIZE) + (plan.mock ? wordsInMix : 0);
   const tasks: Task[] = [];
 
   // The Key Terms flashcards come before the questions: she meets the words first, then is asked about them.
@@ -89,7 +91,9 @@ export function tasksFor(
   tasks.push({
     id: 'round-1', kind: 'round', title: plan.mock ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
-    tip: 'Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
+    tip: plan.mock
+      ? 'Everything from both lessons, plus glossary words. Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.'
+      : 'Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
     done: rounds >= 1,
   });
 

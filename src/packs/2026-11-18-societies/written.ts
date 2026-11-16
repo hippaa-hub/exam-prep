@@ -36,6 +36,11 @@ export const written: Record<string, ShortItem[]> = {
       idea('Laws maintain public order and protect citizens', 'order', 'protect', 'laws', 'safe'),
       idea('Governments provide services such as education, healthcare and transport', 'services', 'education', 'healthcare', 'schools', 'hospitals', 'transport'),
     ], 'Societies need governments because people have different needs, interests and opinions, and they need an organised system to make collective decisions. Governments establish and enforce laws to maintain public order and protect citizens. They also provide services such as education, healthcare and transport. Without effective governance it is harder to resolve conflicts, protect rights and organise shared resources.'),
+    short('w-no-government', 'g3-why-government', 'Can a society function successfully without a government? Explain your opinion using at least two reasons.', [
+      idea('People have different needs and opinions, so they need an organised way to make collective decisions', 'decisions', 'decide', 'opinions', 'different', 'collective', 'organised'),
+      idea('Without laws it is harder to keep order, protect rights and resolve conflicts', 'order', 'protect', 'laws', 'safe', 'conflict', 'rights'),
+      idea('Without a government, services such as schools and hospitals are not organised', 'services', 'schools', 'hospitals', 'education', 'healthcare', 'roads'),
+    ], 'In my opinion a society cannot function successfully without a government. First, people have different needs, interests and opinions, so they need an organised system to make collective decisions. Second, without laws it becomes harder to maintain public order, protect rights and resolve conflicts. Third, nobody would organise public services such as schools, hospitals and roads.', 2),
     short('w-institution', 'g3-institutions', 'Give one example of a government institution and explain its function.', [
       idea('I named an institution (parliament, courts, police, local government)', 'parliament', 'court', 'police', 'local government', 'council'),
       idea('I explained what it does', 'laws', 'disputes', 'enforce', 'safe', 'services', 'debates', 'passes', 'interpret'),

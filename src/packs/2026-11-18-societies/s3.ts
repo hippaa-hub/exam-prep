@@ -59,9 +59,14 @@ export const s3: Topic = {
       'No. The elections are not genuinely competitive',
       ['Yes. Any election makes a democracy', 'Yes, if the country is called democratic', 'No. Democracies never hold elections'],
       'Holding elections or having "democratic" in the name does not make a country a democracy.'),
+    // Slide 19: why free elections and independent media matter.
+    choice('s3-gk-why', 'Why do free elections and independent media matter so much, according to the lesson?',
+      'Without them it is very difficult for citizens to challenge or replace their leaders',
+      ['They make decisions quicker', 'They give the leader more power', 'They are needed to collect taxes'],
+      'The methods dictatorships use make it very difficult for citizens to challenge or replace their leaders. That is why free elections and independent media matter so much.'),
   ], [
     ['s3-gaining-power', /^s3-gk-[1-4]$/],
-    ['s3-keeping-power', /^s3-(gk-[5-9]|cp-\d)$/],
+    ['s3-keeping-power', /^s3-(gk-[5-9]|gk-why|cp-\d)$/],
     ['s3-dictatorship', /^s3-(sys-|dd-|q-)/],
   ]),
 };

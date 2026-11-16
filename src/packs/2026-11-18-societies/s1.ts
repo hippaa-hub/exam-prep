@@ -48,9 +48,18 @@ export const s1: Topic = {
       '…the king controls the government',
       ['…the country has a head of state', '…the position is inherited', '…the country is a monarchy'],
       '"Having a king does not mean the king controls the government."'),
+    // Slide 7: succession; slide 8: what an absolute monarch may control.
+    choice('s1-q-succession', 'In a monarchy, who becomes the next monarch?',
+      'Succession follows established royal rules',
+      ['Citizens elect the next monarch', 'The prime minister chooses the next monarch', 'The strongest member of the family takes over'],
+      'The position is inherited, and succession follows established royal rules.'),
+    choice('s1-q-control', 'Which of these is a characteristic of an absolute monarchy?',
+      'The monarch may control the government and the armed forces',
+      ['Parliament checks the monarch', 'Citizens elect the monarch', 'The monarch has only ceremonial duties'],
+      'In an absolute monarchy political power is concentrated in the monarch, who may control the government and the armed forces.'),
   ], [
-    ['s1-absolute', /^s1-(sys-[14]|ac-[135]|q-adv|q-dis)$/],
+    ['s1-absolute', /^s1-(sys-[14]|ac-[135]|q-adv|q-dis|q-control)$/],
     ['s1-constitutional', /^s1-(sys-[23]|ac-[246])$/],
-    ['s1-monarchy-basics', /^s1-q-(inherit|howlong|same|key|king)$/],
+    ['s1-monarchy-basics', /^s1-q-(inherit|howlong|same|key|king|succession)$/],
   ]),
 };

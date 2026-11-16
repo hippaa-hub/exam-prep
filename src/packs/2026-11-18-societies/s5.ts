@@ -62,11 +62,20 @@ export const s5: Topic = {
       'The head of state is hereditary, and some question it',
       ['Opposition is not allowed', 'There are no elections', 'The media are controlled'],
       'Constitutional monarchy: stability plus democratic representation; but a hereditary head of state, which some question.'),
+    // Slide 26 vocabulary and the Lesson 2 unit framework.
+    choice('s5-q-opposition', 'What is "political opposition"?',
+      'Parties or groups that disagree with the government and try to challenge its policies',
+      ['The police and the armed forces', 'The head of state and the head of government', 'Citizens who do not vote'],
+      'Political opposition means parties or groups that disagree with the government and try to change or challenge its policies. Democracies generally permit it; dictatorships usually restrict it.'),
+    choice('s5-q-shape', 'Different societies organise political power in different ways. What do these arrangements shape?',
+      'Who makes decisions, how leaders are selected, how citizens participate and how rights are protected',
+      ['Only the name of the country', 'Only the size of the army', 'Only how much tax people pay'],
+      'How a society organises power shapes who makes decisions, how leaders are selected, how citizens participate, and how individual rights are protected.'),
   ], [
     ['s5-authority-and-leaders', /^s5-t-(source|gain)$/],
     ['s5-decisions-and-participation', /^s5-(t-decides|t-part|q-most)$/],
-    ['s5-opposition-and-accountability', /^s5-t-(opp|account)$/],
+    ['s5-opposition-and-accountability', /^s5-(t-(opp|account)|q-opposition)$/],
     ['s5-power-flow', /^s5-(flow-|sys-(top|people|conc))/],
-    ['s5-big-ideas', /^s5-(q-(def|both|warning|questions|dem-dis|cm-dis)|sys-adv-)/],
+    ['s5-big-ideas', /^s5-(q-(def|both|warning|questions|dem-dis|cm-dis|shape)|sys-adv-)/],
   ]),
 };

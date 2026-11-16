@@ -1,5 +1,5 @@
 // G2: the confusing pairs. The teacher says these lose marks.
-import { pair, withConcepts } from '../../content/build';
+import { choice, pair, withConcepts } from '../../content/build';
 import type { Topic } from '../../content/types';
 
 const GG: [string, string] = ['Government', 'Governance'];
@@ -56,6 +56,20 @@ export const g2: Topic = {
     pair('g2-hh-6', 'Usually a prime minister or a president.', HH, 'Head of government', hh),
     pair('g2-hh-7', 'In a monarchy, this is the monarch.', HH, 'Head of state',
       'A monarch (king, queen or emperor) is head of state.'),
+    // Slide 13: power is the ability, whoever has the right; a judge's authority does not depend on agreement.
+    choice('g2-pa-q-judge', 'A judge has legal authority to decide cases. Does that depend on whether people personally agree with the judge?',
+      'No. The authority comes from the law, whether or not anyone agrees',
+      ['Yes. A judge only has authority when everyone agrees', 'Yes. People can cancel the decision by disagreeing', 'No. A judge has power, not authority'],
+      'A judge has legal authority to decide cases in a courtroom, whether or not anyone personally agrees.'),
+    choice('g2-pa-q-fear', 'Someone influences a group because the others respect their knowledge, or fear them. What do they have?',
+      'Power: the ability to influence, which is not the same as authority',
+      ['Authority: the recognised right to decide', 'Both power and authority, always', 'Neither power nor authority'],
+      'Power is the ability to influence people. It can come from respect or fear, with no legal right at all.'),
+    // Slide 11: three levels of shared rules.
+    choice('g2-rl-q-levels', 'Shared rules exist at three levels. Which three does the lesson give?',
+      'Classroom, community and nation',
+      ['Family, school and world', 'Village, city and continent', 'Local, national and international'],
+      'Classroom rules help students learn safely; community rules help people live together; national laws regulate behaviour across a whole country.'),
   ], [
     ['g2-government-governance', /^g2-gg-/],
     ['g2-power-authority', /^g2-pa-/],

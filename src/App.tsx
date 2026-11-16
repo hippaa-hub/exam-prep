@@ -8,7 +8,7 @@ import { pickPack, planFor, type SessionKind } from './engine/plan';
 import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outcome } from './engine/progress';
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
-import { buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
+import { buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, type RunSummary } from './engine/session';
 import { badgesFor } from './engine/rewards';
 import { ARGUMENT_TASK, GLOSSARY_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
@@ -268,7 +268,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const all = itemsOf(pack);
   const due = dueToday(pack, progress, plan, today);
   const glossary = glossaryOf(pack);
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length);
+  const wordsInMix = glossary.length ? GLOSSARY_IN_MIX : 0;
+  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -289,7 +290,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length, wordsInMix);
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
