@@ -79,9 +79,22 @@ export const g1: Topic = {
       'Power is the ability. Authority is the right.'),
     choice('g1-q-services', `${which}\n"${D.services}"`, 'Public services', ['Institutions', 'Laws', 'Political participation']),
     choice('g1-q-participation', `${which}\n"${D.participation}"`, 'Political participation', ['Governance', 'Public services', 'Authority']),
+    // The four characteristics of a society (Lesson 1, "Key Concept 01"). Same thing to know as the term itself.
+    choice('g1-society-depend', 'Which of these is a characteristic of a society?',
+      'People depend on one another',
+      ['Everyone believes the same thing', 'Nobody needs to cooperate', 'It must be ruled by a monarch'],
+      'A society can be small or large, people depend on one another, it needs cooperation and organisation, and its members hold different interests and beliefs.'),
+    choice('g1-society-size', 'Can a society be small as well as large?',
+      'Yes: from a local community or a town to a whole country',
+      ['No, only a whole country is a society', 'No, only a town is a society', 'Only if it has a government'],
+      'A society can be small or large: a local community, a town, a country, a multicultural society.'),
+    choice('g1-society-interests', 'Members of a society hold different interests and beliefs. What does the society therefore need?',
+      'Cooperation and organisation',
+      ['One leader who decides everything', 'Everyone to think the same', 'No rules at all'],
+      'Because members hold different interests and beliefs, a society needs cooperation and organisation.'),
   ], [
     // One thing to know per key term: its flashcard and its "which term is this?" question.
-    ['g1-society', /^g1-(q-)?society$/],
+    ['g1-society', /^g1-(q-)?society(-[a-z]+)?$/],
     ['g1-government', /^g1-(q-)?government$/],
     ['g1-governance', /^g1-(q-)?governance$/],
     ['g1-rules', /^g1-(q-)?rules$/],

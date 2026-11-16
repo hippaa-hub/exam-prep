@@ -77,6 +77,51 @@ const SERVICES = 'Public schools and hospitals are public services.';
 
 /** Why each wrong answer is wrong, for the questions whose answers are whole sentences. */
 export const whyNot: Record<string, Record<string, string>> = {
+  'g1-society-depend': {
+    'Everyone believes the same thing': 'The opposite is true: members of a society hold different interests and beliefs. That is why it needs organisation.',
+    'Nobody needs to cooperate': 'A society needs cooperation and organisation. Without it, people cannot live together.',
+    'It must be ruled by a monarch': 'A society is the people living together. It can have any kind of government, or be smaller than a country.',
+  },
+  'g1-society-size': {
+    'No, only a whole country is a society': 'A society can be smaller: a local community or a town is a society too.',
+    'No, only a town is a society': 'A society can be bigger as well: a country, or a multicultural society.',
+    'Only if it has a government': 'A society is the people living together and sharing rules and institutions. The size is what changes, not the government.',
+  },
+  'g1-society-interests': {
+    'One leader who decides everything': 'That is a dictatorship. A society needs people to cooperate, not one person deciding for all.',
+    'Everyone to think the same': 'Different interests and beliefs are normal in a society. It organises itself around them.',
+    'No rules at all': 'Shared rules are exactly what lets people with different beliefs live together.',
+  },
+  'g3-uf-key': {
+    'Fairness': 'Fairness is part of the global context (Fairness and Development), not the key concept.',
+    'Power': 'Power is a key term in the lesson, but the key concept of the unit is Systems.',
+    'Democracy': 'Democracy is one system of governance. The key concept is Systems.',
+  },
+  'g3-uf-system': {
+    'A group of people who share a culture': 'That is closer to a society or a nation. A system is connected parts working together.',
+    'A written set of laws': 'That is closer to a constitution. A system is connected parts working together.',
+    'A leader and their family': 'That is a royal family. A system is connected parts working together.',
+  },
+  'g3-uf-related': {
+    'Power and Authority': 'Those are two key terms you must not mix up, but they are not the related concepts.',
+    'Rules and Laws': 'Another pair of key terms. The related concepts are Governance and Development.',
+    'Fairness and Justice': 'Fairness is in the global context. The related concepts are Governance and Development.',
+  },
+  'g3-uf-context': {
+    'Identities and Relationships': 'That is a global context, but it belongs to a different unit.',
+    'Peace and Conflict': 'SDG 16 is about peace, but the global context is Fairness and Development.',
+    'Systems and Power': 'Systems is the key concept. The global context is Fairness and Development.',
+  },
+  'g3-uf-soi': {
+    'the wealth of the royal family': 'The Statement of Inquiry is about whole societies, not one family.',
+    'censorship and propaganda': 'Those are ways a dictatorship keeps power, not the end of the Statement of Inquiry.',
+    'the size of a country': 'How power is organised matters whatever the size. The sentence ends "fairness and development in societies".',
+  },
+  'g3-uf-sdg': {
+    'SDG 4: Quality Education': 'Education is a public service governments provide, but this unit is linked to SDG 16.',
+    'SDG 13: Climate Action': 'That belongs to a different unit. This one is SDG 16.',
+    'SDG 1: No Poverty': 'Development is a related concept, but the goal named in this unit is SDG 16.',
+  },
   'g3-why-1': {
     'One person who decides everything': 'That would be a dictatorship. People want different things, so they need a way to decide together.',
     'A society with no rules': 'Without rules there is no order, and conflicts are hard to solve.',
@@ -283,6 +328,7 @@ export const whyNot: Record<string, Record<string, string>> = {
  * The teacher's wording is what to write in the test; this is to help it make sense.
  */
 export const simple: Record<string, string> = {
+  'g3-unit-framework': 'This unit asks one big question: how is power organised, and what does that do to fairness in a society?',
   // --- The ten key terms: one plain sentence each (their examples are in the list below) ---
   'g1-society': 'A society is a big group of people who live together and share rules.',
   'g1-government': 'The government is the people and organisations in charge of running a country.',
@@ -373,6 +419,12 @@ export const simple: Record<string, string> = {
  * Keyed by the thing to know (concept), or by one question's id.
  */
 export const examples: Record<string, string[]> = {
+  'g3-unit-framework': [
+    'Key concept: Systems',
+    'Related concepts: Governance and Development',
+    'Global context: Fairness and Development',
+    'SDG 16: Peace, Justice and Strong Institutions',
+  ],
   // The ten key terms
   'g1-society': ['Everyone living in a country', 'The people of a town or city'],
   'g1-government': ['A prime minister and ministers', 'Parliament', 'A local council'],
