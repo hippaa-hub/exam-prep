@@ -87,15 +87,22 @@ describe("today's tasks", () => {
     expect(dayFinished([])).toBe(false);
   });
 
-  it('puts the mock exam first on its day, with one round and Fix My Mistakes after it', () => {
+  it('on the mock exam day: a mixed round, then Fix My Mistakes, then the Mock Exam last', () => {
     const withMock: Pack = { ...pack, mocks: [{ id: 'mock-1', title: 'Mock Exam 1', minutes: 35, partA: [], partB: [] }],
       plan: pack.plan.map((d) => (d.day === -1 ? { day: -1, label: 'Mock', mock: 'mock-1' } : d)) };
     const tue = '2026-11-17';
     const list = (sessions: SessionRecord[], due: number, mistakes: number) => tasksFor(planFor(withMock, sessions, tue), sessions, tue, due, mistakes);
-    expect(list([], 20, 0).map((t) => t.id)).toEqual(['mock:mock-1', 'round-1', 'fix']);
-    expect(nextTask(list([], 20, 0))?.kind).toBe('mock');
-    const done = [rec('practice', 'mock:mock-1', tue), rec('today', 'round-1', tue), rec('fix', 'fix', tue)];
-    expect(dayFinished(list(done, 9, 2))).toBe(true); // one round is enough on the mock exam day
+    expect(list([], 20, 0).map((t) => t.id)).toEqual(['round-1', 'fix', 'mock:mock-1']);
+    expect(nextTask(list([], 20, 3))?.id).toBe('round-1');
+    const round = [rec('today', 'round-1', tue)];
+    expect(nextTask(list(round, 9, 3))?.id).toBe('fix');
+    const fixed = [...round, rec('fix', 'fix', tue)];
+    expect(nextTask(list(fixed, 9, 1))?.kind).toBe('mock');
+    // Nothing to fix: straight from the round to the mock.
+    expect(nextTask(list(round, 9, 0))?.kind).toBe('mock');
+    // The mock adds new mistakes, but that does not reopen Fix My Mistakes: the day is finished.
+    expect(dayFinished(list([...round, rec('practice', 'mock:mock-1', tue)], 9, 4))).toBe(true);
+    expect(dayFinished(list([...fixed, rec('practice', 'mock:mock-1', tue)], 9, 2))).toBe(true); // one round is enough
   });
 
   it('has the Argument Builder as a task on the day the plan asks for it', () => {

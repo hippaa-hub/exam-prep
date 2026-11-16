@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { App } from '../App';
 import { choice, idea, short, term } from '../content/build';
 import type { Pack } from '../content/types';
-import { memoryStore } from '../storage/db';
+import { emptyPackSave, emptySaved, memoryStore } from '../storage/db';
 
 const MODEL = 'Government is the people and institutions that govern. Governance is the process of governing.';
 const EXAMPLE = 'One possible answer about fairness, with Switzerland as the example.';
@@ -200,7 +200,7 @@ describe('the Argument Builder', () => {
 });
 
 describe('the Mock Exam', () => {
-  it('is the first task the day before the exam, gives no help until she hands in, then says what to fix', async () => {
+  it('is the last task the day before the exam, gives no help until she hands in, then says what to fix', async () => {
     // Even on a phone that can listen and speak, the mock exam offers neither: she has to write.
     const w = window as unknown as Record<string, unknown>;
     const spoken: string[] = [];
@@ -208,11 +208,18 @@ describe('the Mock Exam', () => {
     w.SpeechSynthesisUtterance = class { constructor(public text: string) {} };
     w.speechSynthesis = { speak: (u: { text: string }) => spoken.push(u.text), cancel: () => {}, getVoices: () => [] };
     const user = userEvent.setup();
-    const store = memoryStore();
+    // The mixed round and Fix My Mistakes are done, so the Mock Exam (last) is the next task.
+    const start = emptySaved();
+    start.packs[pack.id] = { ...emptyPackSave(), sessions: [
+      { date: '2026-11-17', kind: 'today', topics: [], asked: 10, firstTimeRight: 8, task: 'round-1' },
+      { date: '2026-11-17', kind: 'fix', topics: [], asked: 2, firstTimeRight: 2, task: 'fix' },
+    ] };
+    const store = memoryStore(start);
     render(<App store={store} packs={[pack]} now={tuesday} />);
     const tasks = await screen.findByRole('list', { name: "Today's tasks" });
-    expect(within(tasks).getAllByRole('listitem')[0]).toHaveTextContent('Mock Exam');
-    await user.click(screen.getByRole('button', { name: /^Start/ }));
+    const rows = within(tasks).getAllByRole('listitem');
+    expect(rows[rows.length - 1]).toHaveTextContent('Mock Exam');
+    await user.click(screen.getByRole('button', { name: /^Next task/ }));
     await user.click(screen.getByRole('button', { name: 'Start the exam' }));
 
     // Part A, then Part B. No teacher's wording and no example on the way.
@@ -249,8 +256,9 @@ describe('the Mock Exam', () => {
     expect(result?.partB[0].ticks.filter(Boolean)).toHaveLength(1);
     expect(store.current?.packs.p2.sessions.some((s) => s.task === 'mock:mock-1')).toBe(true);
 
-    // The app then leads on to the next task of the day.
-    expect(screen.getByRole('button', { name: /Next task/ })).toHaveTextContent('A mixed round of everything');
+    // The mock is the last task of the day, so the day is finished: rest before the exam.
+    expect(screen.getByText("🎉 Today's preparation is finished!")).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Next task/ })).toBeNull();
     expect(spoken).toEqual([]); // nothing was read aloud at any point
     delete w.SpeechSynthesisUtterance;
     delete w.speechSynthesis;

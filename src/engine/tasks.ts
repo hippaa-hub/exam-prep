@@ -53,6 +53,8 @@ const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${
  * The tasks for today, in the order to do them:
  * the Key Terms flashcards (on the days that have them), round 1 of today's questions, the day's other
  * activities, round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
+ * On the Mock Exam day (the day before the exam): a mixed round, then Fix My Mistakes, then the Mock Exam
+ * last, once she is warmed up and her old mistakes are fixed (Jenia's order, 17 Nov).
  * On exam day there is only the warm-up.
  *
  * `due` is how many things are still to practise today; `mistakes` is the length of the Fix list.
@@ -74,15 +76,6 @@ export function tasksFor(
 
   const size = Math.min(TODAY_SIZE, due || TODAY_SIZE);
   const tasks: Task[] = [];
-
-  // On the day of the mock exam, the mock comes first, while she is fresh.
-  if (plan.mock) {
-    tasks.push({
-      id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: 'Like the real test · about 35 min',
-      tip: 'Do it like the real test: notes closed, and write every answer yourself. No microphone here. At the end it shows you what to fix.',
-      done: didTask(mockTaskId(plan.mock)),
-    });
-  }
 
   // The Key Terms flashcards come before the questions: she meets the words first, then is asked about them.
   const isFlashcards = (e: (typeof plan.extras)[number]) => e.kind === 'game' && e.game === 'key-terms';
@@ -135,15 +128,26 @@ export function tasksFor(
     });
   }
 
-  // Fix My Mistakes comes last, so it only counts once everything before it is done.
+  // Fix My Mistakes comes after the rounds, so it only counts once everything before it is done.
   const before = tasks.every((t) => t.done);
   const fixedToday = todays.some((s) => s.kind === 'fix');
+  const mockDone = plan.mock ? didTask(mockTaskId(plan.mock)) : false;
   tasks.push({
     id: 'fix', kind: 'fix', title: 'Fix My Mistakes',
     detail: mistakes > 0 ? `${mistakes} question${mistakes === 1 ? '' : 's'} waiting` : 'Nothing to fix',
     tip: 'These are the ones you missed. Each one leaves the list when you get it right twice.',
-    done: before && (mistakes === 0 || fixedToday),
+    // The mock's own new mistakes must not reopen this task once the mock is done.
+    done: before && (mistakes === 0 || fixedToday || mockDone),
   });
+
+  // On the Mock Exam day the mock comes last: warmed up, mistakes fixed, then the real-test practice.
+  if (plan.mock) {
+    tasks.push({
+      id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: 'Like the real test · about 35 min',
+      tip: 'Do it like the real test: notes closed, and write every answer yourself. No microphone here. At the end it shows you what to fix.',
+      done: mockDone,
+    });
+  }
   return tasks;
 }
 
