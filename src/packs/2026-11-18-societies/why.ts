@@ -290,6 +290,21 @@ export const whyNot: Record<string, Record<string, string>> = {
     'The head of state': 'The King is the head of state.',
     'A court that resolves disputes': 'It is a council that gives advice. It is not a court.',
   },
+  's4-q-japan-inherit': {
+    'Citizens elect the Emperor': 'Citizens elect members of the National Diet, not the Emperor.',
+    'The National Diet chooses the Emperor': 'The Diet makes the laws. The Emperor\'s position passes down in the family.',
+    'The Prime Minister appoints the Emperor': 'The Prime Minister leads the government. The Emperor\'s position is inherited.',
+  },
+  's4-q-japan-symbol': {
+    'The armed forces': 'The Emperor does not control the armed forces. He has no governing power.',
+    'The laws made by the National Diet': 'The Diet makes the laws. The Emperor stands for the state and its people.',
+    "The Prime Minister's power": 'The Prime Minister leads the government. The Emperor is a symbol, not a ruler.',
+  },
+  's4-q-japan-both': {
+    'A monarch must always control the government': 'In Japan the Emperor does not control the government. The Prime Minister leads it.',
+    'A country with an emperor cannot hold elections': 'Japanese citizens elect the National Diet, even though Japan has an Emperor.',
+    'A country must choose: a monarchy or a democracy, never both': 'Japan is both: a constitutional monarchy and a parliamentary democracy.',
+  },
   's4-q-two-mon': {
     'Saudi Arabia and Japan': 'Japan is right, but Saudi Arabia is an absolute monarchy.',
     'Switzerland and the United Kingdom': 'The UK is right, but Switzerland has no monarch. It is a federal republic.',
