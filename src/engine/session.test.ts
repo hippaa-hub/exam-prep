@@ -215,6 +215,16 @@ describe('a round of glossary words', () => {
     expect(ids.filter((id) => known.includes(id))).toHaveLength(0);
   });
 
+  it('leaves the words the slides never use until every other word has been met', () => {
+    const last = words.slice(0, 8).map((w) => w.id);
+    const first = buildGlossarySession(words, {}, mon, seeded(7), 12, last);
+    expect(first.filter((id) => last.includes(id))).toHaveLength(0);
+    // 22 other words: once they are all met, the late ones start to come.
+    const others = words.slice(8).map((w) => w.id);
+    const later = buildGlossarySession(words, met(others, 'right', mon), mon, seeded(8), 12, last);
+    expect(later.filter((id) => last.includes(id))).toHaveLength(8);
+  });
+
   it('fills the round with review when no new words are left', () => {
     const all = words.slice(0, 10);
     const progress = met(all.map((w) => w.id), 'almost', mon);

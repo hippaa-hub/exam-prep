@@ -1,5 +1,6 @@
 // V1: the teacher's glossary (governance-glossary.docx), as flashcards.
-// Part 2 of the day: extra practice after the day's tasks. These words are NOT counted in the readiness ring.
+// Part 2: optional extra practice after the day's tasks. These words are NOT counted in the readiness ring.
+// The teacher said the test covers only the slides, and the day's tasks cover those.
 // Definitions are the teacher's wording. Six glossary words are left out because they are already
 // key-term cards in G1, with the slide wording: society, government, governance, institution, power, authority.
 import { idea, term } from '../../content/build';
@@ -476,3 +477,10 @@ export const glossary: TermItem[] = WORDS.map((x) => term(x.id, x.name, x.defini
 
 export const glossarySimple: Record<string, string> = Object.fromEntries(WORDS.map((x) => [x.id, x.simple]));
 export const glossaryExamples: Record<string, string[]> = Object.fromEntries(WORDS.map((x) => [x.id, x.examples]));
+
+/**
+ * The eight glossary words that never appear on the two slide decks. The test covers only the slides,
+ * so these are asked last, after every word the slides do use.
+ */
+export const glossaryLast: string[] = ['politics', 'premier', 'governor', 'legislature', 'cabinet', 'federal-council', 'ballot', 'surveillance']
+  .map((id) => `v1-${id}`);

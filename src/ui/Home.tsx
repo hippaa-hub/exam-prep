@@ -26,6 +26,11 @@ interface Props {
   /** True when another day is being previewed with ?today= in the address. */
   preview?: boolean;
   onTask: (task: Task) => void;
+  /** How many glossary words the pack has. With any, Home offers Part 2 once the day's tasks are finished. */
+  glossaryWords?: number;
+  /** True once a round of glossary words has been done today. */
+  glossaryDone?: boolean;
+  onGlossary?: () => void;
   /** A free round, once the tasks are done (or after the exam). */
   onExtra: () => void;
   /** Opens the extra practice page. Offered only when the day's tasks are finished (or there are none). */
@@ -73,7 +78,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 }
 
 export function Home({
-  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, onTask, onExtra, onPractise, onGuide, onParent,
+  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary, onTask, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = packReadiness(pack, progress);
   const cd = countdown(plan.daysToGo);
@@ -173,6 +178,13 @@ export function Home({
           <>
             <p className="done-today">{plan.phase === 'exam-day' ? '✓ Warm-up done. Good luck in your exam!' : "✓ Today's preparation is finished. Well done!"}</p>
             {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
+            {/* Part 2 is optional: the test covers the slides, and the tasks above cover those. */}
+            {glossaryWords > 0 && onGlossary && plan.phase !== 'exam-day' && (
+              <button type="button" className="btn ghost extra" onClick={onGlossary}>
+                {glossaryDone ? 'Glossary words: another round' : 'Part 2: Glossary words'}
+                <small>{glossaryDone ? '✓ Done today · 12 more words' : 'Optional · 12 words · about 10 min'}</small>
+              </button>
+            )}
             <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>
           </>
         ) : next ? (

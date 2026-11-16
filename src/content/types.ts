@@ -189,6 +189,8 @@ export interface Pack {
    * These words are extra. They are not part of `topics`, so they do not count in readiness.
    */
   glossary?: TermItem[];
+  /** Glossary words that never appear on the teacher's slides. A round only asks them once the others are met. */
+  glossaryLast?: ItemId[];
 }
 
 /** Which practice game an item belongs to. */

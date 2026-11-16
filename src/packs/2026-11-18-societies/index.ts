@@ -6,7 +6,7 @@ import { g1 } from './g1';
 import { g2 } from './g2';
 import { g3 } from './g3';
 import { g4 } from './g4';
-import { glossary, glossaryExamples, glossarySimple } from './glossary';
+import { glossary, glossaryExamples, glossaryLast, glossarySimple } from './glossary';
 import { s1 } from './s1';
 import { s2 } from './s2';
 import { s3 } from './s3';
@@ -33,6 +33,7 @@ export const pack: Pack = {
   simple: { ...simple, ...glossarySimple },
   examples: { ...examples, ...glossaryExamples },
   glossary,
+  glossaryLast,
   arguments: argumentQuestions,
   mocks,
   plan: [

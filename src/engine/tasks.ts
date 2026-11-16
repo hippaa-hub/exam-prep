@@ -4,7 +4,7 @@ import type { DateKey, Game } from '../content/types';
 import type { SessionRecord, TodayPlan } from './plan';
 import { TODAY_SIZE, WARM_UP_SIZE } from './session';
 
-export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock' | 'glossary';
+export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock';
 
 export interface Task {
   id: string;
@@ -43,9 +43,8 @@ export const gameTaskId = (game: Game) => `game:${game}`;
 export const tableTaskId = (group: string) => `table:${group}`;
 export const mockTaskId = (mock: string) => `mock:${mock}`;
 export const ARGUMENT_TASK = 'argument';
+/** Marks a finished round of glossary words (Part 2). It is optional, so it is not one of the day's tasks. */
 export const GLOSSARY_TASK = 'glossary';
-/** How many glossary words one round of Part 2 asks. */
-export const GLOSSARY_ROUND = 12;
 
 const minutes = (questions: number) => Math.max(2, Math.round(questions * 0.65));
 const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${minutes(n)} min`;
@@ -57,11 +56,9 @@ const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${
  * On exam day there is only the warm-up.
  *
  * `due` is how many things are still to practise today; `mistakes` is the length of the Fix list.
- * `glossaryWords` is how many glossary cards the pack has: with any, the day ends with Part 2,
- * one round of the teacher's glossary words.
  */
 export function tasksFor(
-  plan: TodayPlan, sessions: readonly SessionRecord[], today: DateKey, due: number, mistakes: number, glossaryWords = 0,
+  plan: TodayPlan, sessions: readonly SessionRecord[], today: DateKey, due: number, mistakes: number,
 ): Task[] {
   const todays = sessions.filter((s) => s.date === today);
   const rounds = todays.filter((s) => s.kind === 'today').length;
@@ -147,16 +144,6 @@ export function tasksFor(
     tip: 'These are the ones you missed. Each one leaves the list when you get it right twice.',
     done: before && (mistakes === 0 || fixedToday),
   });
-
-  // Part 2: the teacher's glossary words. Extra to the plan, so it comes after everything else.
-  if (glossaryWords > 0) {
-    const n = Math.min(GLOSSARY_ROUND, glossaryWords);
-    tasks.push({
-      id: GLOSSARY_TASK, kind: 'glossary', title: 'Part 2: Glossary words', detail: `${n} words · about 10 min`,
-      tip: 'The extra words from your teacher\'s glossary: some new, some you met before. New to you? Tap "I don\'t know yet", read the meaning, and it will come back.',
-      done: didTask(GLOSSARY_TASK),
-    });
-  }
   return tasks;
 }
 

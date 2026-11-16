@@ -111,6 +111,9 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
     // The glossary is extra: none of it is in the topics, so none of it counts in readiness.
     const inTopics = new Set(items.map((i) => i.id));
     expect(cards.filter((c) => inTopics.has(c.id))).toEqual([]);
+    // The words kept for last are real glossary cards.
+    const cardIds = new Set(cards.map((c) => c.id));
+    expect((pack.glossaryLast ?? []).filter((id) => !cardIds.has(id))).toEqual([]);
     for (const c of cards) {
       // The teacher's wording, one plain sentence, two to four short examples, and ideas the app can look for.
       expect(c.definition.length, c.id).toBeGreaterThan(10);

@@ -143,9 +143,11 @@ export const GLOSSARY_REVIEW = 6;
  * A round of glossary words (Part 2): about half are words she has met before and has not yet had right
  * today (the ones she knows least first, and ones from earlier days before ones from today), the rest are new.
  * Meeting a word once is not enough to remember it, so the review half matters more than covering every word.
+ * New words in `last` (ones the slides never use) are only asked once every other word has been met.
  */
 export function buildGlossarySession(
   pool: readonly Item[], progress: ProgressMap, today: DateKey, rng: Rng = Math.random, size = PRACTICE_SIZE,
+  last: readonly ItemId[] = [],
 ): ItemId[] {
   const of = (it: Item) => progress[conceptOf(it)];
   const byWeakest = (list: Item[]) => shuffle(list, rng)
@@ -153,7 +155,8 @@ export function buildGlossarySession(
     .sort((a, b) => a.k - b.k || a.i - b.i)
     .map((x) => x.it);
 
-  const fresh = shuffle(pool.filter((it) => (of(it)?.seen ?? 0) === 0), rng);
+  const unmet = shuffle(pool.filter((it) => (of(it)?.seen ?? 0) === 0), rng);
+  const fresh = [...unmet.filter((it) => !last.includes(it.id)), ...unmet.filter((it) => last.includes(it.id))];
   const met = pool.filter((it) => (of(it)?.seen ?? 0) > 0);
   const review = byWeakest(met.filter((it) => isDue(of(it), today)));
   const rightToday = byWeakest(met.filter((it) => !isDue(of(it), today)));

@@ -9,7 +9,7 @@ import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outc
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
 import { buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
-import { ARGUMENT_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
+import { ARGUMENT_TASK, GLOSSARY_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
 import { packs as allPacks } from './packs';
@@ -39,6 +39,8 @@ export interface SessionSpec {
   task?: string;
   /** Started from today's task list: the summary then offers the next task. */
   guided?: boolean;
+  /** An extra round started from Home: "Done" goes back to Home, not to the More practice page. */
+  fromHome?: boolean;
 }
 
 type View =
@@ -260,7 +262,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const all = itemsOf(pack);
   const due = dueToday(pack, progress, plan, today);
   const glossary = glossaryOf(pack);
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, glossary.length);
+  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -281,7 +283,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length, glossaryOf(pack).length);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length);
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -314,11 +316,11 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     };
     start();
   };
-  /** A round of glossary words (Part 2): half words she has met before, half new ones. */
-  const startGlossary = (task?: string, guided = false) => {
+  /** An optional round of glossary words (Part 2): half words she has met before, half new ones. */
+  const startGlossary = (fromHome = false) => {
     const start = () => {
-      const ids = buildGlossarySession(glossary, currentSave().progress, today);
-      if (ids.length > 0) open({ kind: 'practice', title: 'Glossary words', topics: [], ids, task, guided, again: guided ? undefined : start });
+      const ids = buildGlossarySession(glossary, currentSave().progress, today, Math.random, undefined, pack.glossaryLast);
+      if (ids.length > 0) open({ kind: 'practice', title: 'Glossary words', topics: [], ids, task: GLOSSARY_TASK, fromHome, again: start });
     };
     start();
   };
@@ -356,7 +358,6 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     else if (task.kind === 'game') startPractice(task.title, all.filter((it) => gameOf(it) === task.game), task.id, true);
     else if (task.kind === 'table' && task.group) openTable(task.group, true);
     else if (task.kind === 'fix') startFix(true);
-    else if (task.kind === 'glossary') startGlossary(task.id, true);
     else if (task.kind === 'argument') {
       const q = nextArgument(pack, currentSave().writing);
       if (q) openArgument(q.id, true);
@@ -425,7 +426,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         onAnswer={(id, outcome, credit, firstLook) => answer(id, outcome, credit, true, firstLook)}
         isNew={(id) => (currentSave().progress[conceptOf(byId.get(id)!)]?.seen ?? 0) === 0}
         onFinish={(summary) => finish(view.spec, summary)}
-        onExit={() => goTab(view.spec.kind === 'practice' && !view.spec.guided ? 'practise' : 'home')}
+        onExit={() => goTab(view.spec.kind === 'practice' && !view.spec.guided && !view.spec.fromHome ? 'practise' : 'home')}
         onFix={() => startFix(false)}
         mistakeCount={mistakes.length}
         next={next}
@@ -503,6 +504,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             name={saved.settings.name}
             tasks={tasks}
             finished={finished}
+            glossaryWords={glossary.length}
+            glossaryDone={save.sessions.some((x) => x.date === today && x.task === GLOSSARY_TASK)}
+            onGlossary={() => startGlossary(true)}
             daysDone={save.daysDone ?? []}
             tomorrow={plan.daysToGo > 0 ? planFor(pack, save.sessions, addDays(today, 1)).label : undefined}
             showGuideHint={!saved.settings.guideSeen}
