@@ -130,7 +130,12 @@ button { cursor: pointer; touch-action: manipulation; }
   flex: none; font-weight: 900; color: #7a5b00; background: var(--yellow-soft); border: 2px solid var(--yellow);
   border-radius: 999px; padding: 3px 12px; font-size: 0.95rem; font-variant-numeric: tabular-nums;
 }
-.countdown-card { flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; }
+.countdown-card { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
+.countdown-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
+.track-note { margin: 0; font-size: 0.86rem; line-height: 1.45; color: var(--ink-soft); border-top: 2px dashed var(--line); padding-top: 9px; }
+.track-note strong { font-weight: 900; }
+.track-ok { color: var(--green-dark); }
+.track-warn { color: var(--accent-dark); }
 .countdown { display: flex; flex-direction: column; gap: 2px; }
 .countdown-main { display: flex; align-items: baseline; gap: 8px; }
 .countdown strong { font-size: 2.8rem; font-weight: 900; line-height: 1; color: var(--accent-dark); font-variant-numeric: tabular-nums; }

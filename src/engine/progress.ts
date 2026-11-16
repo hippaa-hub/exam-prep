@@ -101,6 +101,27 @@ export function packReadiness(pack: Pack, progress: ProgressMap): number {
   return readiness(itemsOf(pack), progress);
 }
 
+/** How many things to know can still gain a level today: not yet at the top, not yet right today. */
+export function dueCount(items: readonly Item[], progress: ProgressMap, today: DateKey): number {
+  return conceptsOf(items).filter((c) => isDue(progress[c], today)).length;
+}
+
+/**
+ * The highest readiness reachable today: what she has now, plus one level for every thing to know
+ * that is still due. A level is "right on a different day", so today cannot add more than this.
+ */
+export function ceilingToday(items: readonly Item[], progress: ProgressMap, today: DateKey): number {
+  const concepts = conceptsOf(items);
+  if (concepts.length === 0) return 0;
+  const sum = concepts.reduce((s, c) => s + Math.min(3, (progress[c]?.level ?? 0) + (isDue(progress[c], today) ? 1 : 0)), 0);
+  return Math.round((sum / (concepts.length * 3)) * 100);
+}
+
+
+export function packCeilingToday(pack: Pack, progress: ProgressMap, today: DateKey): number {
+  return ceilingToday(itemsOf(pack), progress, today);
+}
+
 export function topicReadiness(topic: Topic, progress: ProgressMap): number {
   return readiness(topic.items, progress);
 }

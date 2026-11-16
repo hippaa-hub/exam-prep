@@ -2,7 +2,7 @@ import type { DateKey, Pack } from '../content/types';
 import { conceptsOf, itemsOf } from '../content/types';
 import { addDays, formatLong, formatShort } from '../engine/dates';
 import type { TodayPlan } from '../engine/plan';
-import { READY_AT, packReadiness, seenCount, topicReadiness, type ProgressMap } from '../engine/progress';
+import { READY_AT, dueCount, packCeilingToday, packReadiness, seenCount, topicReadiness, type ProgressMap } from '../engine/progress';
 import { nextTask, type Task } from '../engine/tasks';
 import { Mascot, type Mood } from './Mascot';
 import { Ring } from './Ring';
@@ -42,6 +42,16 @@ function countdown(daysToGo: number): { big: string; small: string } {
   return { big: 'Done', small: 'past exam' };
 }
 
+/**
+ * The line under the ring. A thing to know only gains a level on a day it is answered right, so there is a
+ * limit to what today can add: this says what that limit is and how much of it is still to go.
+ */
+function trackText(plan: TodayPlan, ceiling: number, leftToday: number): string {
+  if (plan.phase === 'exam-day') return 'Nothing new counts today. Just the warm-up, then go and show what you know.';
+  if (leftToday === 0) return 'You have added everything today can add. Each thing counts fully only after three different days, so the rest comes on the days left.';
+  return `Today you can reach ${ceiling}%. ${leftToday} ${leftToday === 1 ? 'thing is' : 'things are'} still waiting for a right answer today. Each one counts fully after three different days, so the ring finishes on exam morning.`;
+}
+
 /** What Lola says on Home: always the one next thing to do, and how to do it well. */
 function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: string): { text: string; mood: Mood } {
   const next = nextTask(tasks);
@@ -67,6 +77,10 @@ export function Home({
 }: Props) {
   const ready = packReadiness(pack, progress);
   const cd = countdown(plan.daysToGo);
+  const ceiling = packCeilingToday(pack, progress, today);
+  const leftToday = dueCount(itemsOf(pack), progress, today);
+  // Keeping up with the countdown: a day is only "behind" when its topics had to be moved onto today.
+  const onTrack = plan.catchUp.length === 0;
   const topicName = (id: string) => pack.topics.find((t) => t.id === id)?.short ?? id;
   const all = itemsOf(pack);
   const things = conceptsOf(all).length;
@@ -87,11 +101,20 @@ export function Home({
       {preview && <p className="preview-note" role="note">Preview: showing {formatLong(today)}. Remove "?today=…" from the address to go back to the real day.</p>}
 
       <section className="card countdown-card" aria-label="Countdown and readiness">
-        <div className="countdown">
-          <div className="countdown-main"><strong>{cd.big}</strong><span>{cd.small}</span></div>
-          <small>Exam: {formatLong(pack.date)}</small>
+        <div className="countdown-row">
+          <div className="countdown">
+            <div className="countdown-main"><strong>{cd.big}</strong><span>{cd.small}</span></div>
+            <small>Exam: {formatLong(pack.date)}</small>
+          </div>
+          <Ring value={ready} size={84} />
         </div>
-        <Ring value={ready} size={84} />
+        {plan.phase !== 'past' && (
+          <p className="track-note">
+            <strong className={onTrack ? 'track-ok' : 'track-warn'}>{onTrack ? 'On track' : 'Catching up'}</strong>
+            {' '}
+            {trackText(plan, ceiling, leftToday)}
+          </p>
+        )}
       </section>
 
       <div className="hero">

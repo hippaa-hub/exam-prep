@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { choice } from '../content/build';
 import type { Pack } from '../content/types';
-import { applyAnswer, isDue, isTopicReady, mistakeIds, packReadiness, readiness, seenCount, topicReadiness, weakest } from './progress';
+import { conceptsOf, itemsOf } from '../content/types';
+import { applyAnswer, ceilingToday, dueCount, isDue, isTopicReady, mistakeIds, newProgress, packReadiness, readiness, seenCount, topicReadiness, weakest, type ProgressMap } from './progress';
 
 const items = [1, 2, 3, 4].map((n) => choice(`q${n}`, `Question ${n}`, 'yes', ['no']));
 const pack: Pack = {
@@ -158,4 +159,35 @@ describe('things to know with several wordings', () => {
     expect(isDue(top, 'd4')).toBe(false); // fully learned
     expect(isDue(applyAnswer(once, 'wrong', 'd1', 'pa-a'), 'd1')).toBe(true);
   });
+});
+
+describe('what today can still add', () => {
+  const all = itemsOf(pack);
+  const concepts = conceptsOf(all);
+
+  it('counts only the things still due today', () => {
+    expect(dueCount(all, {}, '2026-11-16')).toBe(concepts.length);
+    const oneDone: ProgressMap = { [concepts[0]]: applyAnswer(undefined, 'right', '2026-11-16') };
+    expect(dueCount(all, oneDone, '2026-11-16')).toBe(concepts.length - 1);
+    // Right on an earlier day is due again today.
+    const yesterday: ProgressMap = { [concepts[0]]: applyAnswer(undefined, 'right', '2026-11-15') };
+    expect(dueCount(all, yesterday, '2026-11-16')).toBe(concepts.length);
+  });
+
+  it('caps the ceiling at one level per thing per day', () => {
+    // From nothing, a perfect day can only take every thing to level 1: a third of the way.
+    expect(ceilingToday(all, {}, '2026-11-16')).toBe(33);
+    const everythingOnce: ProgressMap = Object.fromEntries(
+      concepts.map((c) => [c, applyAnswer(undefined, 'right', '2026-11-15')]),
+    );
+    expect(readiness(all, everythingOnce)).toBe(33);
+    expect(ceilingToday(all, everythingOnce, '2026-11-16')).toBe(67);
+  });
+
+  it('never puts the ceiling below where she already is', () => {
+    const maxed: ProgressMap = Object.fromEntries(concepts.map((c) => [c, { ...newProgress(), level: 3 as const }]));
+    expect(ceilingToday(all, maxed, '2026-11-16')).toBe(100);
+    expect(dueCount(all, maxed, '2026-11-16')).toBe(0);
+  });
+
 });
