@@ -162,7 +162,7 @@ export function tasksFor(
   if (plan.mock) {
     tasks.push({
       id: mockTaskId(plan.mock), kind: 'mock', title: 'Mock Exam', detail: `Like the real test · about ${mockMinutes} min`,
-      tip: 'Do it like the real test: notes closed, and write every answer yourself. No microphone here. At the end it shows you what to fix.',
+      tip: 'Do it like the real test: notes closed, answer every question yourself (write, or say it and fix the words). At the end it shows you what to fix.',
       done: mockDone,
     });
   }
