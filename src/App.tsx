@@ -516,6 +516,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             name={saved.settings.name}
             tasks={tasks}
             finished={finished}
+            onDayDone={() => updatePack(pack.id, (p) => (
+              (p.daysDone ?? []).includes(today) ? p : { ...p, daysDone: [...(p.daysDone ?? []), today] }
+            ))}
             badges={plan.phase === 'past' ? [] : badgesFor(pack, save)}
             badgesSeen={save.badgesSeen}
             onBadgesSeen={(ids) => updatePack(pack.id, (p) => ({ ...p, badgesSeen: ids }))}

@@ -29,6 +29,8 @@ interface Props {
   /** True when another day is being previewed with ?today= in the address. */
   preview?: boolean;
   onTask: (task: Task) => void;
+  /** Called when today's tasks are all done but today is not yet among `daysDone`, so the day gets its tick. */
+  onDayDone?: () => void;
   /** Her badges, earned or not, and the ones she has already been shown. */
   badges?: Badge[];
   badgesSeen?: string[];
@@ -90,7 +92,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 
 export function Home({
   pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
-  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onTask, onExtra, onPractise, onGuide, onParent,
+  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = packReadiness(pack, progress);
   const cd = countdown(plan.daysToGo);
@@ -104,6 +106,14 @@ export function Home({
   const lola = lolaSays(plan, tasks, finished, name);
   const next = nextTask(tasks);
   const doneCount = tasks.filter((t) => t.done).length;
+
+  // A finished day is normally recorded when its last task ends. This catches the days that were finished
+  // another way (for example, the task list got shorter after an update), so the tick and the badges are right.
+  const dayRecorded = daysDone.includes(today);
+  useEffect(() => {
+    if (finished && !dayRecorded) onDayDone?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finished, dayRecorded]);
 
   // Badges earned since she last looked are announced once: a sound, a banner and a "New" mark.
   const [fresh] = useState(() => newBadges(badges, badgesSeen).map((b) => b.id));

@@ -393,3 +393,21 @@ describe('Phase 3: sounds, badges and the backup', () => {
     expect(store.current?.settings.parentPin).toBeTruthy();
   });
 });
+
+describe('a finished day', () => {
+  it('gets its tick even if it was not recorded when the last task ended', async () => {
+    // Both rounds were done today and nothing is left to fix, but the day was never marked as finished.
+    const round = { date: '2026-11-13', kind: 'today' as const, topics: ['T'], asked: 3, firstTimeRight: 3 };
+    const store = memoryStore({ ...emptySaved(), packs: { 'test-pack': { progress: {}, points: 20, sessions: [round, round] } } });
+    render(<App store={store} packs={[pack]} now={friday} />);
+    expect(await screen.findByText(/Today's preparation is finished\. Well done/)).toBeInTheDocument();
+    expect(store.current?.packs['test-pack'].daysDone).toEqual(['2026-11-13']);
+  });
+
+  it('is not recorded while tasks are still open', async () => {
+    const store = memoryStore();
+    render(<App store={store} packs={[pack]} now={friday} />);
+    expect(await screen.findByText('Test exam')).toBeInTheDocument();
+    expect(store.current?.packs['test-pack']?.daysDone ?? []).toEqual([]);
+  });
+});
