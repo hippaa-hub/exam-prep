@@ -27,7 +27,7 @@ const STEPS: { icon: string; title: string; text: string }[] = [
   {
     icon: '🔧',
     title: 'Then empty the Fix list',
-    text: 'A question you miss waits in Fix. It leaves the list when you get it right twice. Missing a question here is useful: it shows you what to practise before the test does.',
+    text: 'A question you miss waits in Fix. It leaves the list as soon as you get it right. Missing a question here is useful: it shows you what to practise before the test does.',
   },
   {
     icon: '📅',

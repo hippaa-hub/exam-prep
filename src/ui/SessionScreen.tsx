@@ -77,7 +77,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
     // A repeat straight after a miss earns no credit, except in Fix My Mistakes, where the repeats are the point.
     const saved = onAnswer(id, outcome, (!again || spec.kind === 'fix') && !leftOn.has(id), dontKnow === true);
     if (saved.fixed) setFixed((n) => n + 1);
-    // A miss comes back later in this session. In Fix My Mistakes a right answer comes back too, until it is right twice.
+    // A miss comes back later in this session. In Fix My Mistakes a right answer is enough: it leaves the list (FIX_TARGET).
     let askAgain = outcome !== 'right' || (spec.kind === 'fix' && saved.progress.fix !== undefined);
     // A written answer takes a while, so it is repeated at most once, and only after a real miss.
     if (item.type === 'short' && spec.kind !== 'fix') askAgain = outcome === 'wrong' && !again;

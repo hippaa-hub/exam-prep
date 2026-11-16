@@ -135,7 +135,7 @@ export function tasksFor(
   tasks.push({
     id: 'fix', kind: 'fix', title: 'Fix My Mistakes',
     detail: mistakes > 0 ? `${mistakes} question${mistakes === 1 ? '' : 's'} waiting` : 'Nothing to fix',
-    tip: 'These are the ones you missed. Each one leaves the list when you get it right twice.',
+    tip: 'These are the ones you missed. Each one leaves the list as soon as you get it right.',
     // The mock's own new mistakes must not reopen this task once the mock is done.
     done: before && (mistakes === 0 || fixedToday || mockDone),
   });

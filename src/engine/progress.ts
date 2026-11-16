@@ -29,7 +29,7 @@ export interface ConceptProgress {
 export type ProgressMap = Record<ConceptId, ConceptProgress>;
 
 /** A mistake leaves the Fix My Mistakes list once it has been right this many times. */
-export const FIX_TARGET = 2;
+export const FIX_TARGET = 1;
 /** A topic is "ready" at this readiness percentage. */
 export const READY_AT = 80;
 const RECENT_KEPT = 8;

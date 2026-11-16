@@ -43,10 +43,9 @@ describe('item levels', () => {
     expect(p.fix).toBe(0);
   });
 
-  it('leaves the mistakes list after being right twice', () => {
+  it('leaves the mistakes list as soon as it is right once', () => {
     let p = applyAnswer(undefined, 'wrong', '2026-11-14');
-    p = applyAnswer(p, 'right', '2026-11-14');
-    expect(p.fix).toBe(1);
+    expect(p.fix).toBe(0);
     p = applyAnswer(p, 'right', '2026-11-14');
     expect(p.fix).toBeUndefined();
   });
@@ -117,7 +116,8 @@ describe('readiness', () => {
       q4: applyAnswer(applyAnswer(undefined, 'wrong', '2026-11-14'), 'right', '2026-11-14'),
     };
     expect(weakest(pack, progress, 2)).toEqual(['q2', 'q3']);
-    expect(weakest(pack, progress, 4)).toEqual(['q2', 'q3', 'q4', 'q1']);
+    // q4 was fixed (right once after the miss), so it is no longer an open mistake.
+    expect(weakest(pack, progress, 4)).toEqual(['q2', 'q3', 'q1', 'q4']);
   });
 });
 

@@ -100,9 +100,7 @@ describe('the app', () => {
     await user.click(screen.getByRole('button', { name: 'Fix 1 question' }));
     expect(screen.getByText('Where does power come from in a democracy?')).toBeInTheDocument();
 
-    // Right twice, and it leaves the list.
-    await user.click(screen.getByRole('button', { name: 'The people' }));
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    // Right once, and it leaves the list.
     await user.click(screen.getByRole('button', { name: 'The people' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.getByText('Good fixing!')).toBeInTheDocument();

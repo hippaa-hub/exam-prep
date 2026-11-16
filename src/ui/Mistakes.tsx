@@ -16,7 +16,7 @@ export function Mistakes({ progress, ids, items, onStart }: Props) {
     <>
       <header className="page-head">
         <h1>Fix My Mistakes</h1>
-        <p>Only the questions you missed. Each one leaves this list once you get it right twice.</p>
+        <p>Only the questions you missed. Each one leaves this list as soon as you get it right.</p>
       </header>
 
       {ids.length === 0 ? (
