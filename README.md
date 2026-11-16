@@ -67,8 +67,9 @@ Phase 3 added:
 - **Part 2: Glossary words** (optional): the teacher's glossary as flashcards, offered on Home once the day's
   tasks are finished. A round is half words she has met before and half new ones. These words are outside
   the topics, so they do not count in the ring or in Fix My Mistakes.
-- **Badges** on Home, for effort and for keeping going, never for speed. They are worked out from what is
-  saved, so earlier progress counts. A new badge is announced once.
+- **Badges** on Home (27 of them), for rounds done, days finished, each kind of practice tried, and what she
+  has learned. Never for speed. They are worked out from what is saved, so earlier progress counts.
+  A new badge is announced once.
 - **Sounds**: a short chime for right, almost and not yet, and a little fanfare at the end of a round and for a
   new badge. They are made in the browser, so they work offline. The 🔊 button on Home turns them off.
   There are no sounds in the Mock Exam.

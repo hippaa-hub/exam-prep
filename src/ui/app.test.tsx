@@ -353,7 +353,7 @@ describe('Phase 3: sounds, badges and the backup', () => {
     });
     const first = render(<App store={store} packs={[pack]} now={friday} />);
     expect(await screen.findByText(/New badge: First round/)).toBeInTheDocument();
-    expect(screen.getByText(/Next badge: Day finished/)).toBeInTheDocument();
+    expect(screen.getByText(/Next badge: Five rounds/)).toBeInTheDocument();
     expect(store.current?.packs['test-pack'].badgesSeen).toEqual(['first-round']);
     first.unmount();
     render(<App store={store} packs={[pack]} now={friday} />);

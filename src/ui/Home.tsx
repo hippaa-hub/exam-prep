@@ -253,11 +253,15 @@ export function Home({
           </div>
           {fresh.length > 0 && (
             <p className="badge-new" role="status">
-              🎉 {fresh.length === 1 ? 'New badge' : `${fresh.length} new badges`}: {badges.filter((b) => fresh.includes(b.id)).map((b) => b.title).join(', ')}
+              {/* A few are named; a long list is just counted, and each one carries a "New" mark below. */}
+              🎉 {fresh.length === 1 ? 'New badge' : `${fresh.length} new badges`}
+              {fresh.length <= 3
+                ? `: ${badges.filter((b) => fresh.includes(b.id)).map((b) => b.title).join(', ')}`
+                : '! You earned them with the work you have already done.'}
             </p>
           )}
           <ul className="badges">
-            {badges.map((b) => (
+            {[...badges.filter((b) => b.earned), ...badges.filter((b) => !b.earned)].map((b) => (
               <li key={b.id} className={b.earned ? (fresh.includes(b.id) ? 'badge-item earned fresh' : 'badge-item earned') : 'badge-item'}>
                 <span className="badge-icon" aria-hidden="true">{b.earned ? b.icon : '🔒'}</span>
                 <span className="badge-title">{b.title}</span>
