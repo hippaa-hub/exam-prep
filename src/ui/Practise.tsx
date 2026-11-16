@@ -1,5 +1,5 @@
 import type { Game, Item, ItemId, Pack } from '../content/types';
-import { gameOf, itemsOf } from '../content/types';
+import { gameOf, glossaryOf, itemsOf } from '../content/types';
 import { formatShort } from '../engine/dates';
 import { READY_AT, readiness, topicReadiness, type ProgressMap } from '../engine/progress';
 import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
@@ -30,6 +30,7 @@ const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: str
 export function Practise({ pack, progress, onStart, onTable, mockResults, writing, items, onArguments, onMock, onBack }: Props) {
   const all = itemsOf(pack);
   const groups = [...new Set(all.flatMap((it) => (it.type === 'table' ? [it.group] : [])))];
+  const glossary = glossaryOf(pack);
 
   return (
     <>
@@ -48,6 +49,10 @@ export function Practise({ pack, progress, onStart, onTable, mockResults, writin
               onClick={() => onStart(g.title, pool, g.game)} />
           );
         })}
+        {glossary.length > 0 && (
+          <Tile icon="📖" tone="purple" title="Glossary words" blurb={`The ${glossary.length} extra words from your teacher's glossary`}
+            pct={readiness(glossary, progress)} onClick={() => onStart('Glossary words', glossary)} />
+        )}
         {groups.map((group) => {
           const pool = all.filter((it) => it.type === 'table' && it.group === group);
           return (

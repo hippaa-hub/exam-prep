@@ -120,3 +120,31 @@ describe("today's tasks", () => {
     for (const t of ids([], 20, 2)) expect(t.tip.length).toBeGreaterThan(20);
   });
 });
+
+describe('Part 2: the glossary words', () => {
+  const withGlossary = (sessions: SessionRecord[], due: number, mistakes: number, day = sat) =>
+    tasksFor(planFor(pack, sessions, day), sessions, day, due, mistakes, 73);
+
+  it('comes last, after Fix My Mistakes, and only when the pack has glossary words', () => {
+    expect(ids([], 20, 0).some((t) => t.kind === 'glossary')).toBe(false);
+    const tasks = withGlossary([], 20, 0);
+    expect(tasks.map((t) => t.id)).toEqual(['game:key-terms', 'round-1', 'round-2', 'fix', 'glossary']);
+    expect(tasks[tasks.length - 1].title).toBe('Part 2: Glossary words');
+  });
+
+  it('keeps the day open until a glossary round is done', () => {
+    const before = [rec('practice', 'game:key-terms'), rec('today'), rec('today')];
+    expect(dayFinished(ids(before, 0, 0))).toBe(true);
+    const tasks = withGlossary(before, 0, 0);
+    expect(dayFinished(tasks)).toBe(false);
+    expect(nextTask(tasks)?.id).toBe('glossary');
+    expect(dayFinished(withGlossary([...before, rec('practice', 'glossary')], 0, 0))).toBe(true);
+  });
+
+  it('is asked again the next day, and never on exam day', () => {
+    const sun = '2026-11-15';
+    const yesterday = [rec('practice', 'glossary')];
+    expect(withGlossary(yesterday, 20, 0, sun).find((t) => t.id === 'glossary')?.done).toBe(false);
+    expect(withGlossary([], 0, 0, '2026-11-18').map((t) => t.id)).toEqual(['warm-up']);
+  });
+});

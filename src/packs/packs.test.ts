@@ -1,6 +1,6 @@
 // Checks every exam pack for slips: duplicate ids, answers that are not an option, plans that point nowhere.
 import { describe, expect, it } from 'vitest';
-import { conceptOf, conceptsOf, examplesFor, gameOf, itemsOf, simpleWords } from '../content/types';
+import { allItemsOf, conceptOf, conceptsOf, examplesFor, gameOf, glossaryOf, itemsOf, simpleWords } from '../content/types';
 import { explainChoice } from '../engine/explain';
 import { packs } from './index';
 
@@ -9,6 +9,7 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
 
   it('has unique item ids and topic ids', () => {
     expect(new Set(items.map((i) => i.id)).size).toBe(items.length);
+    expect(new Set(allItemsOf(pack).map((i) => i.id)).size).toBe(allItemsOf(pack).length);
     expect(new Set(pack.topics.map((t) => t.id)).size).toBe(pack.topics.length);
   });
 
@@ -80,7 +81,7 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
     const without = items.filter((it) => !simpleWords(pack, it)).map((it) => it.id);
     expect(without).toEqual([]);
     // Every key points at a real question or thing to know.
-    const known = new Set([...items.map((i) => i.id), ...conceptsOf(items)]);
+    const known = new Set([...allItemsOf(pack).map((i) => i.id), ...conceptsOf(allItemsOf(pack))]);
     expect(Object.keys(pack.simple ?? {}).filter((k) => !known.has(k))).toEqual([]);
   });
 
@@ -101,8 +102,23 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
       expect(list.length, key).toBeLessThanOrEqual(4);
       for (const e of list) expect(e.length, e).toBeLessThanOrEqual(64);
     }
-    const known = new Set([...items.map((i) => i.id), ...conceptsOf(items)]);
+    const known = new Set([...allItemsOf(pack).map((i) => i.id), ...conceptsOf(allItemsOf(pack))]);
     expect(Object.keys(pack.examples ?? {}).filter((k) => !known.has(k))).toEqual([]);
+  });
+
+  it('has glossary cards that follow the same standard as the key terms', () => {
+    const cards = glossaryOf(pack);
+    // The glossary is extra: none of it is in the topics, so none of it counts in readiness.
+    const inTopics = new Set(items.map((i) => i.id));
+    expect(cards.filter((c) => inTopics.has(c.id))).toEqual([]);
+    for (const c of cards) {
+      // The teacher's wording, one plain sentence, two to four short examples, and ideas the app can look for.
+      expect(c.definition.length, c.id).toBeGreaterThan(10);
+      expect(simpleWords(pack, c)?.split(/(?<=[.!?])\s+/).length, c.id).toBe(1);
+      expect(examplesFor(pack, c)?.length ?? 0, c.id).toBeGreaterThanOrEqual(2);
+      expect(c.ideas?.length ?? 0, c.id).toBeGreaterThanOrEqual(1);
+      for (const idea of c.ideas ?? []) expect(idea.words.length, `${c.id}: ${idea.label}`).toBeGreaterThanOrEqual(1);
+    }
   });
 
   it('keeps explanations short enough for a Grade 7 reader', () => {

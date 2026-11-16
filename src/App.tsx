@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DateKey, Item, ItemId, Pack, TopicId } from './content/types';
 import { ARGUMENT_CHECKLIST } from './content/types';
-import { conceptOf, gameOf, itemsOf } from './content/types';
+import { allItemsOf, conceptOf, gameOf, glossaryOf, itemsOf } from './content/types';
 import { addDays, dateKeyOf } from './engine/dates';
 import { isTopic, RESUME_MS, startNote, stopNote, testNote } from './engine/notify';
 import { pickPack, planFor, type SessionKind } from './engine/plan';
@@ -230,7 +230,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const progress = save.progress;
   const plan = planFor(pack, save.sessions, today);
   const mistakes = mistakeIds(pack, progress);
-  const byId = new Map<ItemId, Item>(itemsOf(pack).map((it) => [it.id, it]));
+  const byId = new Map<ItemId, Item>(allItemsOf(pack).map((it) => [it.id, it]));
 
   /** Save one answer straight away, so nothing is lost if the app is closed mid-session. */
   const answer = (
@@ -259,7 +259,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
 
   const all = itemsOf(pack);
   const due = dueToday(pack, progress, plan, today);
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length);
+  const glossary = glossaryOf(pack);
+  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, glossary.length);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -280,7 +281,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length, glossaryOf(pack).length);
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -347,6 +348,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     else if (task.kind === 'game') startPractice(task.title, all.filter((it) => gameOf(it) === task.game), task.id, true);
     else if (task.kind === 'table' && task.group) openTable(task.group, true);
     else if (task.kind === 'fix') startFix(true);
+    else if (task.kind === 'glossary') startPractice(task.title, glossary, task.id, true);
     else if (task.kind === 'argument') {
       const q = nextArgument(pack, currentSave().writing);
       if (q) openArgument(q.id, true);

@@ -184,6 +184,11 @@ export interface Pack {
   arguments?: ArgumentItem[];
   /** Practice exams. */
   mocks?: MockExam[];
+  /**
+   * The teacher's glossary as flashcards: Part 2 of the day, after the day's tasks.
+   * These words are extra. They are not part of `topics`, so they do not count in readiness.
+   */
+  glossary?: TermItem[];
 }
 
 /** Which practice game an item belongs to. */
@@ -233,6 +238,16 @@ export function shortLabel(item: Item): string {
 
 export function itemsOf(pack: Pack): Item[] {
   return pack.topics.flatMap((t) => t.items);
+}
+
+/** The glossary flashcards (Part 2), if the pack has them. */
+export function glossaryOf(pack: Pack): TermItem[] {
+  return pack.glossary ?? [];
+}
+
+/** Every question the app can show: the topics' questions and the glossary cards. */
+export function allItemsOf(pack: Pack): Item[] {
+  return [...itemsOf(pack), ...glossaryOf(pack)];
 }
 
 export function topicOfItem(pack: Pack, id: ItemId): Topic | undefined {
