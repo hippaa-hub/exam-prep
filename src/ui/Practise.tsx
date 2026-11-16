@@ -10,6 +10,8 @@ interface Props {
   /** `game` is given when a whole game is started, so it can tick off today's task for that game. */
   onStart: (title: string, pool: Item[], game?: Game) => void;
   onTable: (group: string) => void;
+  /** A round of glossary words: half met before, half new. */
+  onGlossary: () => void;
   mockResults: Record<string, MockResult>;
   writing: Record<string, WrittenArgument>;
   items: Map<ItemId, Item>;
@@ -27,7 +29,7 @@ const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: str
   { game: 'write', title: 'Say it or write it', blurb: 'Full-sentence answers, checked for the key ideas', icon: '🎤', tone: 'blue' },
 ];
 
-export function Practise({ pack, progress, onStart, onTable, mockResults, writing, items, onArguments, onMock, onBack }: Props) {
+export function Practise({ pack, progress, onStart, onTable, onGlossary, mockResults, writing, items, onArguments, onMock, onBack }: Props) {
   const all = itemsOf(pack);
   const groups = [...new Set(all.flatMap((it) => (it.type === 'table' ? [it.group] : [])))];
   const glossary = glossaryOf(pack);
@@ -51,7 +53,7 @@ export function Practise({ pack, progress, onStart, onTable, mockResults, writin
         })}
         {glossary.length > 0 && (
           <Tile icon="📖" tone="purple" title="Glossary words" blurb={`The ${glossary.length} extra words from your teacher's glossary`}
-            pct={readiness(glossary, progress)} onClick={() => onStart('Glossary words', glossary)} />
+            pct={readiness(glossary, progress)} onClick={onGlossary} />
         )}
         {groups.map((group) => {
           const pool = all.filter((it) => it.type === 'table' && it.group === group);

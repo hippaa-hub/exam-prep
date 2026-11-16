@@ -136,6 +136,37 @@ export function buildPracticeSession(
   return shuffle(out, rng).map((it) => it.id);
 }
 
+/** A glossary round keeps this many places for words she has met before, so they come back on later days. */
+export const GLOSSARY_REVIEW = 6;
+
+/**
+ * A round of glossary words (Part 2): about half are words she has met before and has not yet had right
+ * today (the ones she knows least first, and ones from earlier days before ones from today), the rest are new.
+ * Meeting a word once is not enough to remember it, so the review half matters more than covering every word.
+ */
+export function buildGlossarySession(
+  pool: readonly Item[], progress: ProgressMap, today: DateKey, rng: Rng = Math.random, size = PRACTICE_SIZE,
+): ItemId[] {
+  const of = (it: Item) => progress[conceptOf(it)];
+  const byWeakest = (list: Item[]) => shuffle(list, rng)
+    .map((it, i) => ({ it, i, k: (of(it)?.level ?? 0) * 2 + (of(it)?.lastSeen === today ? 1 : 0) }))
+    .sort((a, b) => a.k - b.k || a.i - b.i)
+    .map((x) => x.it);
+
+  const fresh = shuffle(pool.filter((it) => (of(it)?.seen ?? 0) === 0), rng);
+  const met = pool.filter((it) => (of(it)?.seen ?? 0) > 0);
+  const review = byWeakest(met.filter((it) => isDue(of(it), today)));
+  const rightToday = byWeakest(met.filter((it) => !isDue(of(it), today)));
+
+  let reviewN = Math.min(GLOSSARY_REVIEW, review.length, size);
+  const freshN = Math.min(size - reviewN, fresh.length);
+  reviewN = Math.min(size - freshN, review.length);
+  const chosen = [...review.slice(0, reviewN), ...fresh.slice(0, freshN)];
+  // Nothing new and nothing due is left: go round again with the ones she knows least.
+  chosen.push(...rightToday.slice(0, size - chosen.length));
+  return shuffle(chosen, rng).map((it) => it.id);
+}
+
 /** Fix My Mistakes: only the questions she got wrong. */
 export function buildFixSession(pack: Pack, progress: ProgressMap, rng: Rng = Math.random, size = 15): ItemId[] {
   return shuffle(mistakeIds(pack, progress), rng).slice(0, size);

@@ -153,7 +153,7 @@ export function tasksFor(
     const n = Math.min(GLOSSARY_ROUND, glossaryWords);
     tasks.push({
       id: GLOSSARY_TASK, kind: 'glossary', title: 'Part 2: Glossary words', detail: `${n} words · about 10 min`,
-      tip: 'These are the extra words from your teacher\'s glossary. New to you? Tap "I don\'t know yet", read the meaning, and it will come back.',
+      tip: 'The extra words from your teacher\'s glossary: some new, some you met before. New to you? Tap "I don\'t know yet", read the meaning, and it will come back.',
       done: didTask(GLOSSARY_TASK),
     });
   }

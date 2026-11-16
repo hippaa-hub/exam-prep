@@ -8,7 +8,7 @@ import { pickPack, planFor, type SessionKind } from './engine/plan';
 import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outcome } from './engine/progress';
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
-import { buildFixSession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
+import { buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, dueToday, type RunSummary } from './engine/session';
 import { ARGUMENT_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
@@ -314,6 +314,14 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     };
     start();
   };
+  /** A round of glossary words (Part 2): half words she has met before, half new ones. */
+  const startGlossary = (task?: string, guided = false) => {
+    const start = () => {
+      const ids = buildGlossarySession(glossary, currentSave().progress, today);
+      if (ids.length > 0) open({ kind: 'practice', title: 'Glossary words', topics: [], ids, task, guided, again: guided ? undefined : start });
+    };
+    start();
+  };
   const openTable = (group: string, guided = false) => go({ name: 'table', group, key: nextKey.current++, guided });
 
   /** Time spent on long writing (arguments, the mock exam), counted by the screen's own clock. */
@@ -348,7 +356,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     else if (task.kind === 'game') startPractice(task.title, all.filter((it) => gameOf(it) === task.game), task.id, true);
     else if (task.kind === 'table' && task.group) openTable(task.group, true);
     else if (task.kind === 'fix') startFix(true);
-    else if (task.kind === 'glossary') startPractice(task.title, glossary, task.id, true);
+    else if (task.kind === 'glossary') startGlossary(task.id, true);
     else if (task.kind === 'argument') {
       const q = nextArgument(pack, currentSave().writing);
       if (q) openArgument(q.id, true);
@@ -515,6 +523,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             items={byId}
             onStart={(title, pool, game) => startPractice(title, pool, game ? gameTaskId(game) : undefined)}
             onTable={(group) => openTable(group)}
+            onGlossary={() => startGlossary()}
             onArguments={() => go({ name: 'arguments' })}
             onMock={(id) => openMock(id)}
             onBack={() => goTab('home')}

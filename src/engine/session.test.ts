@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { choice } from '../content/build';
+import { choice, term } from '../content/build';
 import type { Item, Pack } from '../content/types';
 import { planFor } from './plan';
 import { applyAnswer, type ProgressMap } from './progress';
 import { seeded } from './rng';
 import {
-  answerRun, buildFixSession, buildPracticeSession, buildTodaySession, currentId, dueToday, isFinished, startRun, summarise,
+  answerRun, buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, currentId, dueToday, isFinished, startRun, summarise,
   MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE,
 } from './session';
 
@@ -172,5 +172,55 @@ describe('running a session', () => {
     expect(run.queue).toEqual(['a', 'a']);
     run = answerRun(run, 'right', false);
     expect(isFinished(run)).toBe(true);
+  });
+});
+
+describe('a round of glossary words', () => {
+  const words = Array.from({ length: 30 }, (_, i) => term(`v-${i}`, `Word ${i}`, 'A definition.'));
+  const mon = '2026-11-16';
+  const tue = '2026-11-17';
+  const met = (ids: string[], outcome: 'right' | 'almost', day: string): ProgressMap =>
+    Object.fromEntries(ids.map((id) => [id, applyAnswer(undefined, outcome, day, id)]));
+
+  it('is all new words the first time', () => {
+    const ids = buildGlossarySession(words, {}, mon, seeded(1));
+    expect(ids).toHaveLength(12);
+    expect(new Set(ids).size).toBe(12);
+  });
+
+  it('brings back words met on an earlier day, mixed with new ones', () => {
+    const yesterday = words.slice(0, 12).map((w) => w.id);
+    const ids = buildGlossarySession(words, met(yesterday, 'almost', mon), tue, seeded(2));
+    expect(ids).toHaveLength(12);
+    expect(ids.filter((id) => yesterday.includes(id))).toHaveLength(6);
+    expect(ids.filter((id) => !yesterday.includes(id))).toHaveLength(6);
+  });
+
+  it('repeats words she had right on an earlier day too, but not ones already right today', () => {
+    const rightYesterday = words.slice(0, 4).map((w) => w.id);
+    const rightToday = words.slice(4, 8).map((w) => w.id);
+    const progress = { ...met(rightYesterday, 'right', mon), ...met(rightToday, 'right', tue) };
+    const ids = buildGlossarySession(words, progress, tue, seeded(3));
+    expect(ids.filter((id) => rightYesterday.includes(id))).toHaveLength(4);
+    expect(ids.filter((id) => rightToday.includes(id))).toHaveLength(0);
+    expect(ids).toHaveLength(12);
+  });
+
+  it('asks the ones she knows least first when there are more than fit', () => {
+    const unknown = words.slice(0, 8).map((w) => w.id);
+    const known = words.slice(8, 16).map((w) => w.id);
+    const progress = { ...met(unknown, 'almost', mon), ...met(known, 'right', mon) };
+    const ids = buildGlossarySession(words, progress, tue, seeded(4));
+    expect(ids.filter((id) => unknown.includes(id))).toHaveLength(6);
+    expect(ids.filter((id) => known.includes(id))).toHaveLength(0);
+  });
+
+  it('fills the round with review when no new words are left', () => {
+    const all = words.slice(0, 10);
+    const progress = met(all.map((w) => w.id), 'almost', mon);
+    expect(buildGlossarySession(all, progress, tue, seeded(5))).toHaveLength(10);
+    // Everything right today already: it still gives a round, for extra practice.
+    const done = met(all.map((w) => w.id), 'right', tue);
+    expect(buildGlossarySession(all, done, tue, seeded(6))).toHaveLength(10);
   });
 });
