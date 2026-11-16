@@ -300,6 +300,11 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     });
   };
 
+  /** She left the app while a question was waiting: counted per day, for the parent view. */
+  const noteLeft = () => updatePack(pack.id, (p) => ({
+    ...p, leftDuring: { ...(p.leftDuring ?? {}), [today]: (p.leftDuring?.[today] ?? 0) + 1 },
+  }));
+
   const open = (spec: SessionSpec) => go({ name: 'session', spec, key: nextKey.current++ });
   const currentSave = () => savedRef.current?.packs[pack.id] ?? emptyPackSave();
 
@@ -408,6 +413,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
           items={byId}
           draft={save.drafts?.[mock.id]}
           onDraft={(answers) => saveDraft(mock.id, answers)}
+          onLeft={noteLeft}
           onDone={(partA, partB, seconds) => {
             const result: MockResult = { date: today, seconds, partA, partB };
             finishMock(mock.id, result);
@@ -434,6 +440,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         onFinish={(summary) => finish(view.spec, summary)}
         onExit={() => goTab(view.spec.kind === 'practice' && !view.spec.guided && !view.spec.fromHome ? 'practise' : 'home')}
         onFix={() => startFix(false)}
+        onLeft={noteLeft}
         mistakeCount={mistakes.length}
         next={next}
         dayDone={finished}
@@ -449,6 +456,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         group={view.group}
         pack={pack}
         onAnswer={answer}
+        onLeft={noteLeft}
         onFinish={(summary) => finish({ kind: 'practice', topics: [], task: tableTaskId(view.group) }, summary)}
         onExit={() => goTab(view.guided ? 'home' : 'practise')}
         next={view.guided ? next : undefined}
@@ -479,6 +487,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             today={today}
             tasks={tasks}
             mistakeCount={mistakes.length}
+            leftDuring={save.leftDuring ?? {}}
             name={saved.settings.name}
             notifyTopic={isTopic(saved.settings.notifyTopic) ? saved.settings.notifyTopic : undefined}
             onNotifyTopic={(notifyTopic) => {

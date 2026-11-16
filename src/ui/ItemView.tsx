@@ -22,6 +22,8 @@ interface ViewProps<T extends Item> {
    * `dontKnow` is true when she said "I don't know yet" instead of answering.
    */
   onResult: (outcome: Outcome, chosen?: string, dontKnow?: boolean) => void;
+  /** Called as soon as she has given her answer (or asked to be shown it), before the teacher's wording appears. */
+  onCommit?: () => void;
   /** True if she has never met this thing before: not knowing it yet is then a first look, not a mistake. */
   fresh?: boolean;
   /** The answer explained in simple words, shown beside the teacher's wording once she has answered. */
@@ -218,7 +220,7 @@ function OrderView({ item, locked, onResult }: ViewProps<OrderItem>) {
   );
 }
 
-function TermView({ item, locked, onResult, simple, examples, fresh }: ViewProps<TermItem>) {
+function TermView({ item, locked, onResult, onCommit, simple, examples, fresh }: ViewProps<TermItem>) {
   // 'front': the term only. 'checked': she answered and the app judged it. 'shown': she did not know, so it was shown to her.
   const [stage, setStage] = useState<'front' | 'checked' | 'shown'>('front');
   const [typed, setTyped] = useState('');
@@ -230,12 +232,14 @@ function TermView({ item, locked, onResult, simple, examples, fresh }: ViewProps
   useEffect(() => stopSpeaking, []);
 
   const check = () => {
+    onCommit?.();
     setStage('checked');
     if (item.ideas) play(outcomeOfTicks({ ideas: item.ideas }, checkIdeas(typed, item.ideas).found));
     // The app says the verdict, then reads the card.
     if (aloud && item.ideas) speak(`${verdictSentence({ ideas: item.ideas }, checkIdeas(typed, item.ideas).found)} ${cardText}`);
   };
   const show = () => {
+    onCommit?.();
     setStage('shown');
     if (aloud) speak(cardText); // the card reads itself once it is turned over
   };
@@ -312,7 +316,7 @@ function FirstLookOrNotYet({ fresh }: { fresh?: boolean }) {
 }
 
 /** A question answered in full sentences: she says or writes it, then the app checks it for the key ideas. */
-function ShortView({ item, locked, onResult, simple, examples, fresh }: ViewProps<ShortItem>) {
+function ShortView({ item, locked, onResult, onCommit, simple, examples, fresh }: ViewProps<ShortItem>) {
   const [text, setText] = useState('');
   const [checked, setChecked] = useState(false);
   const [shown, setShown] = useState(false);
@@ -322,12 +326,14 @@ function ShortView({ item, locked, onResult, simple, examples, fresh }: ViewProp
   useEffect(() => stopSpeaking, []);
 
   const check = () => {
+    onCommit?.();
     setChecked(true);
     play(outcomeOfTicks(item, checkIdeas(text, item.ideas).found));
     // The app says the verdict, then reads the teacher's wording.
     if (aloud) speak(`${verdictSentence(item, checkIdeas(text, item.ideas).found)} ${modelText}`);
   };
   const show = () => {
+    onCommit?.();
     setShown(true);
     if (aloud) speak(modelText);
   };

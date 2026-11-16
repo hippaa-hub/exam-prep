@@ -73,6 +73,10 @@ Phase 3 added:
 - **Sounds**: a short chime for right, almost and not yet, and a little fanfare at the end of a round and for a
   new badge. They are made in the browser, so they work offline. The 🔊 button on Home turns them off.
   There are no sounds in the Mock Exam.
+- **Leaving the app during a question**: a phone cannot show a screenshot or notes without leaving the app.
+  If she leaves while a question is waiting, the app says so, and the answer she gives after coming back
+  earns no level (it is practice, like a repeat straight after a miss). The parent view shows how many
+  times it happened each day. A web app cannot block screenshots themselves.
 - **Backup** in the parent view: "Save a backup" makes one small file with all her progress;
   "Restore from a backup" puts it back on this phone or a new one, after asking first.
 

@@ -588,3 +588,6 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .badge-item.earned .badge-title { color: var(--ink); }
 .badge-item.fresh::after { content: 'New'; position: absolute; top: -8px; right: -4px; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.66rem; font-weight: 800; }
 .badge-new { margin: 0; padding: 9px 12px; border-radius: 12px; background: #fffbe6; border: 2px solid #f2c94c; font-weight: 800; font-size: 0.92rem; }
+
+/* ---- "You left the app" note ---- */
+.left-note { padding: 10px 12px; border-radius: 12px; border: 2px solid #f2c94c; background: #fffbe6; font-weight: 700; font-size: 0.9rem; line-height: 1.4; }

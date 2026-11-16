@@ -29,6 +29,8 @@ interface Props {
   today: DateKey;
   tasks: Task[];
   mistakeCount: number;
+  /** How many times, per day, she left the app while a question was waiting. */
+  leftDuring?: Record<DateKey, number>;
   name: string;
   /** The private channel for notifications to a parent's phone. Unset means they are off. */
   notifyTopic?: string;
@@ -101,7 +103,7 @@ function Notifications({ topic, onTopic, onTest }: { topic?: string; onTopic: Pr
   );
 }
 
-export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, name, notifyTopic, onNotifyTopic, onTestNotify, saved, onRestore, onClose, onChangeCode }: Props) {
+export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, leftDuring = {}, name, notifyTopic, onNotifyTopic, onTestNotify, saved, onRestore, onClose, onChangeCode }: Props) {
   const reports = dayReports(pack, sessions, studyTime, daysDone, today);
   const todayReport = reports.find((r) => r.day === today);
   const doneCount = tasks.filter((t) => t.done).length;
@@ -143,7 +145,15 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
             <li><span>Questions answered</span><strong>{todayReport?.asked ?? 0}</strong></li>
             <li><span>Right first time</span><strong>{todayAccuracy === null ? '–' : `${todayAccuracy}%`}</strong></li>
             <li><span>Waiting in Fix My Mistakes</span><strong>{mistakeCount}</strong></li>
+            <li><span>Left the app during a question</span><strong>{leftDuring[today] ?? 0}</strong></li>
           </ul>
+          <p className="muted small">
+            A phone cannot show a screenshot or notes without leaving the app. When she leaves while a question is waiting,
+            the app tells her that the answer will not count, and adds one here. A locked screen or a message counts too,
+            so one or two a day is normal.{' '}
+            {Object.values(leftDuring).reduce((a, b) => a + b, 0) > (leftDuring[today] ?? 0)
+              && `On all days so far: ${Object.values(leftDuring).reduce((a, b) => a + b, 0)}.`}
+          </p>
         </section>
 
         <section className="card" aria-labelledby="p-days">

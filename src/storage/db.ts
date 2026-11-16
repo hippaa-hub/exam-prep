@@ -19,6 +19,8 @@ export interface PackSave {
   mockResults?: Record<string, MockResult>;
   /** Unfinished writing, so nothing is lost if the app is closed half-way. Keyed by question or mock id. */
   drafts?: Record<string, string[]>;
+  /** How many times, per day, she left the app while a question was waiting for her answer. */
+  leftDuring?: Record<string, number>;
   /** The badges she has already been shown, so a new one is announced once. */
   badgesSeen?: string[];
 }

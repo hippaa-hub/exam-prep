@@ -7,6 +7,7 @@ import { explainChoice } from '../engine/explain';
 import type { ConceptProgress, Outcome } from '../engine/progress';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from '../engine/rewards';
 import { play } from './sound';
+import { useLeftApp } from './useLeftApp';
 import { answerRun, currentId, isFinished, runFraction, startRun, summarise, type RunSummary } from '../engine/session';
 import { Confetti } from './Confetti';
 import { ItemView } from './ItemView';
@@ -24,6 +25,8 @@ interface Props {
   onFinish: (summary: RunSummary) => void;
   onExit: () => void;
   onFix: () => void;
+  /** Called each time she leaves the app while a question is waiting for her answer. */
+  onLeft?: () => void;
   /** The next of today's tasks, offered at the end of a guided session. */
   next?: { title: string; start: () => void };
   /** True once every task of the day is done. */
@@ -32,12 +35,22 @@ interface Props {
   examDay?: boolean;
 }
 
-export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer, onFinish, onExit, onFix, next: nextTask, dayDone, examDay = false }: Props) {
+export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer, onFinish, onExit, onFix, onLeft, next: nextTask, dayDone, examDay = false }: Props) {
   const [run, setRun] = useState(() => startRun(spec.ids));
   const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean; chosen?: string } | null>(null);
   const [fixed, setFixed] = useState(0);
   const reported = useRef(false);
   const finished = isFinished(run);
+  // The questions during which she left the app. An answer after that is practice: it earns no level.
+  const [leftOn, setLeftOn] = useState<ReadonlySet<ItemId>>(new Set());
+  /** True once she has given her answer to the question on screen. */
+  const [committed, setCommitted] = useState(false);
+  const waitingId = finished || result !== null || committed ? undefined : currentId(run);
+  useLeftApp(waitingId !== undefined, () => {
+    if (waitingId === undefined || leftOn.has(waitingId)) return;
+    setLeftOn((prev) => new Set(prev).add(waitingId));
+    onLeft?.();
+  });
 
   useEffect(() => {
     if (finished && !reported.current && spec.ids.length > 0) {
@@ -62,7 +75,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
 
   const handleResult = (outcome: Outcome, chosen?: string, dontKnow?: boolean) => {
     // A repeat straight after a miss earns no credit, except in Fix My Mistakes, where the repeats are the point.
-    const saved = onAnswer(id, outcome, !again || spec.kind === 'fix', dontKnow === true);
+    const saved = onAnswer(id, outcome, (!again || spec.kind === 'fix') && !leftOn.has(id), dontKnow === true);
     if (saved.fixed) setFixed((n) => n + 1);
     // A miss comes back later in this session. In Fix My Mistakes a right answer comes back too, until it is right twice.
     let askAgain = outcome !== 'right' || (spec.kind === 'fix' && saved.progress.fix !== undefined);
@@ -71,6 +84,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
     if (item.type === 'term' || item.type === 'short') {
       // These have already shown the teacher's wording, so move straight on.
       setRun((r) => answerRun(r, outcome, askAgain));
+      setCommitted(false);
       window.scrollTo(0, 0);
     } else {
       play(outcome);
@@ -82,6 +96,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
     if (!result) return;
     setRun((r) => answerRun(r, result.outcome, result.askAgain));
     setResult(null);
+    setCommitted(false);
     window.scrollTo(0, 0);
   };
 
@@ -108,7 +123,12 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
 
       <main className="session-body">
         {again && !result && <div className="again-tag">Back again. You've got this.</div>}
-        <ItemView key={`${id}:${run.index}`} item={item} locked={result !== null} onResult={handleResult} simple={simple} examples={examples} fresh={fresh} />
+        {leftOn.has(id) && !result && (
+          <div className="left-note" role="status">
+            You left the app during this question, so it will not count this time. Answer it anyway: it will come back later.
+          </div>
+        )}
+        <ItemView key={`${id}:${run.index}`} item={item} locked={result !== null} onResult={handleResult} onCommit={() => setCommitted(true)} simple={simple} examples={examples} fresh={fresh} />
       </main>
 
       {result && (

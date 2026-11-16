@@ -411,3 +411,68 @@ describe('a finished day', () => {
     expect(store.current?.packs['test-pack']?.daysDone ?? []).toEqual([]);
   });
 });
+
+describe('leaving the app during a question', () => {
+  /** The app is left (to look at a screenshot, say), or she comes back to it. */
+  const setVisible = (visible: boolean) => act(() => {
+    Object.defineProperty(document, 'visibilityState', { value: visible ? 'visible' : 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  afterEach(() => { Reflect.deleteProperty(document, 'visibilityState'); });
+  const levels = (store: ReturnType<typeof memoryStore>) =>
+    Object.values(store.current?.packs['test-pack']?.progress ?? {}).map((p) => p.level).sort();
+
+  it('does not count the answer she gives after coming back, and says so', async () => {
+    const user = userEvent.setup();
+    const store = memoryStore();
+    render(<App store={store} packs={[pack]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+
+    // A question is waiting. She leaves the app and comes back.
+    setVisible(false);
+    setVisible(true);
+    expect(screen.getByText(/You left the app during this question/)).toBeInTheDocument();
+
+    await playSession(user, null);
+    // Three things were answered right, but the one she left on earned no level.
+    expect(document.querySelector('.summary-score')).toHaveTextContent('3 of 3 right first time');
+    expect(levels(store)).toEqual([0, 1, 1]);
+    expect(store.current?.packs['test-pack'].leftDuring).toEqual({ '2026-11-13': 1 });
+  });
+
+  it('counts normally when she never leaves, or leaves only after answering', async () => {
+    const user = userEvent.setup();
+    const store = memoryStore();
+    render(<App store={store} packs={[pack]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+
+    // Answer the first question, whatever it is, then leave while the explanation is on screen.
+    for (let guard = 0; guard < 4; guard++) {
+      if (screen.queryByRole('button', { name: 'Continue' }) || screen.queryByRole('button', { name: 'Knew it' })) break;
+      if (screen.queryByRole('button', { name: 'Flip the card' })) await user.click(screen.getByRole('button', { name: 'Flip the card' }));
+      else if (screen.queryByText('Where does power come from in a democracy?')) await user.click(screen.getByRole('button', { name: 'The people' }));
+      else await user.click(screen.getByRole('button', { name: 'Power' }));
+    }
+    setVisible(false);
+    setVisible(true);
+    expect(screen.queryByText(/You left the app/)).toBeNull();
+    if (screen.queryByRole('button', { name: 'Knew it' })) await user.click(screen.getByRole('button', { name: 'Knew it' }));
+
+    await playSession(user, null);
+    expect(levels(store)).toEqual([1, 1, 1]);
+    expect(store.current?.packs['test-pack'].leftDuring).toBeUndefined();
+  });
+
+  it('shows the parent how many times it happened today', async () => {
+    const user = userEvent.setup();
+    const store = memoryStore({ ...emptySaved(), packs: { 'test-pack': { progress: {}, points: 0, sessions: [], leftDuring: { '2026-11-12': 2, '2026-11-13': 3 } } } });
+    render(<App store={store} packs={[pack]} now={friday} />);
+    await user.click(await screen.findByRole('button', { name: 'For parents' }));
+    await tapCode(user, '1357');
+    await screen.findByRole('heading', { name: 'Type the code again' });
+    await tapCode(user, '1357');
+    const row = (await screen.findByText('Left the app during a question')).closest('li')!;
+    expect(row).toHaveTextContent('3');
+    expect(screen.getByText(/On all days so far: 5/)).toBeInTheDocument();
+  });
+});

@@ -2,6 +2,7 @@
 // then she marks it against the teacher's wording, and it ends with "what to fix".
 // She writes every answer: there is no microphone and nothing is read aloud here.
 import { useEffect, useRef, useState } from 'react';
+import { useLeftApp } from './useLeftApp';
 import type { Item, ItemId, MockExam, Pack, ShortItem } from '../content/types';
 import { ARGUMENT_BOXES, ARGUMENT_CHECKLIST, examplesFor, simpleWords } from '../content/types';
 import { formatDuration } from '../engine/time';
@@ -24,6 +25,8 @@ interface Props {
   onDone: (partA: MockAnswerA[], partB: MockAnswerB[], seconds: number) => MockResult;
   onTime: (seconds: number) => void;
   onExit: () => void;
+  /** Called when she leaves the app while writing the paper. */
+  onLeft?: () => void;
   next?: { title: string; start: () => void };
   dayDone?: boolean;
 }
@@ -31,7 +34,7 @@ interface Props {
 type Phase = 'intro' | 'exam' | 'marking' | 'result';
 const PER_B = ARGUMENT_BOXES.length;
 
-export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, onExit, next, dayDone }: Props) {
+export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, onExit, onLeft, next, dayDone }: Props) {
   const partA = mock.partA.map((id) => items.get(id)).filter((it): it is ShortItem => it?.type === 'short');
   const partB = mock.partB.map((id) => pack.arguments?.find((a) => a.id === id)).filter((a) => a !== undefined);
   const total = partA.length + partB.length;
@@ -44,6 +47,8 @@ export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, 
   const [ticksA, setTicksA] = useState<boolean[][]>(() => partA.map((q) => q.ideas.map(() => false)));
   const [ticksB, setTicksB] = useState<boolean[][]>(() => partB.map(() => emptyTicks()));
   const [result, setResult] = useState<MockResult | null>(null);
+  // Leaving the app while writing the paper is counted for the parent view. It changes nothing in the paper.
+  useLeftApp(phase === 'exam', () => onLeft?.());
   const writingSeconds = useRef(0);
   const clock = useStudyClock(onTime, phase === 'exam' || phase === 'marking');
 

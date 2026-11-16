@@ -7,11 +7,15 @@ import type { RunSummary } from '../engine/session';
 import { Confetti } from './Confetti';
 import { FillRows } from './FillRows';
 import { tableRows } from './ItemView';
+import { useLeftApp } from './useLeftApp';
 
 interface Props {
   group: string;
   pack: Pack;
-  onAnswer: (id: ItemId, outcome: Outcome) => { progress: ConceptProgress; fixed: boolean };
+  /** `credit: false` when she left the app while filling the table: right rows are then practice only. */
+  onAnswer: (id: ItemId, outcome: Outcome, credit?: boolean) => { progress: ConceptProgress; fixed: boolean };
+  /** Called when she leaves the app while the table is still being filled. */
+  onLeft?: () => void;
   onFinish: (summary: RunSummary) => void;
   onExit: () => void;
   /** The next of today's tasks, when the table was opened from the task list. */
@@ -19,7 +23,7 @@ interface Props {
   dayDone?: boolean;
 }
 
-export function TableScreen({ group, pack, onAnswer, onFinish, onExit, next, dayDone }: Props) {
+export function TableScreen({ group, pack, onAnswer, onFinish, onExit, onLeft, next, dayDone }: Props) {
   const rows = useMemo(
     () => itemsOf(pack).filter((it): it is TableItem => it.type === 'table' && it.group === group),
     [pack, group],
@@ -28,6 +32,13 @@ export function TableScreen({ group, pack, onAnswer, onFinish, onExit, next, day
   const [values, setValues] = useState<Record<ItemId, (number | null)[]>>(blank);
   const [checked, setChecked] = useState(false);
   const reported = useRef(false);
+  // She left the app while filling this table: what she fills in after that is practice only.
+  const [left, setLeft] = useState(false);
+  useLeftApp(!checked, () => {
+    if (left) return;
+    setLeft(true);
+    onLeft?.();
+  });
 
   const cells = rows.reduce((n, r) => n + r.cells.length, 0);
   const filled = rows.reduce((n, r) => n + values[r.id].filter((v) => v !== null).length, 0);
@@ -40,7 +51,7 @@ export function TableScreen({ group, pack, onAnswer, onFinish, onExit, next, day
     for (const concept of new Set(rows.map(conceptOf))) {
       const group = rows.filter((r) => conceptOf(r) === concept);
       const firstWrong = group.find((r) => !rowRight(r));
-      onAnswer((firstWrong ?? group[0]).id, firstWrong ? 'wrong' : 'right');
+      onAnswer((firstWrong ?? group[0]).id, firstWrong ? 'wrong' : 'right', !left);
     }
     if (!reported.current) {
       reported.current = true;
@@ -53,6 +64,7 @@ export function TableScreen({ group, pack, onAnswer, onFinish, onExit, next, day
   const retry = () => {
     setValues(blank());
     setChecked(false);
+    setLeft(false);
     window.scrollTo(0, 0);
   };
 
@@ -72,7 +84,14 @@ export function TableScreen({ group, pack, onAnswer, onFinish, onExit, next, day
             {dayDone && <span><strong>🎉 Today's preparation is finished!</strong></span>}
           </div>
         ) : (
-          <p className="muted">Fill in every box from memory, then check the whole table.</p>
+          <>
+            <p className="muted">Fill in every box from memory, then check the whole table.</p>
+            {left && (
+              <div className="left-note" role="status">
+                You left the app while filling this table, so it will not count this time. Fill it in anyway: it is good practice.
+              </div>
+            )}
+          </>
         )}
 
         {rows.map((r) => (
