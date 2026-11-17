@@ -83,7 +83,12 @@ In `index.ts`, list the days before the exam (`day: -4` is four days before):
 - Spread the topics over the first days, heaviest first.
 - Give each day one extra activity that suits its topics (flashcards, a table, This or That, an argument).
 - Keep the last day for the mock exam and a mixed round.
+- A day with no topics and no mock exam is a mixed day: one mixed round of everything, with new glossary words.
+  Use it for a spare day, or when the exam moves (see below).
 - Exam day is always the three-minute warm-up; it needs no entry.
+
+**If the exam date moves:** change `date` and renumber the plan days so the study days stay on the dates she
+already did them. Fill a gained day with a mixed day. Never change the pack's `id`: her progress is saved under it.
 
 ### 5. Register the pack
 Add it to the list in `src/packs/index.ts`. Home shows the nearest upcoming exam by itself.

@@ -115,6 +115,40 @@ describe("today's tasks", () => {
     expect(dayFinished(list([...fixed, rec('practice', 'mock:mock-1', tue)], 9, 2))).toBe(true); // one round is enough
   });
 
+  it('on a mixed day before the mock exam day: the same without the Mock Exam', () => {
+    const longer: Pack = {
+      ...pack, date: '2026-11-19', mocks: [{ id: 'mock-1', title: 'Mock Exam 1', minutes: 35, partA: [], partB: [] }],
+      plan: [
+        { day: -5, label: 'Key terms', topics: ['G1', 'G4'] },
+        { day: -4, label: 'Systems', topics: ['S1', 'S4'] },
+        { day: -3, label: 'Pairs', topics: ['G2'] },
+        { day: -2, label: 'A mixed round' },
+        { day: -1, label: 'A mixed round, then the mock', mock: 'mock-1' },
+      ],
+    };
+    const tue = '2026-11-17';
+    const wed = '2026-11-18';
+    const before = [rec('today', 'round-1', '2026-11-14'), rec('today', 'round-1', '2026-11-15'), rec('today', 'round-1', '2026-11-16')]
+      .map((s, i) => ({ ...s, topics: [['G1', 'G4'], ['S1', 'S4'], ['G2']][i] }));
+    const list = (extra: SessionRecord[], due: number, mistakes: number, day = tue, words = 0, late = 0) =>
+      tasksFor(planFor(longer, [...before, ...extra], day), [...before, ...extra], day, due, mistakes, words, late);
+
+    expect(list([], 20, 0).map((t) => t.id)).toEqual(['round-1', 'fix']);
+    expect(list([], 20, 0)[0].title).toBe('A mixed round of everything');
+    // The glossary words join the round, and the late questions come first, as on the mock exam day.
+    expect(list([], 20, 0, tue, 10)[0].detail).toMatch(/^25 questions/);
+    expect(list([], 20, 0, tue, 10, 27).map((t) => t.id)).toEqual(['round-new', 'round-1', 'fix']);
+    // One round, then the Fix list, and the day is finished. No Mock Exam today.
+    const round = [rec('today', 'round-1', tue)];
+    expect(nextTask(list(round, 9, 3))?.id).toBe('fix');
+    expect(dayFinished(list([...round, rec('fix', 'fix', tue)], 9, 1))).toBe(true);
+    expect(dayFinished(list(round, 9, 0))).toBe(true);
+    // A mock sat today by the old plan does not hide tomorrow's: the day after has the mixed round and the mock.
+    const yesterday = [...round, rec('practice', 'mock:mock-1', tue)];
+    expect(list(yesterday, 20, 0, wed).map((t) => t.id)).toEqual(['round-1', 'fix', 'mock:mock-1']);
+    expect(list(yesterday, 20, 0, wed).every((t) => !t.done)).toBe(true);
+  });
+
   it('has the Argument Builder as a task on the day the plan asks for it', () => {
     const withArgument: Pack = { ...pack, plan: pack.plan.map((d) => (d.day === -2 ? { ...d, extras: [{ kind: 'argument' as const }] } : d)) };
     const mon = '2026-11-16';

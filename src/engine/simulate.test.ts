@@ -23,6 +23,8 @@ function simulate(pack: Pack, firstDay: number, rounds: number, accuracy: number
     let answers = 0;
     for (let r = 0; r < rounds; r++) {
       const plan = planFor(pack, sessions, today);
+      // A mixed day (and the Mock Exam day) has one round among its tasks, not two.
+      if (r > 0 && (plan.phase === 'mix' || plan.mock)) break;
       if (r > 0 && dueToday(pack, progress, plan, today) === 0) break;
       let run = startRun(buildTodaySession(pack, progress, plan, today, rng));
       while (!isFinished(run)) {

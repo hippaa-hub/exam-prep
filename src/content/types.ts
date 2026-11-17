@@ -191,7 +191,7 @@ export interface Pack {
   glossary?: TermItem[];
   /** Glossary words that never appear on the teacher's slides. A round only asks them once the others are met. */
   glossaryLast?: ItemId[];
-  /** Questions added late (after a slide-by-slide check). The last day's mixed round asks these first. */
+  /** Questions added late (after a slide-by-slide check). A mixed day asks these first, in a round of their own. */
   lateAdditions?: ItemId[];
 }
 

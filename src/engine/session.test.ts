@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { choice, term } from '../content/build';
 import type { Item, Pack } from '../content/types';
+import { addDays } from './dates';
 import { planFor } from './plan';
 import { applyAnswer, type ProgressMap } from './progress';
 import { seeded } from './rng';
@@ -249,6 +250,30 @@ describe('the last day\'s mixed round', () => {
     expect(fromWords).toHaveLength(GLOSSARY_IN_MIX);
     expect(fromWords).not.toContain('v-18'); // never-on-the-slides words come last
     expect(fromWords).not.toContain('v-19');
+  });
+
+  it('on a mixed day the words are all brand new while any are left, even when met words are waiting', () => {
+    const longer: Pack = {
+      ...withWords, date: '2026-11-19',
+      plan: [...withWords.plan.filter((d) => d.day < -1).map((d) => ({ ...d, day: d.day - 1 })), { day: -2, label: 'Mix' }, { day: -1, label: 'Mock' }],
+    };
+    const studied = longer.plan.filter((d) => d.topics).map((d) => ({
+      date: addDays(longer.date, d.day), kind: 'today' as const, topics: d.topics!, asked: 10, firstTimeRight: 8,
+    }));
+    const plan = planFor(longer, studied, tue);
+    expect(plan.phase).toBe('mix');
+    // Eight words met yesterday and missed: an ordinary glossary round would bring six of them back.
+    const metIds = words.slice(0, 8).map((w) => w.id);
+    const progress = Object.fromEntries(metIds.map((id) => [id, applyAnswer(undefined, 'wrong', '2026-11-16', id)]));
+    const fromWords = buildTodaySession(longer, progress, plan, tue, seeded(3)).filter((id) => id.startsWith('v-'));
+    expect(fromWords).toHaveLength(GLOSSARY_IN_MIX);
+    expect(fromWords.filter((id) => metIds.includes(id))).toEqual([]);
+    // Only four new words left: the other places go to the ones she has met.
+    const most = words.slice(0, 16).map((w) => w.id);
+    const later = Object.fromEntries(most.map((id) => [id, applyAnswer(undefined, 'wrong', '2026-11-16', id)]));
+    const mixed = buildTodaySession(longer, later, plan, tue, seeded(3)).filter((id) => id.startsWith('v-'));
+    expect(mixed).toHaveLength(GLOSSARY_IN_MIX);
+    expect(mixed.filter((id) => !most.includes(id)).sort()).toEqual(['v-16', 'v-17', 'v-18', 'v-19']);
   });
 
   it('the late-additions round holds every late question she has not met yet', () => {

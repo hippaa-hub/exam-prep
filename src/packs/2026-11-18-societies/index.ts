@@ -1,4 +1,6 @@
-// Exam pack: Individuals & Societies, "How Are Societies Governed?", 18 November 2026.
+// Exam pack: Individuals & Societies, "How Are Societies Governed?", 19 November 2026.
+// The exam was first set for 18 November and moved one day (17 Nov). The folder name and the pack id
+// keep the old date on purpose: her saved progress is stored under the id.
 // Every question comes from IS_STUDIED.md (the teacher's slides, glossary and revision list).
 import type { Pack, Topic } from '../../content/types';
 import { argumentQuestions, mocks } from './arguments';
@@ -26,7 +28,7 @@ export const pack: Pack = {
   id: '2026-11-18-societies',
   subject: 'Individuals & Societies',
   title: 'How Are Societies Governed?',
-  date: '2026-11-18',
+  date: '2026-11-19',
   criteria: ['A: knowing and understanding', 'D: thinking critically'],
   topics: [g1, g2, g3, g4, s1, s2, s3, s4, s5].map(withWritten),
   meanings,
@@ -34,7 +36,7 @@ export const pack: Pack = {
   examples: { ...examples, ...glossaryExamples },
   glossary,
   glossaryLast,
-  // Added on 17 Nov after checking both decks slide by slide: the last day's round asks these first.
+  // Added on 17 Nov after checking both decks slide by slide: a mixed day asks these first.
   lateAdditions: [
     'g2-pa-q-judge', 'g2-pa-q-fear', 'g2-rl-q-levels',
     'g3-fn-six', 'g3-fn-laws', 'g3-fn-systems', 'g3-part-ways', 'g3-part-legit', 'g3-uf-fairness', 'g3-uf-made-of',
@@ -48,20 +50,20 @@ export const pack: Pack = {
   mocks,
   plan: [
     {
-      day: -4, label: 'Key terms, why we need government, the four responsibilities', topics: ['G1', 'G3', 'G4'],
+      day: -5, label: 'Key terms, why we need government, the four responsibilities', topics: ['G1', 'G3', 'G4'],
       extras: [{ kind: 'game', game: 'key-terms' }],
     },
     {
-      day: -3, label: 'Monarchy, democracy, dictatorship and the five countries', topics: ['S1', 'S2', 'S3', 'S4'],
+      day: -4, label: 'Monarchy, democracy, dictatorship and the five countries', topics: ['S1', 'S2', 'S3', 'S4'],
       extras: [{ kind: 'table', group: 'The five countries' }],
     },
     {
-      day: -2, label: 'Confusing pairs, comparing the systems, and one argument', topics: ['G2', 'S5'],
+      day: -3, label: 'Confusing pairs, comparing the systems, and one argument', topics: ['G2', 'S5'],
       extras: [{ kind: 'game', game: 'this-or-that' }, { kind: 'argument' }],
     },
-    {
-      day: -1, label: 'Mock exam, then a mixed quiz of everything', mock: 'mock-1',
-    },
+    // The extra day the moved exam gave her: the same mixed round as the last day, without the Mock Exam.
+    { day: -2, label: 'A mixed round of everything, with new glossary words' },
+    { day: -1, label: 'One more mixed round, then the Mock Exam', mock: 'mock-1' },
   ],
   examTips: [
     {

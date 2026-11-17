@@ -56,6 +56,7 @@ const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${
  * activities, round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
  * On the Mock Exam day (the day before the exam): a mixed round, then Fix My Mistakes, then the Mock Exam
  * last, once she is warmed up and her old mistakes are fixed (Jenia's order, 17 Nov).
+ * A mixed day before that (no new topics) is the same without the Mock Exam: one mixed round, then Fix.
  * On exam day there is only the warm-up.
  *
  * `due` is how many things are still to practise today; `mistakes` is the length of the Fix list.
@@ -64,7 +65,7 @@ export function tasksFor(
   plan: TodayPlan, sessions: readonly SessionRecord[], today: DateKey, due: number, mistakes: number,
   /** Glossary words that join the last day's mixed round (0 when the pack has no glossary). */
   wordsInMix = 0,
-  /** Questions added late that she has not met yet: the last day's first task (0 = no such task). */
+  /** Questions added late that she has not met yet: the first task of a mixed day (0 = no such task). */
   lateLeft = 0,
   /** The planned mock exam's length, for its task card. */
   mockMinutes = 35,
@@ -81,7 +82,9 @@ export function tasksFor(
     }];
   }
 
-  const size = Math.min(TODAY_SIZE, due || TODAY_SIZE) + (plan.mock ? wordsInMix : 0);
+  // A mixed day: everything at once, with glossary words, in one round. The Mock Exam day is one too.
+  const mixDay = plan.phase === 'mix' || !!plan.mock;
+  const size = Math.min(TODAY_SIZE, due || TODAY_SIZE) + (mixDay ? wordsInMix : 0);
   const tasks: Task[] = [];
 
   // The Key Terms flashcards come before the questions: she meets the words first, then is asked about them.
@@ -93,8 +96,8 @@ export function tasksFor(
     });
   }
 
-  // The last day starts with the questions added after the slide-by-slide check, so none is met for the first time in the mock.
-  if (plan.mock && lateLeft > 0) {
+  // A mixed day starts with the questions added after the slide-by-slide check, so none is met for the first time in the mock.
+  if (mixDay && lateLeft > 0) {
     tasks.push({
       id: LATE_TASK, kind: 'round', title: 'New questions from the slides', detail: questions(lateLeft),
       tip: 'These were added after checking every slide. Say or type your answers; new to you? Tap "I don\'t know yet" and read why.',
@@ -103,10 +106,10 @@ export function tasksFor(
   }
 
   tasks.push({
-    id: 'round-1', kind: 'round', title: plan.mock ? 'A mixed round of everything' : "Round 1: today's questions",
+    id: 'round-1', kind: 'round', title: mixDay ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
-    tip: plan.mock
-      ? 'Everything from both lessons, plus glossary words. Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.'
+    tip: mixDay
+      ? 'Everything from both lessons, plus new glossary words. Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.'
       : 'Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
     done: rounds >= 1,
   });
@@ -135,8 +138,8 @@ export function tasksFor(
   }
 
   // Round 2 is finished after a second round, or straight away if round 1 left nothing to do.
-  // The mock exam day has one round only: the mock is the long task that day.
-  if (!plan.mock) {
+  // A mixed day has one round only (on the mock exam day the mock is the long task).
+  if (!mixDay) {
     const round2Done = rounds >= 2 || (rounds >= 1 && due === 0);
     tasks.push({
       id: 'round-2', kind: 'round', title: 'Round 2: what is left',

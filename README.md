@@ -1,7 +1,7 @@
 # Exam prep app
 
 A phone app for one Grade 7 student, with one job: get her ready for a specific exam in the days before it.
-First exam: Individuals & Societies, "How Are Societies Governed?", Wednesday 18 November 2026.
+First exam: Individuals & Societies, "How Are Societies Governed?", Thursday 19 November 2026 (moved one day from 18 November; the pack folder keeps the old date in its name).
 
 It is a web app that installs on the phone's home screen. Progress is saved on the phone only.
 No login, no adverts. Nothing leaves the phone unless a parent turns on notifications (see below).

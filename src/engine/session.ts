@@ -7,7 +7,7 @@ import { isDue, mistakeIds, weakest } from './progress';
 import { shuffle, type Rng } from './rng';
 
 export const TODAY_SIZE = 15;
-/** On the last day the mixed round also brings in this many glossary words, so they are met inside the app. */
+/** On a mixed day the round also brings in this many glossary words she has never met, so they are met inside the app. */
 export const GLOSSARY_IN_MIX = 10;
 export const PRACTICE_SIZE = 12;
 export const WARM_UP_SIZE = 8;
@@ -106,9 +106,10 @@ export function buildTodaySession(
   if (chosen.length === 0) chosen = ranked([...focus, ...review], progress, today, rng).slice(0, size);
 
   const ids = pickVariants(chosen, progress, rng).map((it) => it.id);
-  // The last day's mixed round covers everything, so the glossary words join it (new words first).
-  const words = plan.phase === 'last-day'
-    ? buildGlossarySession(glossaryOf(pack), progress, today, rng, GLOSSARY_IN_MIX, pack.glossaryLast ?? [])
+  // A mixed round covers everything, so glossary words join it: only brand-new ones while any are left
+  // (the ones she missed come back in Fix My Mistakes).
+  const words = plan.phase === 'last-day' || plan.phase === 'mix'
+    ? buildGlossarySession(glossaryOf(pack), progress, today, rng, GLOSSARY_IN_MIX, pack.glossaryLast ?? [], 0)
     : [];
   return shuffle([...ids, ...words], rng);
 }
@@ -151,10 +152,12 @@ export const GLOSSARY_REVIEW = 6;
  * today (the ones she knows least first, and ones from earlier days before ones from today), the rest are new.
  * Meeting a word once is not enough to remember it, so the review half matters more than covering every word.
  * New words in `last` (ones the slides never use) are only asked once every other word has been met.
+ * `reviewPlaces` is how many places are kept for words met before; with 0 the round is all new words
+ * for as long as there are any.
  */
 export function buildGlossarySession(
   pool: readonly Item[], progress: ProgressMap, today: DateKey, rng: Rng = Math.random, size = PRACTICE_SIZE,
-  last: readonly ItemId[] = [],
+  last: readonly ItemId[] = [], reviewPlaces = GLOSSARY_REVIEW,
 ): ItemId[] {
   const of = (it: Item) => progress[conceptOf(it)];
   const byWeakest = (list: Item[]) => shuffle(list, rng)
@@ -168,7 +171,7 @@ export function buildGlossarySession(
   const review = byWeakest(met.filter((it) => isDue(of(it), today)));
   const rightToday = byWeakest(met.filter((it) => !isDue(of(it), today)));
 
-  let reviewN = Math.min(GLOSSARY_REVIEW, review.length, size);
+  let reviewN = Math.min(reviewPlaces, review.length, size);
   const freshN = Math.min(size - reviewN, fresh.length);
   reviewN = Math.min(size - freshN, review.length);
   const chosen = [...review.slice(0, reviewN), ...fresh.slice(0, freshN)];
@@ -245,7 +248,7 @@ export function runFraction(run: Run): number {
 }
 
 /**
- * The round of questions added late (after a slide-by-slide check): the last day's first task.
+ * The round of questions added late (after a slide-by-slide check): the first task of a mixed day.
  * A wording she has already met is left out, so the round shrinks as she goes.
  */
 export function buildLateSession(pack: Pack, progress: ProgressMap, rng: Rng = Math.random): ItemId[] {

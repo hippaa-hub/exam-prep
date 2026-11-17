@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { choice } from '../content/build';
 import type { Pack } from '../content/types';
+import { packs } from '../packs';
 import { daysToGo, pastPacks, pickPack, planFor, type SessionRecord } from './plan';
 
 const topic = (id: string) => ({ id, title: id, short: id, items: [choice(`${id}-1`, 'q', 'yes', ['no'])] });
@@ -83,6 +84,64 @@ describe('plan for today', () => {
     expect(tue.phase).toBe('last-day');
     expect(tue.topics).toEqual([]);
     expect(tue.mock).toBe('mock-1');
+  });
+
+  describe('with a mixed day before the mock exam day', () => {
+    // The exam moved one day: the three study days stay where they were, then a mixed day, then the mock.
+    const longer: Pack = {
+      ...pack, date: '2026-11-19',
+      plan: [
+        { day: -5, label: 'Key terms', topics: ['G1', 'G4'] },
+        { day: -4, label: 'Systems', topics: ['S1', 'S2', 'S3', 'S4'] },
+        { day: -3, label: 'Pairs', topics: ['G2', 'S5'] },
+        { day: -2, label: 'A mixed round' },
+        { day: -1, label: 'A mixed round, then the mock', mock: 'mock-1' },
+      ],
+    };
+    const three = [done('2026-11-14', ['G1', 'G4']), done('2026-11-15', ['S1', 'S2', 'S3', 'S4']), done('2026-11-16', ['G2', 'S5'])];
+
+    it('keeps the study days on their dates', () => {
+      expect(planFor(longer, [], '2026-11-14').topics).toEqual(['G1', 'G4']);
+      expect(planFor(longer, three.slice(0, 2), '2026-11-16').topics).toEqual(['G2', 'S5']);
+    });
+
+    it('is a mixed round of everything, with no mock exam', () => {
+      const tue = planFor(longer, three, '2026-11-17');
+      expect(tue.phase).toBe('mix');
+      expect(tue.label).toBe('A mixed round');
+      expect(tue.topics).toEqual([]);
+      expect(tue.mock).toBeUndefined();
+      expect(tue.daysToGo).toBe(2);
+    });
+
+    it('has the mock exam on the day after, the last one before the exam', () => {
+      const wed = planFor(longer, three, '2026-11-18');
+      expect(wed.phase).toBe('last-day');
+      expect(wed.label).toBe('A mixed round, then the mock');
+      expect(wed.mock).toBe('mock-1');
+      expect(planFor(longer, three, '2026-11-19').phase).toBe('exam-day');
+    });
+
+    it('uses the mixed day to catch up when a study day was missed', () => {
+      const tue = planFor(longer, three.slice(0, 2), '2026-11-17');
+      expect(tue.phase).toBe('study');
+      expect(tue.topics).toEqual(['G2', 'S5']);
+      expect(tue.catchUp).toEqual(['G2', 'S5']);
+    });
+  });
+
+  it('the Societies exam is on 19 November: mixed round on the 17th, Mock Exam on the 18th', () => {
+    const societies = packs.find((p) => p.id === '2026-11-18-societies')!;
+    const before = [
+      done('2026-11-14', ['G1', 'G3', 'G4']), done('2026-11-15', ['S1', 'S2', 'S3', 'S4']), done('2026-11-16', ['G2', 'S5']),
+    ];
+    expect(societies.date).toBe('2026-11-19');
+    expect(planFor(societies, [], '2026-11-14').topics).toEqual(['G1', 'G3', 'G4']);
+    const tue = planFor(societies, before, '2026-11-17');
+    expect([tue.phase, tue.mock, tue.daysToGo]).toEqual(['mix', undefined, 2]);
+    const wed = planFor(societies, before, '2026-11-18');
+    expect([wed.phase, wed.mock, wed.daysToGo]).toEqual(['last-day', 'mock-1', 1]);
+    expect(planFor(societies, before, '2026-11-19').phase).toBe('exam-day');
   });
 
   it('does not offer a mock exam the pack does not have', () => {

@@ -21,6 +21,7 @@ export interface SessionRecord {
 export type PlanPhase =
   | 'early'      // before the plan starts: a head start on the first day's topics
   | 'study'      // a normal plan day
+  | 'mix'        // a day with no new topics before the last day: a mixed round of everything
   | 'last-day'   // fewer than two days left: mixed quiz, plus the mock exam
   | 'exam-day'   // the three-minute warm-up
   | 'past';      // the exam is over; the pack can still be practised
@@ -75,8 +76,8 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
   if (left < 0) return { ...base, phase: 'past', label: 'Mixed quiz of everything', topics: [] };
   if (left === 0) return { ...base, phase: 'exam-day', label: 'Three-minute warm-up', topics: [] };
   if (left < 2 || studyDays.length === 0) {
-    const extras = pack.plan.find((d) => d.day === off)?.extras ?? [];
-    return { ...base, phase: 'last-day', label: 'Mixed quiz of everything', topics: [], mock, extras };
+    const day = pack.plan.find((d) => d.day === off);
+    return { ...base, phase: 'last-day', label: day?.label ?? 'Mixed quiz of everything', topics: [], mock, extras: day?.extras ?? [] };
   }
 
   const first = studyDays[0];
@@ -92,6 +93,11 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
   const scheduled = scheduledDay?.topics ?? [];
   const missed = unique(studyDays.filter((d) => d.day < off).flatMap((d) => d.topics)).filter((t) => !covered.has(t));
 
+  if (missed.length === 0 && !scheduledDay) {
+    // Nothing new is planned for today and nothing is owed: a mixed round of everything.
+    const day = pack.plan.find((d) => d.day === off);
+    return { ...base, phase: 'mix', label: day?.label ?? 'Mixed quiz of everything', topics: [], extras: day?.extras ?? [] };
+  }
   if (missed.length === 0) {
     return {
       ...base, phase: 'study', label: scheduledDay?.label ?? 'Mixed quiz of everything', topics: scheduled,
