@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { choice } from '../content/build';
 import type { Pack } from '../content/types';
 import { conceptsOf, itemsOf } from '../content/types';
-import { applyAnswer, ceilingToday, dueCount, isDue, isTopicReady, mistakeIds, newProgress, packReadiness, readiness, seenCount, topicReadiness, weakest, type ProgressMap } from './progress';
+import { applyAnswer, applyLook, ceilingToday, dueCount, isDue, isTopicReady, mistakeIds, newProgress, notFullCount, packReadiness, readiness, seenCount, topicReadiness, weakest, type ProgressMap } from './progress';
 
 const items = [1, 2, 3, 4].map((n) => choice(`q${n}`, `Question ${n}`, 'yes', ['no']));
 const pack: Pack = {
@@ -190,4 +190,56 @@ describe('what today can still add', () => {
     expect(dueCount(all, maxed, '2026-11-16')).toBe(0);
   });
 
+});
+
+describe('the last day and exam morning', () => {
+  const wed = '2026-11-18';
+
+  it('counts every round on the last day: each round has its own stamp', () => {
+    // Right on one earlier day, then right in three different rounds of the last day.
+    let p = applyAnswer(undefined, 'right', '2026-11-16');
+    p = applyAnswer(p, 'right', wed);
+    expect(p.level).toBe(2);
+    p = applyAnswer(p, 'right', wed); // the same round again adds nothing
+    expect(p.level).toBe(2);
+    expect(isDue(p, wed)).toBe(false);
+    expect(isDue(p, `${wed}#2`)).toBe(true); // a new round: it can gain a level again
+    p = applyAnswer(p, 'right', `${wed}#2`);
+    expect(p.level).toBe(3);
+    expect(isDue(p, `${wed}#3`)).toBe(false); // full
+  });
+
+  it('takes one level away for a miss on the last day, not all of them', () => {
+    let p = applyAnswer(undefined, 'right', '2026-11-15');
+    p = applyAnswer(p, 'right', '2026-11-16');
+    p = applyAnswer(p, 'right', '2026-11-17');
+    const gentle = applyAnswer(p, 'wrong', wed, 'q1', true, true);
+    expect(gentle.level).toBe(2);
+    expect(gentle.fix).toBe(0); // it still goes to Fix My Mistakes
+    expect(gentle.fixItem).toBe('q1');
+    expect(applyAnswer(gentle, 'right', `${wed}#2`).level).toBe(3); // one right round wins it back
+    expect(applyAnswer(p, 'wrong', wed, 'q1').level).toBe(0); // on any other day a miss starts again
+    expect(applyAnswer(undefined, 'wrong', wed, 'q1', true, true).level).toBe(0);
+  });
+
+  it('a look changes nothing but what was seen', () => {
+    let p = applyAnswer(undefined, 'right', '2026-11-16');
+    p = applyAnswer(p, 'right', '2026-11-17');
+    const looked = applyLook(p, '2026-11-19', 'q1');
+    expect(looked.level).toBe(2);
+    expect(looked.fix).toBeUndefined();
+    expect(looked.seen).toBe(p.seen + 1);
+    expect(looked.recent).toContain('q1');
+    expect(applyLook(undefined, '2026-11-19').level).toBe(0);
+  });
+
+  it('counts the things that are not full yet', () => {
+    const all = itemsOf(pack);
+    const [first, second] = conceptsOf(all);
+    expect(notFullCount(all, {})).toBe(4);
+    const progress: ProgressMap = {
+      [first]: { ...newProgress(), level: 3 }, [second]: { ...newProgress(), level: 2 },
+    };
+    expect(notFullCount(all, progress)).toBe(3);
+  });
 });

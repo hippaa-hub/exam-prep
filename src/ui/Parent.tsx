@@ -6,7 +6,8 @@ import { useState } from 'react';
 import { formatLong, formatShort } from '../engine/dates';
 import { TOPIC_BYTES, topicFrom } from '../engine/notify';
 import type { SessionRecord, TodayPlan } from '../engine/plan';
-import { READY_AT, packReadiness, topicReadiness, type ProgressMap } from '../engine/progress';
+import { READY_AT, topicReadiness, type ProgressMap } from '../engine/progress';
+import { RING_BEFORE_WARM_UP, WARM_UP_SHARE, packRing } from '../engine/ring';
 import { accuracy, dayReports } from '../engine/report';
 import type { Task } from '../engine/tasks';
 import { formatDuration, totalSeconds, type StudyTime } from '../engine/time';
@@ -108,7 +109,7 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
   const todayReport = reports.find((r) => r.day === today);
   const doneCount = tasks.filter((t) => t.done).length;
   const todayAccuracy = todayReport ? accuracy(todayReport) : null;
-  const ready = packReadiness(pack, progress);
+  const ready = packRing(pack, progress, sessions);
   const days = plan.daysToGo;
 
   return (
@@ -235,7 +236,7 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
           <div className="ready-head">
             <div>
               <h2 id="p-ready">How ready is she?</h2>
-              <p className="muted">A topic is ready at {READY_AT}%. Something counts as learned once it has been right on three different days, so this grows day by day.</p>
+              <p className="muted">A topic is ready at {READY_AT}%. Something counts as learned once it has been right on three different days, so this grows day by day. On the last day before the exam every round counts, so she can fill the ring to {RING_BEFORE_WARM_UP}%. The warm-up on exam morning adds the last {WARM_UP_SHARE}%.</p>
             </div>
             <Ring value={ready} size={84} />
           </div>

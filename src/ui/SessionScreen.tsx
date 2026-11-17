@@ -198,8 +198,10 @@ function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, nex
 
       {summary.missed.length > 0 && (
         <section className="card">
-          <h2>These will come back</h2>
-          <p className="muted">Mistakes are how you find out what to practise. Nothing is lost.</p>
+          <h2>{examDay ? 'Read these once more' : 'These will come back'}</h2>
+          <p className="muted">{examDay
+            ? 'A miss takes nothing away today. Read the answer once more, then go.'
+            : 'Mistakes are how you find out what to practise. Nothing is lost.'}</p>
           <ul className="missed">
             {summary.missed.map((id) => {
               const it = items.get(id)!;

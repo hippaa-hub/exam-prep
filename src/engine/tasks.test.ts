@@ -66,7 +66,8 @@ describe("today's tasks", () => {
   it('uses the activity of each plan day', () => {
     const done = [rec('today', 'round-1', '2026-11-14')].map((s) => ({ ...s, topics: ['G1', 'G4'] }));
     expect(ids(done, 5, 0, '2026-11-15').map((t) => t.id)).toEqual(['round-1', 'table:The five countries', 'round-2', 'fix']);
-    expect(ids([], 5, 0, '2026-11-17').map((t) => t.id)).toEqual(['round-1', 'table:The five countries', 'round-2', 'fix']);
+    // The last day before the exam has three rounds: every round counts there.
+    expect(ids([], 5, 0, '2026-11-17').map((t) => t.id)).toEqual(['round-1', 'table:The five countries', 'round-2', 'round-3', 'fix']);
   });
 
   it('gives a head start the first day\'s activity', () => {
@@ -87,15 +88,15 @@ describe("today's tasks", () => {
     expect(dayFinished([])).toBe(false);
   });
 
-  it('on the mock exam day: a mixed round, then Fix My Mistakes, then the Mock Exam last', () => {
+  it('on the mock exam day: a mixed round, two rounds of what is not full yet, Fix My Mistakes, then the Mock Exam last', () => {
     const withMock: Pack = { ...pack, mocks: [{ id: 'mock-1', title: 'Mock Exam 1', minutes: 35, partA: [], partB: [] }],
       plan: pack.plan.map((d) => (d.day === -1 ? { day: -1, label: 'Mock', mock: 'mock-1' } : d)) };
     const tue = '2026-11-17';
     const list = (sessions: SessionRecord[], due: number, mistakes: number) => tasksFor(planFor(withMock, sessions, tue), sessions, tue, due, mistakes);
-    expect(list([], 20, 0).map((t) => t.id)).toEqual(['round-1', 'fix', 'mock:mock-1']);
+    expect(list([], 20, 0).map((t) => t.id)).toEqual(['round-1', 'round-2', 'round-3', 'fix', 'mock:mock-1']);
     // With late additions still unmet, a round of them comes first; it disappears once done.
     const lateFirst = tasksFor(planFor(withMock, [], tue), [], tue, 20, 0, 10, 27);
-    expect(lateFirst.map((t) => t.id)).toEqual(['round-new', 'round-1', 'fix', 'mock:mock-1']);
+    expect(lateFirst.map((t) => t.id)).toEqual(['round-new', 'round-1', 'round-2', 'round-3', 'fix', 'mock:mock-1']);
     expect(lateFirst[0].detail).toMatch(/^27 questions/);
     expect(nextTask(lateFirst)?.id).toBe('round-new');
     const lateDone = [rec('practice', 'round-new', tue)];
@@ -104,15 +105,27 @@ describe("today's tasks", () => {
     expect(tasksFor(planFor(withMock, [], tue), [], tue, 20, 0, 10)[0].detail).toMatch(/^25 questions/);
     expect(list([], 20, 0)[0].detail).toMatch(/^15 questions/);
     expect(nextTask(list([], 20, 3))?.id).toBe('round-1');
+    // Every round counts on this day, so rounds 2 and 3 ask what is not full yet.
     const round = [rec('today', 'round-1', tue)];
-    expect(nextTask(list(round, 9, 3))?.id).toBe('fix');
-    const fixed = [...round, rec('fix', 'fix', tue)];
-    expect(nextTask(list(fixed, 9, 1))?.kind).toBe('mock');
-    // Nothing to fix: straight from the round to the mock.
-    expect(nextTask(list(round, 9, 0))?.kind).toBe('mock');
-    // The mock adds new mistakes, but that does not reopen Fix My Mistakes: the day is finished.
+    const second = list(round, 30, 3).find((t) => t.id === 'round-2')!;
+    expect(nextTask(list(round, 30, 3))?.id).toBe('round-2');
+    expect(second.title).toBe('Round 2: what is not full yet');
+    expect(second.detail).toMatch(/^20 questions/); // a later round is longer, but never longer than this
+    expect(list(round, 9, 3).find((t) => t.id === 'round-2')!.detail).toMatch(/^9 questions/);
+    expect(list(round, 9, 3).find((t) => t.id === 'round-3')!.detail).toBe('After round 2');
+    const two = [...round, rec('today', 'round-2', tue)];
+    expect(nextTask(list(two, 4, 3))?.id).toBe('round-3');
+    const three = [...two, rec('today', 'round-3', tue)];
+    expect(nextTask(list(three, 2, 3))?.id).toBe('fix'); // three rounds at most, even if something is still not full
+    const fixed = [...three, rec('fix', 'fix', tue)];
+    expect(nextTask(list(fixed, 2, 1))?.kind).toBe('mock');
+    // Everything is full after round 1: the other rounds are skipped. Nothing to fix: straight to the mock.
+    expect(nextTask(list(round, 0, 3))?.id).toBe('fix');
+    expect(nextTask(list(round, 0, 0))?.kind).toBe('mock');
+    expect(nextTask(list(two, 0, 0))?.kind).toBe('mock');
+    // The mock adds new mistakes, but that reopens neither the rounds nor Fix My Mistakes: the day is finished.
     expect(dayFinished(list([...round, rec('practice', 'mock:mock-1', tue)], 9, 4))).toBe(true);
-    expect(dayFinished(list([...fixed, rec('practice', 'mock:mock-1', tue)], 9, 2))).toBe(true); // one round is enough
+    expect(dayFinished(list([...fixed, rec('practice', 'mock:mock-1', tue)], 9, 2))).toBe(true);
   });
 
   it('on a mixed day before the mock exam day: the same without the Mock Exam', () => {
@@ -145,7 +158,7 @@ describe("today's tasks", () => {
     expect(dayFinished(list(round, 9, 0))).toBe(true);
     // A mock sat today by the old plan does not hide tomorrow's: the day after has the mixed round and the mock.
     const yesterday = [...round, rec('practice', 'mock:mock-1', tue)];
-    expect(list(yesterday, 20, 0, wed).map((t) => t.id)).toEqual(['round-1', 'fix', 'mock:mock-1']);
+    expect(list(yesterday, 20, 0, wed).map((t) => t.id)).toEqual(['round-1', 'round-2', 'round-3', 'fix', 'mock:mock-1']);
     expect(list(yesterday, 20, 0, wed).every((t) => !t.done)).toBe(true);
   });
 

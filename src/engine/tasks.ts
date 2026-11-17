@@ -1,8 +1,8 @@
 // Today's tasks: the short list Adele works through each day. When every task is done,
 // the preparation for today is finished. Each task carries a tip on how to do it well.
 import type { DateKey, Game } from '../content/types';
-import type { SessionRecord, TodayPlan } from './plan';
-import { TODAY_SIZE, WARM_UP_SIZE } from './session';
+import { isSprint, type SessionRecord, type TodayPlan } from './plan';
+import { LAST_DAY_SIZE, TODAY_SIZE, WARM_UP_SIZE } from './session';
 
 export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock';
 
@@ -56,6 +56,8 @@ const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${
  * activities, round 2 (what is left, plus a review of earlier days), then Fix My Mistakes.
  * On the Mock Exam day (the day before the exam): a mixed round, then Fix My Mistakes, then the Mock Exam
  * last, once she is warmed up and her old mistakes are fixed (Jenia's order, 17 Nov).
+ * On that last day every round counts towards the ring, so two more rounds ask what is not full yet;
+ * with all of them done she can reach 95%, and the exam-morning warm-up adds the rest (Jenia, 17 Nov).
  * A mixed day before that (no new topics) is the same without the Mock Exam: one mixed round, then Fix.
  * On exam day there is only the warm-up.
  *
@@ -78,12 +80,14 @@ export function tasksFor(
   if (plan.phase === 'exam-day') {
     return [{
       id: 'warm-up', kind: 'warm-up', title: 'Three-minute warm-up', detail: `${WARM_UP_SIZE} questions · about 3 min`,
-      tip: 'Just a quick look at your weakest questions. Nothing new today. You are ready.', done: rounds >= 1,
+      tip: 'A quick look at your weakest questions. It adds the last part of your ring, and a miss takes nothing away today. You are ready.', done: rounds >= 1,
     }];
   }
 
   // A mixed day: everything at once, with glossary words, in one round. The Mock Exam day is one too.
-  const mixDay = plan.phase === 'mix' || !!plan.mock;
+  const sprint = isSprint(plan);
+  const mixDay = plan.phase === 'mix' || !!plan.mock || sprint;
+  const mockDone = plan.mock ? didTask(mockTaskId(plan.mock)) : false;
   const size = Math.min(TODAY_SIZE, due || TODAY_SIZE) + (mixDay ? wordsInMix : 0);
   const tasks: Task[] = [];
 
@@ -138,7 +142,7 @@ export function tasksFor(
   }
 
   // Round 2 is finished after a second round, or straight away if round 1 left nothing to do.
-  // A mixed day has one round only (on the mock exam day the mock is the long task).
+  // A mixed day has one round only.
   if (!mixDay) {
     const round2Done = rounds >= 2 || (rounds >= 1 && due === 0);
     tasks.push({
@@ -149,10 +153,23 @@ export function tasksFor(
     });
   }
 
+  // The last day before the exam: every round counts, so two more rounds ask what is not full yet.
+  // They are skipped when nothing is left, and closed once the Mock Exam is done (its misses must not reopen them).
+  if (sprint) {
+    for (const k of [2, 3]) {
+      const done = rounds >= k || (rounds >= 1 && due === 0) || mockDone;
+      tasks.push({
+        id: `round-${k}`, kind: 'round', title: `Round ${k}: what is not full yet`,
+        detail: done ? 'Done' : rounds >= k - 1 ? questions(Math.min(LAST_DAY_SIZE, due || LAST_DAY_SIZE)) : `After round ${k - 1}`,
+        tip: 'Today every round counts. Each thing you get right in a new round fills one more step of your ring.',
+        done,
+      });
+    }
+  }
+
   // Fix My Mistakes comes after the rounds, so it only counts once everything before it is done.
   const before = tasks.every((t) => t.done);
   const fixedToday = todays.some((s) => s.kind === 'fix');
-  const mockDone = plan.mock ? didTask(mockTaskId(plan.mock)) : false;
   tasks.push({
     id: 'fix', kind: 'fix', title: 'Fix My Mistakes',
     detail: mistakes > 0 ? `${mistakes} question${mistakes === 1 ? '' : 's'} waiting` : 'Nothing to fix',

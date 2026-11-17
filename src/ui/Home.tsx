@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import type { DateKey, Pack } from '../content/types';
 import { conceptsOf, itemsOf } from '../content/types';
 import { addDays, formatLong, formatShort } from '../engine/dates';
-import type { TodayPlan } from '../engine/plan';
-import { READY_AT, dueCount, packCeilingToday, packReadiness, seenCount, topicReadiness, type ProgressMap } from '../engine/progress';
+import { isSprint, type TodayPlan } from '../engine/plan';
+import { READY_AT, dueCount, notFullCount, packCeilingToday, seenCount, topicReadiness, type ProgressMap } from '../engine/progress';
+import { RING_BEFORE_WARM_UP, WARM_UP_SHARE, ringValue } from '../engine/ring';
 import { newBadges, type Badge } from '../engine/rewards';
 import { nextTask, type Task } from '../engine/tasks';
 import { Mascot, type Mood } from './Mascot';
@@ -16,6 +17,10 @@ interface Props {
   progress: ProgressMap;
   points: number;
   today: DateKey;
+  /** The stamp right answers are recorded under today: the day, or on the last day the round. */
+  when: DateKey;
+  /** What the ring shows: how ready she is, with the last part kept for the exam-morning warm-up. */
+  ring: number;
   name: string;
   /** Today's tasks, in order. When all are done, the preparation for today is finished. */
   tasks: Task[];
@@ -64,8 +69,18 @@ function countdown(daysToGo: number): { big: string; small: string } {
  * The line under the ring. A thing to know only gains a level on a day it is answered right, so there is a
  * limit to what today can add: this says what that limit is and how much of it is still to go.
  */
-function trackText(plan: TodayPlan, ceiling: number, leftToday: number): string {
-  if (plan.phase === 'exam-day') return 'Nothing new counts today. Just the warm-up, then go and show what you know.';
+function trackText(plan: TodayPlan, ceiling: number, leftToday: number, notFull: number, warmedUp: boolean): string {
+  const lastPart = `The last ${WARM_UP_SHARE}% comes with the warm-up on exam morning.`;
+  if (plan.phase === 'exam-day') {
+    return warmedUp
+      ? `Warm-up done, so your ring has its last ${WARM_UP_SHARE}%. Go and show what you know.`
+      : `The warm-up adds the last ${WARM_UP_SHARE}% of your ring. A miss takes nothing away today. Then go and show what you know.`;
+  }
+  // The last day: every round counts, so the whole ring can be filled today, up to the part kept for the warm-up.
+  if (isSprint(plan)) {
+    if (notFull === 0) return `Everything is full: ${RING_BEFORE_WARM_UP}%. ${lastPart}`;
+    return `Today every round counts: each thing you get right in a new round fills one more step. ${notFull} ${notFull === 1 ? 'thing is' : 'things are'} not full yet. Fill them and you reach ${RING_BEFORE_WARM_UP}%. ${lastPart}`;
+  }
   if (leftToday === 0) return 'You have added everything today can add. Each thing counts fully only after three different days, so the rest comes on the days left.';
   return `Today you can reach ${ceiling}%. ${leftToday} ${leftToday === 1 ? 'thing is' : 'things are'} still waiting for a right answer today. Each one counts fully after three different days, so the ring finishes on exam morning.`;
 }
@@ -91,13 +106,14 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 }
 
 export function Home({
-  pack, plan, progress, points, today, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
+  pack, plan, progress, points, today, when, ring, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
   badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, onExtra, onPractise, onGuide, onParent,
 }: Props) {
-  const ready = packReadiness(pack, progress);
+  const ready = ring;
   const cd = countdown(plan.daysToGo);
-  const ceiling = packCeilingToday(pack, progress, today);
-  const leftToday = dueCount(itemsOf(pack), progress, today);
+  const ceiling = ringValue(packCeilingToday(pack, progress, when), false);
+  const leftToday = dueCount(itemsOf(pack), progress, when);
+  const notFull = notFullCount(itemsOf(pack), progress);
   // Keeping up with the countdown: a day is only "behind" when its topics had to be moved onto today.
   const onTrack = plan.catchUp.length === 0;
   const topicName = (id: string) => pack.topics.find((t) => t.id === id)?.short ?? id;
@@ -159,7 +175,7 @@ export function Home({
           <p className="track-note">
             <strong className={onTrack ? 'track-ok' : 'track-warn'}>{onTrack ? 'On track' : 'Catching up'}</strong>
             {' '}
-            {trackText(plan, ceiling, leftToday)}
+            {trackText(plan, ceiling, leftToday, notFull, plan.phase === 'exam-day' && finished)}
           </p>
         )}
       </section>
@@ -220,6 +236,13 @@ export function Home({
           <>
             <p className="done-today">{plan.phase === 'exam-day' ? '✓ Warm-up done. Good luck in your exam!' : "✓ Today's preparation is finished. Well done!"}</p>
             {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
+            {/* The last day: a round still adds to the ring for as long as something is not full. */}
+            {isSprint(plan) && notFull > 0 && (
+              <button type="button" className="btn ghost extra" onClick={onExtra}>
+                One more round
+                <small>{notFull} {notFull === 1 ? 'thing is' : 'things are'} not full yet</small>
+              </button>
+            )}
             {/* Part 2 is optional: the test covers the slides, and the tasks above cover those. */}
             {glossaryWords > 0 && onGlossary && plan.phase !== 'exam-day' && (
               <button type="button" className="btn ghost extra" onClick={onGlossary}>
@@ -325,7 +348,8 @@ export function Home({
         </ul>
         <p className="muted small">
           {seenCount(all, progress)} of {things} things to know tried. Each one counts as fully learned once it has been
-          right on three different days, so the ring grows day by day. A topic is ready at {READY_AT}%.
+          right on three different days, so the ring grows day by day. On the last day every round counts.
+          The exam-morning warm-up adds the last {WARM_UP_SHARE}%. A topic is ready at {READY_AT}%.
         </p>
       </section>
 

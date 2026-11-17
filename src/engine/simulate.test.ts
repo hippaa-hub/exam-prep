@@ -3,42 +3,72 @@ import { describe, expect, it } from 'vitest';
 import { allItemsOf, conceptOf, conceptsOf, itemsOf, type Pack } from '../content/types';
 import { packs } from '../packs';
 import { addDays } from './dates';
-import { planFor, type SessionRecord } from './plan';
-import { applyAnswer, packReadiness, topicReadiness, type ProgressMap } from './progress';
+import { isSprint, occasionFor, planFor, type SessionKind, type SessionRecord } from './plan';
+import { applyAnswer, applyLook, packReadiness, topicReadiness, type ProgressMap } from './progress';
+import { packRing } from './ring';
 import { seeded } from './rng';
-import { answerRun, buildTodaySession, currentId, dueToday, isFinished, startRun, summarise } from './session';
+import { answerRun, buildFixSession, buildTodaySession, currentId, dueToday, isFinished, LAST_DAY_SIZE, startRun, summarise, TODAY_SIZE } from './session';
 
-interface Result { readiness: number; answersPerDay: number[]; topics: Record<string, number>; untouched: number }
+interface Result {
+  readiness: number; answersPerDay: number[]; topics: Record<string, number>; untouched: number;
+  /** What the ring shows on the evening before the exam, and after the exam-morning warm-up. */
+  ringEve: number; ringExam: number;
+}
 
-/** A learner who starts `firstDay` days before the exam, does up to `rounds` rounds a day and is right `accuracy` of the time. */
+/**
+ * A learner who starts `firstDay` days before the exam, does up to `rounds` rounds a day and is right `accuracy`
+ * of the time. She follows the task list: one round on a mixed day, three on the last day (every round counts
+ * there), Fix My Mistakes after the rounds, and the warm-up on exam morning.
+ */
 function simulate(pack: Pack, firstDay: number, rounds: number, accuracy: number, seed: number): Result {
   const rng = seeded(seed);
   const byId = new Map(allItemsOf(pack).map((it) => [it.id, it]));
   let progress: ProgressMap = {};
-  const sessions: SessionRecord[] = [];
+  let sessions: SessionRecord[] = [];
   const answersPerDay: number[] = [];
+  let ringEve = 0;
 
   for (let day = firstDay; day <= 0; day++) {
     const today = addDays(pack.date, day);
     let answers = 0;
-    for (let r = 0; r < rounds; r++) {
+    const play = (ids: string[], kind: SessionKind, task: string) => {
       const plan = planFor(pack, sessions, today);
-      // A mixed day (and the Mock Exam day) has one round among its tasks, not two.
-      if (r > 0 && (plan.phase === 'mix' || plan.mock)) break;
-      if (r > 0 && dueToday(pack, progress, plan, today) === 0) break;
-      let run = startRun(buildTodaySession(pack, progress, plan, today, rng));
+      const when = occasionFor(plan, sessions, today);
+      let run = startRun(ids);
       while (!isFinished(run)) {
         const id = currentId(run)!;
         // A repeat straight after seeing the answer is easier than a first try.
         const outcome = rng() < (run.asks[id] ? 0.95 : accuracy) ? 'right' : 'wrong';
         const concept = conceptOf(byId.get(id)!);
-        progress = { ...progress, [concept]: applyAnswer(progress[concept], outcome, today, id, !run.asks[id]) };
+        progress = {
+          ...progress,
+          [concept]: plan.phase === 'exam-day' && outcome !== 'right'
+            ? applyLook(progress[concept], when, id)
+            : applyAnswer(progress[concept], outcome, when, id, !run.asks[id], isSprint(plan)),
+        };
         run = answerRun(run, outcome);
         answers++;
       }
       const s = summarise(run);
-      sessions.push({ date: today, kind: 'today', topics: plan.topics, asked: s.asked, firstTimeRight: s.firstTimeRight });
+      sessions = [...sessions, { date: today, kind, topics: plan.topics, asked: s.asked, firstTimeRight: s.firstTimeRight, task }];
+    };
+
+    const first = planFor(pack, sessions, today);
+    // A mixed day has one round among its tasks, the last day has three, any other day has two.
+    const most = isSprint(first) ? 3 : first.phase === 'mix' || first.phase === 'exam-day' ? 1 : rounds;
+    for (let r = 0; r < Math.min(rounds + (isSprint(first) ? 1 : 0), most); r++) {
+      const plan = planFor(pack, sessions, today);
+      const when = occasionFor(plan, sessions, today);
+      if (r > 0 && dueToday(pack, progress, plan, when) === 0) break;
+      const later = isSprint(plan) && r >= 1;
+      play(buildTodaySession(pack, progress, plan, when, rng, later ? LAST_DAY_SIZE : TODAY_SIZE, !later), 'today',
+        plan.phase === 'exam-day' ? 'warm-up' : `round-${r + 1}`);
     }
+    if (first.phase !== 'exam-day' && rounds > 1) {
+      const fix = buildFixSession(pack, progress, rng);
+      if (fix.length > 0) play(fix, 'fix', 'fix');
+    }
+    if (day === -1) ringEve = packRing(pack, progress, sessions);
     answersPerDay.push(answers);
   }
   return {
@@ -46,6 +76,8 @@ function simulate(pack: Pack, firstDay: number, rounds: number, accuracy: number
     answersPerDay,
     topics: Object.fromEntries(pack.topics.map((t) => [t.id, topicReadiness(t, progress)])),
     untouched: conceptsOf(itemsOf(pack)).filter((c) => !progress[c]).length,
+    ringEve,
+    ringExam: packRing(pack, progress, sessions),
   };
 }
 
@@ -59,11 +91,21 @@ describe.each(packs.map((p) => [p.id, p] as const))('the countdown for %s', (_id
   it('gets a steady learner (two rounds a day, 85% right) to ready by exam morning', () => {
     const results = runs(first, 2, 0.85);
     const ready = average(results.map((r) => r.readiness));
-    const perDay = average(results.flatMap((r) => r.answersPerDay.slice(0, -1)));
-    console.log(`two rounds a day: ${ready}% ready, about ${perDay} answers a day`, results[0].topics);
-    expect(ready).toBeGreaterThanOrEqual(65);
+    // The last day is the long one (three rounds, every one counts), so it is measured by itself.
+    const perDay = average(results.flatMap((r) => r.answersPerDay.slice(0, -2)));
+    const lastDay = average(results.map((r) => r.answersPerDay[r.answersPerDay.length - 2]));
+    console.log(`two rounds a day: ${ready}% ready, about ${perDay} answers a day and ${lastDay} on the last day; ring ${average(results.map((r) => r.ringEve))}% the evening before, ${average(results.map((r) => r.ringExam))}% after the warm-up`, results[0].topics);
+    expect(ready).toBeGreaterThanOrEqual(80);
     expect(perDay).toBeLessThanOrEqual(40); // about 20 minutes
+    expect(lastDay).toBeLessThanOrEqual(90); // about an hour, before the Mock Exam
     for (const r of results) expect(r.untouched).toBe(0);
+  });
+
+  it('lets a learner who gets everything right fill the ring: 95% the evening before, 100% after the warm-up', () => {
+    for (const r of runs(first, 2, 1)) {
+      expect(r.ringEve).toBe(95);
+      expect(r.ringExam).toBe(100);
+    }
   });
 
   it('still covers everything with one round a day', () => {

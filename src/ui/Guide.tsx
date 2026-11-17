@@ -110,8 +110,8 @@ export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; o
       <section className="card tint-good" aria-labelledby="last-h">
         <h2 id="last-h">The last day and exam morning</h2>
         <ul className="bullets">
-          <li>The day before: a mixed quiz of everything, then empty the Fix list. Then stop, and sleep well.</li>
-          <li>Exam morning: a three-minute warm-up of your weakest questions. Nothing new.</li>
+          <li>The day before: rounds of everything, then the Fix list, then the Mock Exam. That day every round counts, so you can fill your ring to 95%. Then stop, and sleep well.</li>
+          <li>Exam morning: a three-minute warm-up of your weakest questions. Nothing new. It adds the last 5% of your ring.</li>
         </ul>
       </section>
 

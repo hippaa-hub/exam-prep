@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { choice } from '../content/build';
 import type { Pack } from '../content/types';
 import { packs } from '../packs';
-import { daysToGo, pastPacks, pickPack, planFor, type SessionRecord } from './plan';
+import { daysToGo, isSprint, occasionFor, pastPacks, pickPack, planFor, warmUpDone, type SessionRecord } from './plan';
 
 const topic = (id: string) => ({ id, title: id, short: id, items: [choice(`${id}-1`, 'q', 'yes', ['no'])] });
 const pack: Pack = {
@@ -151,6 +151,34 @@ describe('plan for today', () => {
   it('is a warm-up on exam day and a past exam afterwards', () => {
     expect(planFor(pack, [], '2026-11-18').phase).toBe('exam-day');
     expect(planFor(pack, [], '2026-11-19').phase).toBe('past');
+  });
+
+  it('gives every round of the last day its own stamp, and every other day one stamp', () => {
+    const tue = '2026-11-17';
+    const last = planFor(pack, [], tue);
+    expect(isSprint(last)).toBe(true);
+    expect(occasionFor(last, [], tue)).toBe(tue);
+    const one = [done(tue, [])];
+    expect(occasionFor(last, one, tue)).toBe(`${tue}#2`);
+    // Any finished session starts a new stamp: a round, Fix My Mistakes, a drill.
+    const two: SessionRecord[] = [...one, { date: tue, kind: 'fix', topics: [], asked: 3, firstTimeRight: 3, task: 'fix' }];
+    expect(occasionFor(last, two, tue)).toBe(`${tue}#3`);
+    // Sessions of earlier days do not count.
+    expect(occasionFor(last, [done('2026-11-16', [])], tue)).toBe(tue);
+    // A study day and exam day keep the day as the stamp, however many rounds are done.
+    const sat = planFor(pack, [], '2026-11-14');
+    expect(isSprint(sat)).toBe(false);
+    expect(occasionFor(sat, [done('2026-11-14', ['G1', 'G4'])], '2026-11-14')).toBe('2026-11-14');
+    const exam = planFor(pack, [], '2026-11-18');
+    expect(isSprint(exam)).toBe(false);
+    expect(occasionFor(exam, [done('2026-11-18', [])], '2026-11-18')).toBe('2026-11-18');
+  });
+
+  it('knows when the exam-morning warm-up is done', () => {
+    const warm: SessionRecord = { date: '2026-11-18', kind: 'today', topics: [], asked: 8, firstTimeRight: 7, task: 'warm-up' };
+    expect(warmUpDone(pack, [])).toBe(false);
+    expect(warmUpDone(pack, [warm])).toBe(true);
+    expect(warmUpDone(pack, [{ ...warm, date: '2026-11-17' }])).toBe(false);
   });
 
   it('ignores practice sessions when deciding what is covered', () => {

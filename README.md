@@ -64,6 +64,10 @@ Phase 3 added:
 - **On track line** under the ring: whether she is keeping up with the plan, the highest readiness today can
   reach, and how many things still need a right answer today. A thing gains one level per day at most,
   so the ring cannot jump to 100% however long she practises.
+- **The last day and exam morning**: on the day before the exam every finished round counts (a thing can gain
+  a level in each round, and a miss takes one level away, not all), with two extra rounds of "what is not full
+  yet". Finishing that day's tasks can fill the ring to 95%. The last 5% is the exam-morning warm-up, where a
+  miss takes nothing away.
 - **Part 2: Glossary words** (optional): the teacher's glossary as flashcards, offered on Home once the day's
   tasks are finished. A round is half words she has met before and half new ones. These words are outside
   the topics, so they do not count in the ring or in Fix My Mistakes.
@@ -97,6 +101,8 @@ The questions are grouped into **43 things to know** from the teacher's revision
 Each thing has several question wordings, and she meets a different wording each time.
 
 - Level 0 = new or wrong. Level 1 = right once. Level 2 = right on two different days. Level 3 = right on three different days.
+- On the last day before the exam "a different day" becomes "a different round", and the ring keeps its last 5%
+  for the exam-morning warm-up (see `src/engine/ring.ts` and `occasionFor` in `src/engine/plan.ts`).
 - A wrong answer puts it back to level 0, and the question joins Fix My Mistakes. It is asked again later in the
   same session, but that repeat earns no credit: she has only just seen the answer.
 - Readiness = the average level, as a percentage. A topic is "ready" at 80%.

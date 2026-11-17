@@ -6,8 +6,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../App';
 import { choice, pair, term } from '../content/build';
 import type { Pack } from '../content/types';
+import { conceptOf, itemsOf } from '../content/types';
 import type { Note } from '../engine/notify';
-import { emptySaved, memoryStore } from '../storage/db';
+import { newProgress, type Level, type ProgressMap } from '../engine/progress';
+import { emptyPackSave, emptySaved, memoryStore } from '../storage/db';
 
 const pack: Pack = {
   id: 'test-pack', subject: 'Individuals & Societies', title: 'Test exam', date: '2026-11-18', criteria: [],
@@ -472,5 +474,76 @@ describe('leaving the app during a question', () => {
     const row = (await screen.findByText('Left the app during a question')).closest('li')!;
     expect(row).toHaveTextContent('3');
     expect(screen.getByText(/On all days so far: 5/)).toBeInTheDocument();
+  });
+});
+
+describe('the last day and exam morning', () => {
+  const tuesday = () => new Date(2026, 10, 17, 17, 0); // the day before the exam
+  const wednesday = () => new Date(2026, 10, 18, 7, 30); // exam morning
+  const days = ['2026-11-14', '2026-11-15', '2026-11-16'];
+  /** Saved progress with every thing to know at the same level. */
+  const startAt = (level: Level) => {
+    const progress: ProgressMap = Object.fromEntries(itemsOf(pack).map((it) => [
+      conceptOf(it), { ...newProgress(), level, correctDays: days.slice(0, level), seen: level },
+    ]));
+    const saved = emptySaved();
+    saved.packs[pack.id] = { ...emptyPackSave(), progress };
+    return memoryStore(saved);
+  };
+
+  it('counts every round on the last day, so finishing the tasks fills the ring to 95%', async () => {
+    const user = userEvent.setup();
+    const store = startAt(1);
+    render(<App store={store} packs={[pack]} now={tuesday} />);
+    expect(await screen.findByRole('img', { name: '33% ready' })).toBeInTheDocument();
+    expect(screen.getByText(/Today every round counts.*3 things are not full yet\. Fill them and you reach 95%/)).toBeInTheDocument();
+    const tasks = screen.getByRole('list', { name: "Today's tasks" });
+    expect(within(tasks).getAllByRole('listitem').map((li) => li.querySelector('strong')?.textContent))
+      .toEqual(['A mixed round of everything', 'Round 2: what is not full yet', 'Round 3: what is not full yet', 'Fix My Mistakes']);
+
+    // Round 1, all right: one step each. On any other day that would be all today can add.
+    await user.click(screen.getByRole('button', { name: /^Start/ }));
+    await playSession(user, null);
+    await user.click(screen.getByRole('button', { name: /^Next task/ }));
+    // Round 2 is a new round, so the same things gain another step: everything is full.
+    await playSession(user, null);
+    expect(screen.getByText(/Today's preparation is finished!/)).toBeInTheDocument(); // round 3 has nothing left to ask
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    expect(screen.getByRole('img', { name: '95% ready' })).toBeInTheDocument();
+    expect(screen.getByText(/Everything is full: 95%\. The last 5% comes with the warm-up on exam morning\./)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /One more round/ })).toBeNull();
+    expect(Object.values(store.current!.packs[pack.id].progress).map((p) => p.level)).toEqual([3, 3, 3]);
+  });
+
+  it('takes one step away for a miss on the last day, and offers one more round to win it back', async () => {
+    const user = userEvent.setup();
+    const store = startAt(2);
+    render(<App store={store} packs={[pack]} now={tuesday} />);
+    await user.click(await screen.findByRole('button', { name: /^Start/ }));
+    await playSession(user, 'q1');
+    // q1 went from 2 to 1 (not to 0); the other two are full.
+    expect(store.current!.packs[pack.id].progress[conceptOf(itemsOf(pack)[0])].level).toBe(1);
+    await user.click(screen.getByRole('button', { name: /^Next task/ })); // round 2: only q1 is left
+    await playSession(user, null);
+    await user.click(screen.getByRole('button', { name: /^Next task/ })); // round 3
+    await playSession(user, null);
+    expect(store.current!.packs[pack.id].progress[conceptOf(itemsOf(pack)[0])].level).toBe(3);
+  });
+
+  it('adds the last 5% with the exam-morning warm-up, and a miss there takes nothing away', async () => {
+    const user = userEvent.setup();
+    const store = startAt(3);
+    render(<App store={store} packs={[pack]} now={wednesday} />);
+    expect(await screen.findByRole('img', { name: '95% ready' })).toBeInTheDocument();
+    expect(screen.getByText(/The warm-up adds the last 5% of your ring\. A miss takes nothing away today\./)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^Start/ }));
+    await playSession(user, 'q1');
+    expect(screen.getByText('Read these once more')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Done' }));
+    expect(screen.getByRole('img', { name: '100% ready' })).toBeInTheDocument();
+    expect(screen.getByText(/Warm-up done, so your ring has its last 5%/)).toBeInTheDocument();
+    const q1 = store.current!.packs[pack.id].progress[conceptOf(itemsOf(pack)[0])];
+    expect(q1.level).toBe(3);
+    expect(q1.fix).toBeUndefined(); // nothing goes to Fix My Mistakes on exam morning
   });
 });

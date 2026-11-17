@@ -11,7 +11,11 @@ There are two parts. Part 1 is for the parent and needs no coding. Part 2 is for
 ### 1. Start early enough
 The app counts something as fully learned once it has been right on **three different days**, so it needs
 at least three study days before the exam. Five days is comfortable. Starting two days before still works,
-but the ring cannot fill.
+but the last day then becomes long.
+
+The ring has two special rules at the end. On the last day before the exam every round counts (not only one
+step per day), so finishing that day's tasks can fill the ring to 95%. The last 5% comes from the three-minute
+warm-up on exam morning.
 
 ### 2. Collect the teacher's material in one folder
 Make a folder for the subject (for example `Downloads/Science_Grade7`) and put in it everything the teacher
@@ -82,7 +86,8 @@ In `index.ts`, list the days before the exam (`day: -4` is four days before):
 
 - Spread the topics over the first days, heaviest first.
 - Give each day one extra activity that suits its topics (flashcards, a table, This or That, an argument).
-- Keep the last day for the mock exam and a mixed round.
+- Keep the last day for the mock exam and a mixed round. The app adds two more rounds of "what is not full yet"
+  by itself on that day.
 - A day with no topics and no mock exam is a mixed day: one mixed round of everything, with new glossary words.
   Use it for a spare day, or when the exam moves (see below).
 - Exam day is always the three-minute warm-up; it needs no entry.

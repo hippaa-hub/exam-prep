@@ -43,6 +43,27 @@ export interface TodayPlan {
   doneToday: boolean;
 }
 
+/** The last day before the exam: every round counts there, because there are no more days to wait for. */
+export function isSprint(plan: Pick<TodayPlan, 'phase' | 'daysToGo'>): boolean {
+  return plan.phase === 'last-day' && plan.daysToGo === 1;
+}
+
+/**
+ * The stamp a right answer is recorded under. Normally it is the day: a thing to know gains one level a day.
+ * On the last day before the exam each finished round starts a new stamp, so a thing can gain a level in
+ * every round she gets it right. That is what lets her fill the ring on the last day (Jenia, 17 Nov).
+ */
+export function occasionFor(plan: Pick<TodayPlan, 'phase' | 'daysToGo'>, sessions: readonly SessionRecord[], today: DateKey): DateKey {
+  if (!isSprint(plan)) return today;
+  const finished = sessions.filter((s) => s.date === today).length;
+  return finished === 0 ? today : `${today}#${finished + 1}`;
+}
+
+/** True once the exam-morning warm-up has been finished. */
+export function warmUpDone(pack: Pack, sessions: readonly SessionRecord[]): boolean {
+  return sessions.some((s) => s.date === pack.date && s.task === 'warm-up');
+}
+
 /** Days from today until the exam. */
 export function daysToGo(pack: Pack, today: DateKey): number {
   return daysBetween(today, pack.date);

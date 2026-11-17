@@ -1,7 +1,8 @@
 import type { Pack } from '../content/types';
 import { conceptsOf, glossaryOf, itemsOf } from '../content/types';
 import type { PackSave } from '../storage/db';
-import { READY_AT, isTopicReady, packReadiness, readiness } from './progress';
+import { READY_AT, isTopicReady, readiness } from './progress';
+import { packRing } from './ring';
 import { totalSeconds } from './time';
 
 // Points are for finishing sessions and fixing past mistakes - never for speed (PLAN.md section 5).
@@ -42,7 +43,7 @@ export function badgesFor(pack: Pack, save: PackSave): Badge[] {
   const studyDays = new Set(sessions.map((s) => s.date)).size;
   const daysDone = save.daysDone?.length ?? 0;
   const minutes = totalSeconds(save.studyTime) / 60;
-  const ring = packReadiness(pack, progress);
+  const ring = packRing(pack, progress, sessions);
   const tried = concepts.filter((c) => (progress[c]?.seen ?? 0) > 0).length;
   const learned = concepts.filter((c) => (progress[c]?.level ?? 0) >= 3).length;
   const wordsMet = glossary.filter((w) => (progress[w.id]?.seen ?? 0) > 0).length;

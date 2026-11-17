@@ -4,11 +4,12 @@ import { ARGUMENT_CHECKLIST } from './content/types';
 import { allItemsOf, conceptOf, gameOf, glossaryOf, itemsOf } from './content/types';
 import { addDays, dateKeyOf } from './engine/dates';
 import { isTopic, RESUME_MS, startNote, stopNote, testNote } from './engine/notify';
-import { pickPack, planFor, type SessionKind } from './engine/plan';
-import { applyAnswer, mistakeIds, packReadiness, type ConceptProgress, type Outcome } from './engine/progress';
+import { isSprint, occasionFor, pickPack, planFor, type SessionKind } from './engine/plan';
+import { applyAnswer, applyLook, mistakeIds, type ConceptProgress, type Outcome } from './engine/progress';
+import { packRing } from './engine/ring';
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
-import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, type RunSummary } from './engine/session';
+import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, LAST_DAY_SIZE, TODAY_SIZE, type RunSummary } from './engine/session';
 import { badgesFor } from './engine/rewards';
 import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
@@ -239,6 +240,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const plan = planFor(pack, save.sessions, today);
   const mistakes = mistakeIds(pack, progress);
   const byId = new Map<ItemId, Item>(allItemsOf(pack).map((it) => [it.id, it]));
+  /** The stamp right answers are recorded under: the day, or on the last day the round (see occasionFor). */
+  const stamp = () => occasionFor(plan, (savedRef.current?.packs[pack.id] ?? emptyPackSave()).sessions, today);
+  const when = occasionFor(plan, save.sessions, today);
 
   /** Save one answer straight away, so nothing is lost if the app is closed mid-session. */
   const answer = (
@@ -249,7 +253,10 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     // "I don't know yet" about something she has never met is a first look, not a mistake:
     // it is recorded as seen, stays at level 0 and does not go to Fix My Mistakes.
     const firstLook = dontKnow && (before?.seen ?? 0) === 0;
-    const after = applyAnswer(before, firstLook ? 'almost' : outcome, today, id, credit);
+    // On exam morning a miss takes nothing away: there is no time left to win a level back.
+    const after = plan.phase === 'exam-day' && outcome !== 'right'
+      ? applyLook(before, stamp(), id)
+      : applyAnswer(before, firstLook ? 'almost' : outcome, stamp(), id, credit, isSprint(plan));
     const fixed = before?.fix !== undefined && after.fix === undefined;
     // Study time: the time since the last answer, ignoring long pauses.
     const tick = now().getTime();
@@ -266,7 +273,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   };
 
   const all = itemsOf(pack);
-  const due = dueToday(pack, progress, plan, today);
+  const due = dueToday(pack, progress, plan, when);
   const glossary = glossaryOf(pack);
   const wordsInMix = glossary.length ? GLOSSARY_IN_MIX : 0;
   const lateLeft = buildLateSession(pack, progress).length;
@@ -280,7 +287,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     reports: dayReports(pack, save.sessions, save.studyTime, save.daysDone ?? [], today),
     tasksDone: tasks.filter((t) => t.done).length,
     tasksTotal: tasks.length,
-    ready: packReadiness(pack, progress),
+    ready: packRing(pack, progress, save.sessions),
     daysToGo: plan.daysToGo,
   });
 
@@ -292,7 +299,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, today), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes);
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -314,9 +321,12 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   /** A round of today's questions. With `guided`, it is one of today's tasks; without, it is extra practice. */
   const startToday = (guided = false) => {
     const rounds = currentSave().sessions.filter((s) => s.kind === 'today' && s.date === today).length;
-    const ids = buildTodaySession(pack, currentSave().progress, plan, today);
-    const title = plan.phase === 'exam-day' ? 'Warm-up' : guided ? `Round ${Math.min(rounds + 1, 2)}` : 'Extra practice';
-    const task = plan.phase === 'exam-day' ? 'warm-up' : rounds === 0 ? 'round-1' : 'round-2';
+    // On the last day the rounds after the first ask what is not full yet: more questions, and no new glossary words.
+    const later = isSprint(plan) && rounds >= 1;
+    const ids = buildTodaySession(pack, currentSave().progress, plan, stamp(), Math.random, later ? LAST_DAY_SIZE : TODAY_SIZE, !later);
+    const number = Math.min(rounds + 1, isSprint(plan) ? 3 : 2);
+    const title = plan.phase === 'exam-day' ? 'Warm-up' : guided ? `Round ${number}` : 'Extra practice';
+    const task = plan.phase === 'exam-day' ? 'warm-up' : `round-${number}`;
     open({ kind: 'today', title, topics: plan.topics, ids, task, guided, again: guided ? undefined : () => startToday(false) });
   };
   /** The last day's first task: the questions added after the slide-by-slide check. */
@@ -330,7 +340,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   };
   const startPractice = (title: string, pool: Item[], task?: string, guided = false) => {
     const start = () => {
-      const ids = buildPracticeSession(pool, currentSave().progress, today);
+      const ids = buildPracticeSession(pool, currentSave().progress, stamp());
       if (ids.length > 0) open({ kind: 'practice', title, topics: [], ids, task, guided, again: guided ? undefined : start });
     };
     start();
@@ -338,7 +348,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   /** An optional round of glossary words (Part 2): half words she has met before, half new ones. */
   const startGlossary = (fromHome = false) => {
     const start = () => {
-      const ids = buildGlossarySession(glossary, currentSave().progress, today, Math.random, undefined, pack.glossaryLast);
+      const ids = buildGlossarySession(glossary, currentSave().progress, stamp(), Math.random, undefined, pack.glossaryLast);
       if (ids.length > 0) open({ kind: 'practice', title: 'Glossary words', topics: [], ids, task: GLOSSARY_TASK, fromHome, again: start });
     };
     start();
@@ -531,6 +541,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             progress={progress}
             points={save.points}
             today={today}
+            when={when}
+            ring={packRing(pack, progress, save.sessions)}
             name={saved.settings.name}
             tasks={tasks}
             finished={finished}

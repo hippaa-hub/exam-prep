@@ -7,7 +7,7 @@ import { applyAnswer, type ProgressMap } from './progress';
 import { seeded } from './rng';
 import {
   answerRun, buildFixSession, buildGlossarySession, buildPracticeSession, buildTodaySession, currentId, dueToday, isFinished, startRun, summarise,
-  GLOSSARY_IN_MIX, MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE, buildLateSession,
+  GLOSSARY_IN_MIX, LAST_DAY_SIZE, MAX_ASKS, TODAY_SIZE, WARM_UP_SIZE, buildLateSession,
 } from './session';
 
 const topic = (id: string, n: number) => ({
@@ -250,6 +250,22 @@ describe('the last day\'s mixed round', () => {
     expect(fromWords).toHaveLength(GLOSSARY_IN_MIX);
     expect(fromWords).not.toContain('v-18'); // never-on-the-slides words come last
     expect(fromWords).not.toContain('v-19');
+  });
+
+  it('the later rounds of the last day ask what is not full yet, in a new round, without new words', () => {
+    const plan = planFor(withWords, [], tue);
+    // Round 1 was all right: those things are not due again in the same round, but they are in the next one.
+    const progress: ProgressMap = {};
+    const first = buildTodaySession(withWords, progress, plan, tue, seeded(3)).filter((id) => !id.startsWith('v-'));
+    right(progress, first, tue);
+    expect(dueToday(withWords, progress, plan, tue)).toBe(36 - TODAY_SIZE);
+    expect(dueToday(withWords, progress, plan, `${tue}#2`)).toBe(36);
+    const second = buildTodaySession(withWords, progress, plan, `${tue}#2`, seeded(4), LAST_DAY_SIZE, false);
+    expect(second).toHaveLength(LAST_DAY_SIZE);
+    expect(second.some((id) => id.startsWith('v-'))).toBe(false);
+    // The weakest come first: everything she has not been asked yet is in it.
+    const unasked = ['A', 'B', 'C'].flatMap((t) => Array.from({ length: 12 }, (_, i) => `${t}-${i + 1}`)).filter((id) => !first.includes(id));
+    expect(unasked.filter((id) => !second.includes(id)).length).toBe(Math.max(0, unasked.length - LAST_DAY_SIZE));
   });
 
   it('on a mixed day the words are all brand new while any are left, even when met words are waiting', () => {

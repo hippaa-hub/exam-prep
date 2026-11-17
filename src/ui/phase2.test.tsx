@@ -208,11 +208,13 @@ describe('the Mock Exam', () => {
     w.SpeechSynthesisUtterance = class { constructor(public text: string) {} };
     w.speechSynthesis = { speak: (u: { text: string }) => spoken.push(u.text), cancel: () => {}, getVoices: () => [] };
     const user = userEvent.setup();
-    // The mixed round and Fix My Mistakes are done, so the Mock Exam (last) is the next task.
+    // The three rounds and Fix My Mistakes are done, so the Mock Exam (last) is the next task.
     const start = emptySaved();
     start.packs[pack.id] = { ...emptyPackSave(), sessions: [
       { date: '2026-11-17', kind: 'practice', topics: [], asked: 3, firstTimeRight: 3, task: 'round-new' },
       { date: '2026-11-17', kind: 'today', topics: [], asked: 10, firstTimeRight: 8, task: 'round-1' },
+      { date: '2026-11-17', kind: 'today', topics: [], asked: 10, firstTimeRight: 8, task: 'round-2' },
+      { date: '2026-11-17', kind: 'today', topics: [], asked: 10, firstTimeRight: 8, task: 'round-3' },
       { date: '2026-11-17', kind: 'fix', topics: [], asked: 2, firstTimeRight: 2, task: 'fix' },
     ] };
     const store = memoryStore(start);

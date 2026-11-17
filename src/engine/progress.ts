@@ -1,5 +1,7 @@
 // Memory for each "thing to know" (PLAN.md section 5).
 // Level 0 = new or wrong, 1 = right once, 2 = right on two different days, 3 = right on three different days.
+// On the last day before the exam there are no more days to wait for, so there each new round counts like a
+// new day (see `occasionFor` in plan.ts): the "day" passed to the functions here is then the round's stamp.
 //
 // Levels are kept per concept, not per question: a concept (one key term, one country, one confusing pair)
 // has several question wordings, and Adele meets a different wording each time.
@@ -13,7 +15,7 @@ export type Outcome = 'right' | 'almost' | 'wrong';
 
 export interface ConceptProgress {
   level: Level;
-  /** The different days on which she got it right (at most three are kept). */
+  /** The different days on which she got it right (at most three are kept). On the last day: the different rounds. */
   correctDays: DateKey[];
   /** How many times she has answered a question about it. */
   seen: number;
@@ -42,14 +44,15 @@ export function newProgress(): ConceptProgress {
  * `credit: false` is for a question repeated in the same session straight after a miss: she has just seen
  * the answer, so getting it right is good practice but is not evidence that she knows it. It earns no level
  * and does not count towards clearing the mistake. (A miss on a repeat still counts as a miss.)
+ *
+ * `gentle` is for the last day before the exam: a miss then takes one level away, not all of them,
+ * because there are no days left to win three levels back. It still goes onto the Fix My Mistakes list.
  */
 export function applyAnswer(
-  prev: ConceptProgress | undefined, outcome: Outcome, today: DateKey, itemId?: ItemId, credit = true,
+  prev: ConceptProgress | undefined, outcome: Outcome, today: DateKey, itemId?: ItemId, credit = true, gentle = false,
 ): ConceptProgress {
   const p = prev ?? newProgress();
-  const next: ConceptProgress = { ...p, correctDays: [...p.correctDays], seen: p.seen + 1, lastSeen: today };
-  next.recent = p.recent ?? [];
-  if (itemId !== undefined) next.recent = [...next.recent.filter((id) => id !== itemId), itemId].slice(-RECENT_KEPT);
+  const next = applyLook(prev, today, itemId);
 
   if (outcome === 'right' && !credit) return next;
 
@@ -72,11 +75,23 @@ export function applyAnswer(
     next.level = keep as Level;
   } else {
     // Wrong: back to level 0, and onto the Fix My Mistakes list. Never a penalty beyond that.
-    next.correctDays = [];
-    next.level = 0;
+    next.correctDays = gentle ? p.correctDays.slice(0, Math.max(0, p.level - 1)) : [];
+    next.level = next.correctDays.length as Level;
     next.fix = 0;
     if (itemId !== undefined) next.fixItem = itemId;
   }
+  return next;
+}
+
+/**
+ * Records that a question was asked, and nothing else: the level and the Fix My Mistakes list stay as they are.
+ * Used for a miss on exam morning, when there is no time left to win a level back.
+ */
+export function applyLook(prev: ConceptProgress | undefined, today: DateKey, itemId?: ItemId): ConceptProgress {
+  const p = prev ?? newProgress();
+  const next: ConceptProgress = { ...p, correctDays: [...p.correctDays], seen: p.seen + 1, lastSeen: today };
+  next.recent = p.recent ?? [];
+  if (itemId !== undefined) next.recent = [...next.recent.filter((id) => id !== itemId), itemId].slice(-RECENT_KEPT);
   return next;
 }
 
@@ -117,6 +132,10 @@ export function ceilingToday(items: readonly Item[], progress: ProgressMap, toda
   return Math.round((sum / (concepts.length * 3)) * 100);
 }
 
+/** How many things to know are not yet at the top level. */
+export function notFullCount(items: readonly Item[], progress: ProgressMap): number {
+  return conceptsOf(items).filter((c) => (progress[c]?.level ?? 0) < 3).length;
+}
 
 export function packCeilingToday(pack: Pack, progress: ProgressMap, today: DateKey): number {
   return ceilingToday(itemsOf(pack), progress, today);

@@ -7,6 +7,8 @@ import { isDue, mistakeIds, weakest } from './progress';
 import { shuffle, type Rng } from './rng';
 
 export const TODAY_SIZE = 15;
+/** On the last day the rounds after the first ask everything that is not full yet, up to this many. */
+export const LAST_DAY_SIZE = 20;
 /** On a mixed day the round also brings in this many glossary words she has never met, so they are met inside the app. */
 export const GLOSSARY_IN_MIX = 10;
 export const PRACTICE_SIZE = 12;
@@ -92,6 +94,8 @@ export function dueToday(pack: Pack, progress: ProgressMap, plan: TodayPlan, tod
  */
 export function buildTodaySession(
   pack: Pack, progress: ProgressMap, plan: TodayPlan, today: DateKey, rng: Rng = Math.random, size = TODAY_SIZE,
+  /** False for the later rounds of the last day: the new glossary words come in the first round only. */
+  withWords = true,
 ): ItemId[] {
   if (plan.phase === 'exam-day') return weakest(pack, progress, WARM_UP_SIZE);
 
@@ -108,7 +112,7 @@ export function buildTodaySession(
   const ids = pickVariants(chosen, progress, rng).map((it) => it.id);
   // A mixed round covers everything, so glossary words join it: only brand-new ones while any are left
   // (the ones she missed come back in Fix My Mistakes).
-  const words = plan.phase === 'last-day' || plan.phase === 'mix'
+  const words = withWords && (plan.phase === 'last-day' || plan.phase === 'mix')
     ? buildGlossarySession(glossaryOf(pack), progress, today, rng, GLOSSARY_IN_MIX, pack.glossaryLast ?? [], 0)
     : [];
   return shuffle([...ids, ...words], rng);
