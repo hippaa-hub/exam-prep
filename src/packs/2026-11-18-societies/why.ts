@@ -24,8 +24,8 @@ export const meanings: Record<string, string> = {
   // The five countries
   'United Kingdom': 'The United Kingdom is a constitutional monarchy and a representative democracy. King Charles III is the ceremonial head of state, and citizens elect MPs to the House of Commons.',
   Japan: 'Japan is a constitutional monarchy and a democracy. The Emperor is a symbol of the state with no governing power, and citizens elect the National Diet.',
-  'Saudi Arabia': 'Saudi Arabia is an absolute monarchy. The King is head of state and head of government, and the Consultative Council only advises.',
-  Switzerland: 'Switzerland is a democracy with direct participation. Citizens vote in referendums, and the Federal Council is the head of state.',
+  'Saudi Arabia': 'Saudi Arabia is an absolute monarchy. The King holds extensive executive authority, and the Consultative Council only advises.',
+  Switzerland: 'Switzerland is a democracy with direct participation. Citizens vote in referendums and can launch popular initiatives.',
   'North Korea': "North Korea is a one-party dictatorship led by Kim Jong Un and the Workers' Party. Opposition is not allowed.",
 
   // The three levels of decisions
@@ -53,8 +53,6 @@ export const meanings: Record<string, string> = {
   Censorship: 'Censorship is controlling information: deciding what people may read, see and say. Dictatorships use it to keep power.',
   Propaganda: "Propaganda is shaping public opinion in a leader's favour. Dictatorships use it to keep power.",
   Intimidation: 'Intimidation means frightening people so that they obey. Dictatorships use it to keep power.',
-  'House of Commons': 'The House of Commons is the part of the UK Parliament whose members, the MPs, are elected.',
-  'House of Lords': 'The House of Lords is the part of the UK Parliament whose members are mostly appointed.',
 
   // Institutions
   Parliament: 'Parliament debates and passes laws.',
@@ -422,7 +420,7 @@ export const whyNot: Record<string, Record<string, string>> = {
   },
   's4-q-two-mon': {
     'Saudi Arabia and Japan': 'Japan is right, but Saudi Arabia is an absolute monarchy.',
-    'Switzerland and the United Kingdom': 'The UK is right, but Switzerland has no monarch. It is a federal republic.',
+    'Switzerland and the United Kingdom': 'The UK is right, but Switzerland has no monarch. It is a democracy with direct participation.',
     'Saudi Arabia and North Korea': 'Saudi Arabia is an absolute monarchy, and North Korea is a dictatorship.',
   },
   's5-q-def': {
@@ -526,7 +524,7 @@ export const simple: Record<string, string> = {
   // --- The five countries ---
   's4-united-kingdom': 'The UK has a king, but he does not run the country. People elect MPs, and the Prime Minister leads the government.',
   's4-japan': 'Japan has an emperor, but he is only a symbol. People elect the parliament, called the National Diet, and the Prime Minister leads the government.',
-  's4-saudi-arabia': 'In Saudi Arabia the King really rules. He is head of state and head of government, and there is no elected parliament.',
+  's4-saudi-arabia': 'In Saudi Arabia the King really rules. He holds extensive power, and there is no elected parliament.',
   's4-switzerland': 'In Switzerland people often vote on questions themselves, in referendums. A group called the Federal Council leads the country together.',
   's4-north-korea': 'North Korea is ruled by one leader and one party. Other parties are not allowed, and the news is tightly controlled.',
 
@@ -587,7 +585,7 @@ export const examples: Record<string, string[]> = {
   'g4-all-four': ['Order: traffic rules', 'Protect: emergency services', 'Services: public schools', 'Enforce: courts'],
 
   // Monarchy
-  's1-absolute': ['Saudi Arabia: the King is head of state and head of government'],
+  's1-absolute': ['Saudi Arabia: the King holds extensive executive authority'],
   's1-constitutional': ['United Kingdom: King Charles III, with an elected parliament', 'Japan: the Emperor, with an elected parliament'],
   's1-monarchy-basics': ['King Charles III of the United Kingdom', 'The Emperor of Japan', 'The King of Saudi Arabia'],
 
