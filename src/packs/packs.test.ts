@@ -111,6 +111,12 @@ describe.each(packs.map((p) => [p.id, p] as const))('pack %s', (_id, pack) => {
     // The glossary is extra: none of it is in the topics, so none of it counts in readiness.
     const inTopics = new Set(items.map((i) => i.id));
     expect(cards.filter((c) => inTopics.has(c.id))).toEqual([]);
+    // Nothing that is missing from the teacher's slides is asked: these eight words are not on them.
+    if (pack.id === '2026-11-18-societies') {
+      const offSlides = ['politics', 'premier', 'governor', 'legislature', 'cabinet', 'federal-council', 'ballot', 'surveillance'];
+      expect(cards).toHaveLength(65);
+      expect(cards.filter((c) => offSlides.includes(c.id.replace(/^v1-/, '')))).toEqual([]);
+    }
     // The words kept for last are real glossary cards.
     const cardIds = new Set(cards.map((c) => c.id));
     expect((pack.glossaryLast ?? []).filter((id) => !cardIds.has(id))).toEqual([]);

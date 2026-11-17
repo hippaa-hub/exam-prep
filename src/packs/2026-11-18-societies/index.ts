@@ -8,7 +8,7 @@ import { g1 } from './g1';
 import { g2 } from './g2';
 import { g3 } from './g3';
 import { g4 } from './g4';
-import { glossary, glossaryExamples, glossaryLast, glossarySimple } from './glossary';
+import { glossary, glossaryExamples, glossaryOffSlides, glossarySimple } from './glossary';
 import { s1 } from './s1';
 import { s2 } from './s2';
 import { s3 } from './s3';
@@ -16,6 +16,10 @@ import { s4 } from './s4';
 import { s5 } from './s5';
 import { examples, meanings, simple, whyNot } from './why';
 import { written } from './written';
+
+/** Without the glossary words that are not on the slides: the test covers only the slides. */
+const onSlides = <T,>(byId: Record<string, T>): Record<string, T> =>
+  Object.fromEntries(Object.entries(byId).filter(([id]) => !glossaryOffSlides.includes(id)));
 
 /** Adds a topic's written questions to its other questions, and the reasons why wrong answers are wrong. */
 const withWritten = (t: Topic): Topic => ({
@@ -32,10 +36,9 @@ export const pack: Pack = {
   criteria: ['A: knowing and understanding', 'D: thinking critically'],
   topics: [g1, g2, g3, g4, s1, s2, s3, s4, s5].map(withWritten),
   meanings,
-  simple: { ...simple, ...glossarySimple },
-  examples: { ...examples, ...glossaryExamples },
-  glossary,
-  glossaryLast,
+  simple: { ...simple, ...onSlides(glossarySimple) },
+  examples: { ...examples, ...onSlides(glossaryExamples) },
+  glossary: glossary.filter((word) => !glossaryOffSlides.includes(word.id)),
   // Added on 17 Nov after checking both decks slide by slide: a mixed day asks these first.
   lateAdditions: [
     'g2-pa-q-judge', 'g2-pa-q-fear', 'g2-rl-q-levels',

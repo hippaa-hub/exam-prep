@@ -479,8 +479,9 @@ export const glossarySimple: Record<string, string> = Object.fromEntries(WORDS.m
 export const glossaryExamples: Record<string, string[]> = Object.fromEntries(WORDS.map((x) => [x.id, x.examples]));
 
 /**
- * The eight glossary words that never appear on the two slide decks. The test covers only the slides,
- * so these are asked last, after every word the slides do use.
+ * The eight glossary words that never appear on the two slide decks (four of them are only in the
+ * teacher's speaker notes, which the students do not see). The test covers only the slides, so the app
+ * does not ask these at all (Jenia, 17 Nov). Their cards stay in this file in case a later test needs them.
  */
-export const glossaryLast: string[] = ['politics', 'premier', 'governor', 'legislature', 'cabinet', 'federal-council', 'ballot', 'surveillance']
+export const glossaryOffSlides: string[] = ['politics', 'premier', 'governor', 'legislature', 'cabinet', 'federal-council', 'ballot', 'surveillance']
   .map((id) => `v1-${id}`);
