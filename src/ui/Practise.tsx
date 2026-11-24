@@ -18,6 +18,8 @@ interface Props {
   onArguments: () => void;
   onMock: (id: string) => void;
   onBack: () => void;
+  /** Opens a lesson (Learn cards) again. */
+  onLesson?: (topic: string) => void;
 }
 
 const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: string }[] = [
@@ -29,7 +31,7 @@ const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: str
   { game: 'write', title: 'Say it or write it', blurb: 'Full-sentence answers, checked for the key ideas', icon: '🎤', tone: 'blue' },
 ];
 
-export function Practise({ pack, progress, onStart, onTable, onGlossary, mockResults, writing, items, onArguments, onMock, onBack }: Props) {
+export function Practise({ pack, progress, onStart, onTable, onGlossary, mockResults, writing, items, onArguments, onMock, onBack, onLesson }: Props) {
   const all = itemsOf(pack);
   const groups = [...new Set(all.flatMap((it) => (it.type === 'table' ? [it.group] : [])))];
   const glossary = glossaryOf(pack);
@@ -41,6 +43,23 @@ export function Practise({ pack, progress, onStart, onTable, onGlossary, mockRes
         <h1>More practice</h1>
         <p>Extra, for when today's tasks are done. Pick a game. Each round starts with the questions you know least.</p>
       </header>
+
+      {(pack.lessons?.length ?? 0) > 0 && onLesson && (
+        <section className="card" aria-labelledby="lessons-h">
+          <h2 id="lessons-h">📚 Lessons</h2>
+          <p className="muted small">Read a lesson again any time: the worked examples, step by step.</p>
+          <ul className="topic-buttons">
+            {pack.lessons!.map((l) => (
+              <li key={l.topic}>
+                <button type="button" onClick={() => onLesson(l.topic)}>
+                  <span className="topic-name">{l.title}</span>
+                  <span className="pct">{l.cards.length} cards</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="tiles">
         {GAMES.map((g) => {

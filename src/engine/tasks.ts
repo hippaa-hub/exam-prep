@@ -4,7 +4,7 @@ import type { DateKey, Game } from '../content/types';
 import { isSprint, type SessionRecord, type TodayPlan } from './plan';
 import { LAST_DAY_SIZE, TODAY_SIZE, WARM_UP_SIZE } from './session';
 
-export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock';
+export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock' | 'learn';
 
 export interface Task {
   id: string;
@@ -17,7 +17,12 @@ export interface Task {
   done: boolean;
   game?: Game;
   group?: string;
+  /** For a lesson: the topic it teaches. */
+  topic?: string;
 }
+
+/** What the task list needs to know about a lesson. */
+export interface LessonInfo { title: string; detail: string; tip: string }
 
 export const GAME_TITLES: Record<Game, string> = {
   'key-terms': 'Key Terms flashcards',
@@ -42,6 +47,7 @@ const GAME_TIPS: Record<Game, string> = {
 export const gameTaskId = (game: Game) => `game:${game}`;
 export const tableTaskId = (group: string) => `table:${group}`;
 export const mockTaskId = (mock: string) => `mock:${mock}`;
+export const learnTaskId = (topic: string) => `learn:${topic}`;
 export const ARGUMENT_TASK = 'argument';
 /** Marks a finished round of glossary words (Part 2). It is optional, so it is not one of the day's tasks. */
 export const GLOSSARY_TASK = 'glossary';
@@ -71,6 +77,8 @@ export function tasksFor(
   lateLeft = 0,
   /** The planned mock exam's length, for its task card. */
   mockMinutes = 35,
+  /** The lessons of the day's topics, if the pack has them. */
+  lessonInfo?: (topic: string) => LessonInfo | undefined,
 ): Task[] {
   const todays = sessions.filter((s) => s.date === today);
   const rounds = todays.filter((s) => s.kind === 'today').length;
@@ -100,6 +108,15 @@ export function tasksFor(
     });
   }
 
+  // Lessons come first: she is taught a topic before she is asked about it. A lesson done once stays done.
+  for (const extra of plan.extras) {
+    if (extra.kind !== 'learn') continue;
+    const info = lessonInfo?.(extra.topic);
+    if (!info) continue;
+    const id = learnTaskId(extra.topic);
+    tasks.push({ id, kind: 'learn', topic: extra.topic, title: info.title, detail: info.detail, tip: info.tip, done: sessions.some((x) => x.task === id) });
+  }
+
   // A mixed day starts with the questions added after the slide-by-slide check, so none is met for the first time in the mock.
   if (mixDay && lateLeft > 0) {
     tasks.push({
@@ -119,7 +136,7 @@ export function tasksFor(
   });
 
   for (const extra of plan.extras) {
-    if (isFlashcards(extra)) continue; // already first in the list
+    if (isFlashcards(extra) || extra.kind === 'learn') continue; // already first in the list
     if (extra.kind === 'game') {
       tasks.push({
         id: gameTaskId(extra.game), kind: 'game', game: extra.game, title: GAME_TITLES[extra.game],

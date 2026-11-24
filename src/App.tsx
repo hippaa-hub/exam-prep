@@ -11,7 +11,8 @@ import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
 import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, LAST_DAY_SIZE, TODAY_SIZE, type RunSummary } from './engine/session';
 import { badgesFor } from './engine/rewards';
-import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type Task } from './engine/tasks';
+import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, learnTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type LessonInfo, type Task } from './engine/tasks';
+import { LearnScreen } from './ui/LearnScreen';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
 import { packs as allPacks } from './packs';
@@ -53,7 +54,8 @@ type View =
   | { name: 'table'; group: string; key: number; guided: boolean }
   | { name: 'arguments' }
   | { name: 'argument'; id: string; key: number; guided: boolean }
-  | { name: 'mock'; id: string; key: number; guided: boolean };
+  | { name: 'mock'; id: string; key: number; guided: boolean }
+  | { name: 'learn'; topic: string; key: number; guided: boolean };
 
 /** For looking at another day without waiting for it: add ?today=2026-11-17 to the address. */
 function previewDay(): string | null {
@@ -139,7 +141,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
 
   // ---- Notifications for a parent's phone (off unless a channel is set in the parent view) ----
   const topic = saved?.settings.notifyTopic;
-  const studying = view.name === 'session' || view.name === 'table' || view.name === 'argument' || view.name === 'mock';
+  const studying = view.name === 'session' || view.name === 'table' || view.name === 'argument' || view.name === 'mock' || view.name === 'learn';
   const viewKey = 'key' in view ? view.key : 0;
   const packId = pack?.id;
   /** What the listeners below need, as it is right now. */
@@ -151,7 +153,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     what: view.name === 'session' ? view.spec.title
       : view.name === 'table' ? `Table: ${view.group}`
       : view.name === 'argument' ? 'Argument Builder'
-      : view.name === 'mock' ? 'Mock exam' : undefined,
+      : view.name === 'mock' ? 'Mock exam'
+      : view.name === 'learn' ? 'Lesson' : undefined,
     seconds: () => secondsOn(savedRef.current?.packs[packId ?? '']?.studyTime, today),
   };
 
@@ -246,7 +249,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
 
   /** Save one answer straight away, so nothing is lost if the app is closed mid-session. */
   const answer = (
-    id: ItemId, outcome: Outcome, credit = true, countTime = true, dontKnow = false,
+    id: ItemId, outcome: Outcome, credit = true, countTime = true, dontKnow = false, helped = false,
   ): { progress: ConceptProgress; fixed: boolean } => {
     const concept = conceptOf(byId.get(id)!);
     const before = (savedRef.current?.packs[pack.id] ?? emptyPackSave()).progress[concept];
@@ -256,7 +259,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     // On exam morning a miss takes nothing away: there is no time left to win a level back.
     const after = plan.phase === 'exam-day' && outcome !== 'right'
       ? applyLook(before, stamp(), id)
-      : applyAnswer(before, firstLook ? 'almost' : outcome, stamp(), id, credit, isSprint(plan));
+      : applyAnswer(before, firstLook ? 'almost' : outcome, stamp(), id, credit, isSprint(plan), helped);
     const fixed = before?.fix !== undefined && after.fix === undefined;
     // Study time: the time since the last answer, ignoring long pauses.
     const tick = now().getTime();
@@ -273,12 +276,25 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   };
 
   const all = itemsOf(pack);
+  /** The lesson for a topic, as the task list shows it. The lesson she missed in class says so. */
+  const lessonInfo = (topic: string): LessonInfo | undefined => {
+    const lesson = pack.lessons?.find((l) => l.topic === topic);
+    if (!lesson) return undefined;
+    const minutes = Math.max(3, Math.round(lesson.cards.length * 1.5));
+    return {
+      title: pack.catchUp === topic ? `Catch up: the lesson you missed (${lesson.title})` : `Learn: ${lesson.title}`,
+      detail: `${lesson.cards.length} Learn cards · about ${minutes} min`,
+      tip: pack.catchUp === topic
+        ? `You missed this lesson, so start here. ${lesson.blurb} Tap "Next step" to see each step and why it works.`
+        : `${lesson.blurb} Tap "Next step" to see each step and why it works.`,
+    };
+  };
   const due = dueToday(pack, progress, plan, when);
   const glossary = glossaryOf(pack);
   const wordsInMix = glossary.length ? GLOSSARY_IN_MIX : 0;
   const lateLeft = buildLateSession(pack, progress).length;
   const mockMinutes = (pack.mocks ?? []).find((m) => m.id === plan.mock)?.minutes ?? 35;
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes);
+  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes, lessonInfo);
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -299,7 +315,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes, lessonInfo);
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -365,6 +381,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
 
   const openArgument = (id: string, guided = false) => go({ name: 'argument', id, key: nextKey.current++, guided });
   const openMock = (id: string, guided = false) => go({ name: 'mock', id, key: nextKey.current++, guided });
+  const openLearn = (topic: string, guided = false) => go({ name: 'learn', topic, key: nextKey.current++, guided });
+  const lessonDraftKey = (topic: string) => learnTaskId(topic);
 
   const finishArgument = (id: string, boxes: string[], ticks: boolean[]) => {
     updatePack(pack.id, (p) => ({ ...p, writing: { ...p.writing, [id]: { date: today, boxes, ticks } }, drafts: dropDraft(p, id) }));
@@ -392,6 +410,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       const q = nextArgument(pack, currentSave().writing);
       if (q) openArgument(q.id, true);
     } else if (task.kind === 'mock' && plan.mock) openMock(plan.mock, true);
+    else if (task.kind === 'learn' && task.topic) openLearn(task.topic, true);
   };
   const next = upcoming ? { title: upcoming.title, start: () => startTask(upcoming) } : undefined;
 
@@ -409,6 +428,27 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
           onExit={() => (view.guided ? goTab('home') : go({ name: 'arguments' }))}
           next={view.guided ? next : undefined}
           dayDone={view.guided && finished}
+        />
+      );
+    }
+  }
+
+  if (view.name === 'learn') {
+    const lesson = pack.lessons?.find((l) => l.topic === view.topic);
+    if (lesson) {
+      const key = lessonDraftKey(lesson.topic);
+      return (
+        <LearnScreen
+          key={view.key}
+          lesson={lesson}
+          startAt={Number(save.drafts?.[key]?.[0] ?? 0)}
+          onProgress={(i) => saveDraft(key, [String(i)])}
+          onDone={(tapsRight) => {
+            updatePack(pack.id, (p) => ({ ...p, drafts: dropDraft(p, key) }));
+            finish({ kind: 'practice', topics: [], task: key }, { asked: lesson.cards.length, firstTimeRight: tapsRight, missed: [] });
+          }}
+          onExit={() => goTab(view.guided ? 'home' : 'practise')}
+          next={view.guided ? next : undefined}
         />
       );
     }
@@ -454,7 +494,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         spec={view.spec}
         items={byId}
         pack={pack}
-        onAnswer={(id, outcome, credit, firstLook) => answer(id, outcome, credit, true, firstLook)}
+        onAnswer={(id, outcome, credit, firstLook, helped) => answer(id, outcome, credit, true, firstLook, helped)}
         isNew={(id) => (currentSave().progress[conceptOf(byId.get(id)!)]?.seen ?? 0) === 0}
         onFinish={(summary) => finish(view.spec, summary)}
         onExit={() => goTab(view.spec.kind === 'practice' && !view.spec.guided && !view.spec.fromHome ? 'practise' : 'home')}
@@ -562,6 +602,13 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             showGuideHint={!saved.settings.guideSeen}
             preview={preview !== null}
             onTask={startTask}
+            catchUp={(() => {
+              const topic = pack.catchUp;
+              const lesson = pack.lessons?.find((l) => l.topic === topic);
+              if (!topic || !lesson || save.sessions.some((x) => x.task === learnTaskId(topic))) return undefined;
+              const task = tasks.find((t) => t.id === learnTaskId(topic));
+              return { title: lesson.title, cards: lesson.cards.length, start: () => (task ? startTask(task) : openLearn(topic)) };
+            })()}
             onExtra={() => startToday(false)}
             onPractise={() => goTab('practise')}
             onGuide={() => goTab('guide')}
@@ -577,6 +624,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             items={byId}
             onStart={(title, pool, game) => startPractice(title, pool, game ? gameTaskId(game) : undefined)}
             onTable={(group) => openTable(group)}
+            onLesson={(topic) => openLearn(topic)}
             onGlossary={() => startGlossary()}
             onArguments={() => go({ name: 'arguments' })}
             onMock={(id) => openMock(id)}

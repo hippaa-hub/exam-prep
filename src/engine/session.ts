@@ -202,6 +202,13 @@ export interface Run {
   asks: Record<ItemId, number>;
   /** The outcome of the first time each question was asked. */
   first: Record<ItemId, Outcome>;
+  /** A question asked in place of a missed one (same idea, different numbers) → the one it stands for. */
+  stand?: Record<ItemId, ItemId>;
+}
+
+/** The question a queued one stands for: itself, or the missed question it replaces. */
+export function originOf(run: Run, id: ItemId): ItemId {
+  return run.stand?.[id] ?? id;
 }
 
 export function startRun(ids: readonly ItemId[]): Run {
@@ -220,17 +227,25 @@ export function isFinished(run: Run): boolean {
  * Record an answer and move on. A miss is asked again a little later in the same session.
  * `askAgain` forces a repeat even after a right answer (Fix My Mistakes needs two).
  */
-export function answerRun(run: Run, outcome: Outcome, askAgain = outcome !== 'right'): Run {
+export function answerRun(
+  run: Run, outcome: Outcome, askAgain = outcome !== 'right',
+  /** Ask this question instead when it comes back (the same idea with different numbers). */
+  replacement?: ItemId,
+): Run {
   const id = currentId(run);
   if (id === undefined) return run;
-  const asks = { ...run.asks, [id]: (run.asks[id] ?? 0) + 1 };
-  const first = run.first[id] === undefined ? { ...run.first, [id]: outcome } : run.first;
+  const key = originOf(run, id);
+  const asks = { ...run.asks, [key]: (run.asks[key] ?? 0) + 1 };
+  const first = run.first[key] === undefined ? { ...run.first, [key]: outcome } : run.first;
   const queue = [...run.queue];
-  const alreadyQueued = queue.indexOf(id, run.index + 1) >= 0;
-  if (askAgain && asks[id] < MAX_ASKS && !alreadyQueued) {
-    queue.splice(Math.min(queue.length, run.index + 1 + REASK_GAP), 0, id);
+  const alreadyQueued = queue.slice(run.index + 1).some((q) => originOf(run, q) === key);
+  let stand = run.stand;
+  if (askAgain && asks[key] < MAX_ASKS && !alreadyQueued) {
+    const back = replacement ?? id;
+    queue.splice(Math.min(queue.length, run.index + 1 + REASK_GAP), 0, back);
+    if (back !== key) stand = { ...stand, [back]: key };
   }
-  return { queue, index: run.index + 1, asks, first };
+  return { queue, index: run.index + 1, asks, first, ...(stand ? { stand } : {}) };
 }
 
 export interface RunSummary {

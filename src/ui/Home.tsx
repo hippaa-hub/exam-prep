@@ -34,6 +34,8 @@ interface Props {
   /** True when another day is being previewed with ?today= in the address. */
   preview?: boolean;
   onTask: (task: Task) => void;
+  /** A lesson she missed in class and has not done yet: a big card at the top until it is done. */
+  catchUp?: { title: string; cards: number; start: () => void };
   /** Called when today's tasks are all done but today is not yet among `daysDone`, so the day gets its tick. */
   onDayDone?: () => void;
   /** Her badges, earned or not, and the ones she has already been shown. */
@@ -107,7 +109,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 
 export function Home({
   pack, plan, progress, points, today, when, ring, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
-  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, onExtra, onPractise, onGuide, onParent,
+  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, catchUp, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = ring;
   const cd = countdown(plan.daysToGo);
@@ -162,6 +164,17 @@ export function Home({
       </header>
 
       {preview && <p className="preview-note" role="note">Preview: showing {formatLong(today)}. Remove "?today=…" from the address to go back to the real day.</p>}
+
+      {catchUp && (
+        <button type="button" className="card catch-up-card" onClick={catchUp.start}>
+          <span className="catch-up-icon" aria-hidden="true">📚</span>
+          <span className="catch-up-text">
+            <strong>Catch up: the lesson you missed</strong>
+            <span>{catchUp.title} · {catchUp.cards} Learn cards, step by step</span>
+          </span>
+          <span className="chev" aria-hidden="true">›</span>
+        </button>
+      )}
 
       <section className="card countdown-card" aria-label="Countdown and readiness">
         <div className="countdown-row">
@@ -267,6 +280,17 @@ export function Home({
           </>
         )}
       </section>
+
+      {(pack.lessons?.length ?? 0) > 0 && (
+        <button type="button" className="card link-card" onClick={onPractise}>
+          <span className="link-icon" aria-hidden="true">📚</span>
+          <span>
+            <strong>Lessons and extra practice</strong>
+            <span className="muted">Read a lesson again any time, step by step.</span>
+          </span>
+          <span className="chev" aria-hidden="true">›</span>
+        </button>
+      )}
 
       {badges.length > 0 && (
         <section className="card" aria-labelledby="badges-h">

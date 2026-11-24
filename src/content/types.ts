@@ -1,3 +1,4 @@
+import { pretty as prettyMaths } from '../engine/algebra';
 /** A calendar day as 'YYYY-MM-DD'. */
 export type DateKey = string;
 
@@ -16,6 +17,11 @@ export interface ItemBase {
    * Levels and readiness are counted per concept. Without it, the question is its own concept.
    */
   concept?: string;
+  /**
+   * "Show me how": the method, one step at a time, which she can open before she answers.
+   * For a calculation it is also the worked solution shown after she answers.
+   */
+  how?: string[];
 }
 
 /** One key idea a written answer should contain, with the words that show it is there. */
@@ -96,7 +102,27 @@ export interface ShortItem extends ItemBase {
   model: string;
 }
 
-export type Item = TermItem | ChoiceItem | PairItem | MatchItem | TableItem | OrderItem | ShortItem;
+/** A known slip and what to say about it. `answer` is compared by value, so any way of writing it counts. */
+export interface Slip { answer: string; say: string }
+
+/** An algebra answer built on the maths keypad, checked by value (7x + 3y = 3y + 7x), not by spelling. */
+export interface ExpressionItem extends ItemBase {
+  type: 'expression';
+  /** The expression to work on, shown big under the instruction. */
+  expr: string;
+  /** One right answer. Any equal expression is accepted. */
+  answer: string;
+  /** True (the default) when the answer must be fully simplified: 5x + 2x is not accepted for 7x. */
+  simplest?: boolean;
+  /** 'multiply' lets the app spot the usual multiplication slips by itself. */
+  kind?: 'multiply' | 'collect' | 'other';
+  /** Slips this question is known for, with what to say. */
+  slips?: Slip[];
+  /** Letters for the keypad. Left out, they are taken from the expression. */
+  letters?: string[];
+}
+
+export type Item = TermItem | ChoiceItem | PairItem | MatchItem | TableItem | OrderItem | ShortItem | ExpressionItem;
 export type ItemType = Item['type'];
 
 export interface Topic {
@@ -108,7 +134,35 @@ export interface Topic {
 }
 
 /** An extra activity for a plan day, on top of the rounds of questions. */
-export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string } | { kind: 'argument' };
+export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string } | { kind: 'argument' } | { kind: 'learn'; topic: TopicId };
+
+/** One step of a worked example, with why it is done. */
+export interface LearnStep { show: string; why: string }
+
+/** A Learn card: the teacher's worked example revealed one step at a time, then a "why?" tap and a faded example. */
+export interface LearnCard {
+  id: string;
+  emoji: string;
+  title: string;
+  /** What this card is about, in one or two plain sentences. */
+  intro: string;
+  steps: LearnStep[];
+  /** A quick "why?" question after the steps. */
+  tap?: { question: string; options: string[]; answer: number; why: string };
+  /** A faded example: the first steps are given, she does the last one herself. */
+  faded?: { prompt: string; expr: string; given: LearnStep[]; answer: string; hint: string; kind?: 'multiply' | 'collect' };
+  /** The one thing to remember. */
+  remember: string;
+}
+
+/** The lesson for one topic: Learn cards to go through before the questions. */
+export interface Lesson {
+  topic: TopicId;
+  title: string;
+  /** Shown on the task card. */
+  blurb: string;
+  cards: LearnCard[];
+}
 
 /** A critical-thinking question (Criterion D), answered in the Argument Builder. */
 export interface ArgumentItem {
@@ -191,6 +245,15 @@ export interface Pack {
   glossary?: TermItem[];
   /** Glossary words that never appear on the teacher's slides. A round only asks them once the others are met. */
   glossaryLast?: ItemId[];
+  /** Lessons (Learn cards) that teach a topic before it is tested. */
+  lessons?: Lesson[];
+  /** A lesson she missed in class: Home shows a big "Catch up" card until it is done. */
+  catchUp?: TopicId;
+  /**
+   * After a miss, the question comes back with different numbers (another question on the same idea),
+   * never the same one again. Fix My Mistakes does the same.
+   */
+  freshNumbers?: boolean;
   /** Questions added late (after a slide-by-slide check). A mixed day asks these first, in a round of their own. */
   lateAdditions?: ItemId[];
 }
@@ -236,6 +299,7 @@ export function examplesFor(pack: Pick<Pack, 'examples'>, item: Item): string[] 
 /** A short name for a question, for lists (the mistakes list, the end-of-session summary). */
 export function shortLabel(item: Item): string {
   if (item.type === 'term') return `Key term: ${item.term}`;
+  if (item.type === 'expression') return `${item.prompt} ${prettyMaths(item.expr)}`;
   if (item.type === 'table') return `${item.group}: ${item.rowHeader}`;
   return item.prompt.replace(/\n/g, ' ');
 }
@@ -268,5 +332,6 @@ export function answerText(item: Item): string {
     case 'table': return item.columns.map((c, i) => `${c}: ${item.cells[i].options[item.cells[i].answer]}`).join('\n');
     case 'order': return item.steps.join(' → ');
     case 'short': return item.model;
+    case 'expression': return prettyMaths(item.answer);
   }
 }

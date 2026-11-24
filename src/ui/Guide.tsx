@@ -51,9 +51,29 @@ const STEPS: { icon: string; title: string; text: string }[] = [
   },
 ];
 
+/** For a maths test: the last three steps are about lessons, "Show me how" and showing your working. */
+const MATHS_STEPS: { icon: string; title: string; text: string }[] = [
+  {
+    icon: '📚',
+    title: 'Learn first, then practise',
+    text: 'Each topic starts with a lesson: your teacher\'s worked examples, one step at a time, with why each step works. Then a "Your turn" example where you do the last step. You can open any lesson again from "Lessons and extra practice" on Home.',
+  },
+  {
+    icon: '💡',
+    title: 'Stuck? Tap "Show me how"',
+    text: 'It opens the method one step at a time: signs, then numbers, then letters. Using it is fine. The question then counts a little less, so next time try it on your own first. A miss comes back with different numbers, so you practise the idea, not the answer.',
+  },
+  {
+    icon: '✏️',
+    title: 'In the test, show every step',
+    text: 'Your test is marked on investigating patterns (B) and communicating (C). Your teacher wants "an answer + a mathematical reason": write each step in order, use the right words (term, coefficient, exponent), and explain why.',
+  },
+];
+
 export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; onParent: () => void }) {
   const left = daysToGo(pack, today);
   const things = conceptsOf(itemsOf(pack)).length;
+  const steps = pack.subject === 'Mathematics' ? [...STEPS.slice(0, 5), ...MATHS_STEPS] : STEPS;
   return (
     <>
       <header className="page-head">
@@ -70,9 +90,9 @@ export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; o
       </div>
 
       <section className="card" aria-labelledby="steps-h">
-        <h2 id="steps-h">Eight steps</h2>
+        <h2 id="steps-h">{steps.length} steps</h2>
         <ol className="guide-steps">
-          {STEPS.map((s, i) => (
+          {steps.map((s, i) => (
             <li key={s.title}>
               <span className="guide-icon" aria-hidden="true">{s.icon}</span>
               <div>
@@ -110,7 +130,7 @@ export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; o
       <section className="card tint-good" aria-labelledby="last-h">
         <h2 id="last-h">The last day and exam morning</h2>
         <ul className="bullets">
-          <li>The day before: rounds of everything, then the Fix list, then the Mock Exam. That day every round counts, so you can fill your ring to 95%. Then stop, and sleep well.</li>
+          <li>The day before: {pack.mocks?.length ? 'rounds of everything, then the Fix list, then the Mock Exam' : 'rounds of everything, then the Fix list'}. That day every round counts, so you can fill your ring to 95%. Then stop, and sleep well.</li>
           <li>Exam morning: a three-minute warm-up of your weakest questions. Nothing new. It adds the last 5% of your ring.</li>
         </ul>
       </section>

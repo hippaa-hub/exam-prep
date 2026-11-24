@@ -1,11 +1,14 @@
 // One question on screen. Each kind of item has its own way of being answered;
 // all of them report a single outcome and then show the marking.
 import { useEffect, useMemo, useState } from 'react';
-import type { ChoiceItem, Item, MatchItem, OrderItem, PairItem, ShortItem, TableItem, TermItem } from '../content/types';
+import type { ChoiceItem, ExpressionItem, Item, MatchItem, OrderItem, PairItem, ShortItem, TableItem, TermItem } from '../content/types';
 import { checkIdeas, hasEnoughWords, outcomeOfTicks, verdictSentence } from '../engine/check';
 import type { Outcome } from '../engine/progress';
 import { shuffle } from '../engine/rng';
 import { DictationBox } from './Dictation';
+import { MathsKeypad, lettersFor } from './MathsKeypad';
+import { judgeExpression } from '../engine/judge';
+import { pretty } from '../engine/algebra';
 import { FillRows, type FillRow } from './FillRows';
 import { IdeaVerdict } from './IdeaVerdict';
 import { ListenRow } from './ListenRow';
@@ -42,6 +45,7 @@ export function ItemView(props: ViewProps<Item>) {
     case 'table': return <TableRowView {...props} item={item} />;
     case 'order': return <OrderView {...props} item={item} />;
     case 'short': return <ShortView {...props} item={item} />;
+    case 'expression': return <ExpressionView {...props} item={item} />;
   }
 }
 
@@ -368,6 +372,45 @@ function ShortView({ item, locked, onResult, onCommit, simple, examples, fresh }
           <IdeaVerdict ideas={item.ideas} need={item.need} text={text} modelLabel="The teacher's wording" model={item.model}
             simple={simple} examples={examples} onDone={(outcome) => onResult(outcome)} disabled={locked} />
           <ListenRow text={modelText} aloud={aloud} onAloud={setAloud} />
+        </>
+      )}
+    </div>
+  );
+}
+
+/** An algebra answer built on the maths keypad. The app checks it by value, and asks to simplify if needed. */
+function ExpressionView({ item, locked, onResult, onCommit }: ViewProps<ExpressionItem>) {
+  const [text, setText] = useState('');
+  const [note, setNote] = useState<string | null>(null);
+  const letters = useMemo(() => item.letters ?? lettersFor(item.expr, item.answer), [item]);
+
+  const check = () => {
+    const verdict = judgeExpression(item, text);
+    if (verdict.kind === 'unreadable') { setNote(verdict.say); return; }
+    if (verdict.kind === 'simplify') { setNote(verdict.say); play('almost'); return; }
+    onCommit?.();
+    setNote(null);
+    onResult(verdict.kind === 'right' ? 'right' : 'wrong', verdict.say);
+  };
+
+  return (
+    <div className="item">
+      <Prompt text={item.prompt} kicker={item.kind === 'multiply' ? 'Multiply' : item.kind === 'collect' ? 'Simplify' : 'Work it out'} />
+      <div className="maths-big" aria-label="The expression">{pretty(item.expr)}</div>
+      <div className={`maths-answer${locked ? ' locked' : ''}`} aria-live="polite" aria-label="Your answer">
+        <span className="eq">=</span>
+        {text ? <span>{pretty(text)}</span> : <span className="placeholder">your answer</span>}
+      </div>
+      {note && <p className="maths-note" role="status">{note}</p>}
+      {!locked && (
+        <>
+          <MathsKeypad letters={letters} onKey={(k) => { setNote(null); setText((t) => t + k); }}
+            onDelete={() => { setNote(null); setText((t) => [...t].slice(0, -1).join('')); }}
+            onClear={() => { setNote(null); setText(''); }} />
+          <button type="button" className="btn primary" disabled={!text.trim()} onClick={check}>Check my answer</button>
+          <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>
+            I don't know yet. Show me.
+          </button>
         </>
       )}
     </div>

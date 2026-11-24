@@ -50,11 +50,20 @@ export function newProgress(): ConceptProgress {
  */
 export function applyAnswer(
   prev: ConceptProgress | undefined, outcome: Outcome, today: DateKey, itemId?: ItemId, credit = true, gentle = false,
+  /** She opened "Show me how" first: a right answer then counts as level 1 at most, and does not clear a mistake. */
+  helped = false,
 ): ConceptProgress {
   const p = prev ?? newProgress();
   const next = applyLook(prev, today, itemId);
 
   if (outcome === 'right' && !credit) return next;
+  if (outcome === 'right' && helped) {
+    if (p.level === 0 && !next.correctDays.includes(today)) {
+      next.correctDays = [today];
+      next.level = 1;
+    }
+    return next;
+  }
 
   if (outcome === 'right') {
     if (!next.correctDays.includes(today)) next.correctDays.push(today);
@@ -163,7 +172,9 @@ export function mistakeIds(pack: Pack, progress: ProgressMap): ItemId[] {
     const p = progress[c];
     if (p?.fix === undefined) continue;
     const missed = all.find((it) => it.id === p.fixItem && conceptOf(it) === c) ?? all.find((it) => conceptOf(it) === c);
-    if (missed) out.push(missed.id);
+    if (!missed) continue;
+    // A maths pack asks the same idea again with different numbers, not the very question she missed.
+    out.push(pack.freshNumbers ? freshVariant(all, missed, p.recent ?? []).id : missed.id);
   }
   return out;
 }
@@ -190,4 +201,18 @@ export function weakest(pack: Pack, progress: ProgressMap, n: number): ItemId[] 
         ?? variants[0];
       return pick.id;
     });
+}
+
+/**
+ * Another question on the same idea as `missed`, with different numbers: one of the same kind that she has not
+ * met recently if there is one, otherwise the one met longest ago. Falls back to `missed` when it is the only one.
+ */
+export function freshVariant(all: readonly Item[], missed: Item, recent: readonly ItemId[], avoid: ReadonlySet<ItemId> = new Set()): Item {
+  const others = all.filter((it) => conceptOf(it) === conceptOf(missed) && it.id !== missed.id && !avoid.has(it.id));
+  if (others.length === 0) return missed;
+  const sameKind = others.filter((it) => it.type === missed.type);
+  const pool = sameKind.length > 0 ? sameKind : others;
+  const unseen = pool.filter((it) => !recent.includes(it.id));
+  if (unseen.length > 0) return unseen[0];
+  return [...pool].sort((a, b) => recent.indexOf(a.id) - recent.indexOf(b.id))[0];
 }

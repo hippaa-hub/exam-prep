@@ -8,7 +8,10 @@ import type { ConceptProgress, Outcome } from '../engine/progress';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from '../engine/rewards';
 import { play } from './sound';
 import { useLeftApp } from './useLeftApp';
-import { answerRun, currentId, isFinished, runFraction, startRun, summarise, type RunSummary } from '../engine/session';
+import { answerRun, currentId, isFinished, originOf, runFraction, startRun, summarise, type RunSummary } from '../engine/session';
+import { freshVariant } from '../engine/progress';
+import { pretty } from '../engine/algebra';
+import { ShowMeHow } from './ShowMeHow';
 import { Confetti } from './Confetti';
 import { ItemView } from './ItemView';
 import { Mascot } from './Mascot';
@@ -19,7 +22,7 @@ interface Props {
   items: Map<ItemId, Item>;
   mistakeCount: number;
   /** `firstLook`: she said "I don't know yet"; if the thing is new to her, that is not counted as a mistake. */
-  onAnswer: (id: ItemId, outcome: Outcome, credit?: boolean, firstLook?: boolean) => { progress: ConceptProgress; fixed: boolean };
+  onAnswer: (id: ItemId, outcome: Outcome, credit?: boolean, firstLook?: boolean, helped?: boolean) => { progress: ConceptProgress; fixed: boolean };
   /** True if she has never met the thing this question is about. */
   isNew: (id: ItemId) => boolean;
   onFinish: (summary: RunSummary) => void;
@@ -37,7 +40,7 @@ interface Props {
 
 export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer, onFinish, onExit, onFix, onLeft, next: nextTask, dayDone, examDay = false }: Props) {
   const [run, setRun] = useState(() => startRun(spec.ids));
-  const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean; chosen?: string } | null>(null);
+  const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean; chosen?: string; replacement?: ItemId } | null>(null);
   const [fixed, setFixed] = useState(0);
   const reported = useRef(false);
   const finished = isFinished(run);
@@ -45,6 +48,8 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
   const [leftOn, setLeftOn] = useState<ReadonlySet<ItemId>>(new Set());
   /** True once she has given her answer to the question on screen. */
   const [committed, setCommitted] = useState(false);
+  /** How many steps of "Show me how" she has opened on the question on screen (0 = none). */
+  const [helpSteps, setHelpSteps] = useState(0);
   const waitingId = finished || result !== null || committed ? undefined : currentId(run);
   useLeftApp(waitingId !== undefined, () => {
     if (waitingId === undefined || leftOn.has(waitingId)) return;
@@ -68,35 +73,41 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
 
   const id = currentId(run)!;
   const item = items.get(id)!;
-  const again = (run.asks[id] ?? 0) > 0;
+  const again = (run.asks[originOf(run, id)] ?? 0) > 0;
 
   // Is this thing new to her? Then "I don't know yet" is a first look, not a mistake.
   const fresh = isNew(id) && !again;
 
   const handleResult = (outcome: Outcome, chosen?: string, dontKnow?: boolean) => {
     // A repeat straight after a miss earns no credit, except in Fix My Mistakes, where the repeats are the point.
-    const saved = onAnswer(id, outcome, (!again || spec.kind === 'fix') && !leftOn.has(id), dontKnow === true);
+    const saved = onAnswer(id, outcome, (!again || spec.kind === 'fix') && !leftOn.has(id), dontKnow === true, helpSteps > 0);
     if (saved.fixed) setFixed((n) => n + 1);
     // A miss comes back later in this session. In Fix My Mistakes a right answer is enough: it leaves the list (FIX_TARGET).
     let askAgain = outcome !== 'right' || (spec.kind === 'fix' && saved.progress.fix !== undefined);
     // A written answer takes a while, so it is repeated at most once, and only after a real miss.
     if (item.type === 'short' && spec.kind !== 'fix') askAgain = outcome === 'wrong' && !again;
+    // In a maths pack a miss comes back as the same idea with different numbers, not the same question.
+    const replacement = askAgain && pack.freshNumbers
+      ? freshVariant([...items.values()], item, [], new Set(run.queue)).id
+      : undefined;
     if (item.type === 'term' || item.type === 'short') {
       // These have already shown the teacher's wording, so move straight on.
-      setRun((r) => answerRun(r, outcome, askAgain));
+      setRun((r) => answerRun(r, outcome, askAgain, replacement));
       setCommitted(false);
+      setHelpSteps(0);
       window.scrollTo(0, 0);
     } else {
       play(outcome);
-      setResult({ outcome, askAgain, chosen });
+      setResult({ outcome, askAgain, chosen, replacement });
     }
   };
 
   const next = () => {
     if (!result) return;
-    setRun((r) => answerRun(r, result.outcome, result.askAgain));
+    setRun((r) => answerRun(r, result.outcome, result.askAgain, result.replacement));
     setResult(null);
     setCommitted(false);
+    setHelpSteps(0);
     window.scrollTo(0, 0);
   };
 
@@ -122,11 +133,15 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
       </header>
 
       <main className="session-body">
-        {again && !result && <div className="again-tag">Back again. You've got this.</div>}
+        {again && !result && !run.stand?.[id] && <div className="again-tag">Back again. You've got this.</div>}
         {leftOn.has(id) && !result && (
           <div className="left-note" role="status">
             You left the app during this question, so it will not count this time. Answer it anyway: it will come back later.
           </div>
+        )}
+        {again && !result && run.stand?.[id] && <div className="again-tag">Same idea, new numbers. You've got this.</div>}
+        {item.how && item.how.length > 0 && !result && (
+          <ShowMeHow steps={item.type === 'expression' ? item.how.slice(0, -1) : item.how} shown={helpSteps} onMore={() => setHelpSteps((n) => n + 1)} />
         )}
         <ItemView key={`${id}:${run.index}`} item={item} locked={result !== null} onResult={handleResult} onCommit={() => setCommitted(true)} simple={simple} examples={examples} fresh={fresh} />
       </main>
@@ -135,7 +150,21 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
         <footer className={`feedback ${right ? 'good' : 'retry'}`} role="status">
           <h2 className="feedback-head">{right ? '✓ Correct!' : 'Not quite. This one will come back.'}</h2>
           {showAnswer && <div className="feedback-answer"><span>Answer</span>{answerText(item)}</div>}
-          {why ? (
+          {item.type === 'expression' && (
+            <div className="why-list">
+              {!right && result.chosen && <div className="why not"><span>What happened?</span><p>{result.chosen}</p></div>}
+              {right && result.chosen && <p>{result.chosen}</p>}
+              {!right && <div className="feedback-answer"><span>Answer</span>{pretty(item.answer)}</div>}
+              {item.how && (
+                <div className="why yes">
+                  <span>{right ? 'The working, step by step' : 'How to get it'}</span>
+                  <ol className="working">{item.how.map((h) => <li key={h}>{h}</li>)}</ol>
+                </div>
+              )}
+              {right && helpSteps > 0 && <p className="muted">You used "Show me how": next time, try it on your own first.</p>}
+            </div>
+          )}
+          {item.type === 'expression' ? null : why ? (
             <div className="why-list">
               {why.chosen && (
                 <div className="why not">
