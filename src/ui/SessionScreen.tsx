@@ -12,6 +12,10 @@ import { answerRun, currentId, isFinished, originOf, runFraction, startRun, summ
 import { freshVariant } from '../engine/progress';
 import { pretty } from '../engine/algebra';
 import { ShowMeHow } from './ShowMeHow';
+import { PatternPicture } from './PatternPicture';
+
+/** Questions with a worked answer: the feedback shows what went wrong and the working, not answer options. */
+const CALC = new Set<Item['type']>(['expression', 'numeric', 'sequence', 'errorFind']);
 import { Confetti } from './Confetti';
 import { ItemView } from './ItemView';
 import { Mascot } from './Mascot';
@@ -141,8 +145,9 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
         )}
         {again && !result && run.stand?.[id] && <div className="again-tag">Same idea, new numbers. You've got this.</div>}
         {item.how && item.how.length > 0 && !result && (
-          <ShowMeHow steps={item.type === 'expression' ? item.how.slice(0, -1) : item.how} shown={helpSteps} onMore={() => setHelpSteps((n) => n + 1)} />
+          <ShowMeHow steps={CALC.has(item.type) && item.how.length > 1 ? item.how.slice(0, -1) : item.how} shown={helpSteps} onMore={() => setHelpSteps((n) => n + 1)} />
         )}
+        {item.picture && <PatternPicture picture={item.picture} />}
         <ItemView key={`${id}:${run.index}`} item={item} locked={result !== null} onResult={handleResult} onCommit={() => setCommitted(true)} simple={simple} examples={examples} fresh={fresh} />
       </main>
 
@@ -150,11 +155,13 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
         <footer className={`feedback ${right ? 'good' : 'retry'}`} role="status">
           <h2 className="feedback-head">{right ? '✓ Correct!' : 'Not quite. This one will come back.'}</h2>
           {showAnswer && <div className="feedback-answer"><span>Answer</span>{answerText(item)}</div>}
-          {item.type === 'expression' && (
+          {CALC.has(item.type) && (
             <div className="why-list">
               {!right && result.chosen && <div className="why not"><span>What happened?</span><p>{result.chosen}</p></div>}
               {right && result.chosen && <p>{result.chosen}</p>}
-              {!right && <div className="feedback-answer"><span>Answer</span>{pretty(item.answer)}</div>}
+              {!right && <div className="feedback-answer"><span>Answer</span>{item.type === 'expression' ? pretty(item.answer) : answerText(item)}</div>}
+              {item.explain && <p className="feedback-explain">{item.explain}</p>}
+              {simple && <p className="feedback-explain">💡 {simple}</p>}
               {item.how && (
                 <div className="why yes">
                   <span>{right ? 'The working, step by step' : 'How to get it'}</span>
@@ -164,7 +171,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
               {right && helpSteps > 0 && <p className="muted">You used "Show me how": next time, try it on your own first.</p>}
             </div>
           )}
-          {item.type === 'expression' ? null : why ? (
+          {CALC.has(item.type) ? null : why ? (
             <div className="why-list">
               {why.chosen && (
                 <div className="why not">

@@ -5,11 +5,11 @@ import { allItemsOf, conceptOf, gameOf, glossaryOf, itemsOf } from './content/ty
 import { addDays, dateKeyOf } from './engine/dates';
 import { isTopic, RESUME_MS, startNote, stopNote, testNote } from './engine/notify';
 import { isSprint, occasionFor, pickPack, planFor, type SessionKind } from './engine/plan';
-import { applyAnswer, applyLook, mistakeIds, type ConceptProgress, type Outcome } from './engine/progress';
+import { applyAnswer, applyLook, migrateProgress, mistakeIds, type ConceptProgress, type Outcome } from './engine/progress';
 import { packRing } from './engine/ring';
 import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
-import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, LAST_DAY_SIZE, TODAY_SIZE, type RunSummary } from './engine/session';
+import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, lastDaySize, roundSize, type RunSummary } from './engine/session';
 import { badgesFor } from './engine/rewards';
 import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, learnTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type LessonInfo, type Task } from './engine/tasks';
 import { LearnScreen } from './ui/LearnScreen';
@@ -101,12 +101,20 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         await store.save(loaded);
         window.history.replaceState(null, '', window.location.pathname);
       }
+      // Things to know that were merged in an update keep their progress under the new name.
+      for (const p of packs) {
+        const ps = loaded.packs[p.id];
+        if (ps && p.conceptAliases) {
+          const progress = migrateProgress(ps.progress, p.conceptAliases);
+          if (progress !== ps.progress) loaded = { ...loaded, packs: { ...loaded.packs, [p.id]: { ...ps, progress } } };
+        }
+      }
       if (!alive) return;
       savedRef.current = loaded;
       setSaved(loaded);
     })();
     return () => { alive = false; };
-  }, [store]);
+  }, [store, packs]);
 
   // If the app is left open overnight, notice the new day when she comes back to it.
   useEffect(() => {
@@ -294,7 +302,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const wordsInMix = glossary.length ? GLOSSARY_IN_MIX : 0;
   const lateLeft = buildLateSession(pack, progress).length;
   const mockMinutes = (pack.mocks ?? []).find((m) => m.id === plan.mock)?.minutes ?? 35;
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes, lessonInfo);
+  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes, lessonInfo, { round: roundSize(pack), lastDay: lastDaySize(pack) });
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -315,7 +323,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes, lessonInfo);
+      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes, lessonInfo, { round: roundSize(pack), lastDay: lastDaySize(pack) });
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -339,7 +347,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     const rounds = currentSave().sessions.filter((s) => s.kind === 'today' && s.date === today).length;
     // On the last day the rounds after the first ask what is not full yet: more questions, and no new glossary words.
     const later = isSprint(plan) && rounds >= 1;
-    const ids = buildTodaySession(pack, currentSave().progress, plan, stamp(), Math.random, later ? LAST_DAY_SIZE : TODAY_SIZE, !later);
+    // The later rounds of the last day ask everything that is not full yet, not only the day's new topics.
+    const ids = buildTodaySession(pack, currentSave().progress, later ? { ...plan, topics: [] } : plan, stamp(), Math.random, later ? lastDaySize(pack) : roundSize(pack), !later);
     const number = Math.min(rounds + 1, isSprint(plan) ? 3 : 2);
     const title = plan.phase === 'exam-day' ? 'Warm-up' : guided ? `Round ${number}` : 'Extra practice';
     const task = plan.phase === 'exam-day' ? 'warm-up' : `round-${number}`;

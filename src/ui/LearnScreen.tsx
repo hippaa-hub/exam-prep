@@ -9,6 +9,7 @@ import { Confetti } from './Confetti';
 import { Mascot } from './Mascot';
 import { MathsKeypad, lettersFor } from './MathsKeypad';
 import { play } from './sound';
+import { PatternPicture } from './PatternPicture';
 
 interface Props {
   lesson: Lesson;
@@ -78,6 +79,7 @@ function CardView({ card, last, onTapRight, onNext }: { card: LearnCard; last: b
       <div className="kicker">Learn</div>
       <h2 className="learn-title"><span className="learn-emoji" aria-hidden="true">{card.emoji}</span> {card.title}</h2>
       <p className="learn-intro">{card.intro}</p>
+      {card.picture && <PatternPicture picture={card.picture} />}
 
       <ol className="learn-steps">
         {card.steps.slice(0, shown).map((s, i) => (
@@ -177,7 +179,7 @@ function Faded({ faded, locked, onDone }: { faded: NonNullable<LearnCard['faded'
   return (
     <section className="faded" ref={top}>
       <h3>✏️ Your turn! {faded.prompt}</h3>
-      <div className="maths-big">{pretty(faded.expr)}</div>
+      <div className="maths-big">{pretty(faded.show ?? faded.expr)}</div>
       <ol className="learn-steps">
         {faded.given.map((s, i) => (
           <li key={i} className="learn-step">

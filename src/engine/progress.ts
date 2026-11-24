@@ -216,3 +216,25 @@ export function freshVariant(all: readonly Item[], missed: Item, recent: readonl
   if (unseen.length > 0) return unseen[0];
   return [...pool].sort((a, b) => recent.indexOf(a.id) - recent.indexOf(b.id))[0];
 }
+
+/** Moves progress saved under old concept names (merged since) to the new names, keeping the better record. */
+export function migrateProgress(progress: ProgressMap, aliases: Record<ConceptId, ConceptId> | undefined): ProgressMap {
+  if (!aliases || !Object.keys(aliases).some((old) => progress[old])) return progress;
+  const out: ProgressMap = { ...progress };
+  for (const [old, now] of Object.entries(aliases)) {
+    const p = out[old];
+    if (!p) continue;
+    delete out[old];
+    const cur = out[now];
+    if (!cur) { out[now] = p; continue; }
+    const best = p.level > cur.level ? p : cur;
+    out[now] = {
+      ...best,
+      seen: cur.seen + p.seen,
+      recent: [...new Set([...(cur.recent ?? []), ...(p.recent ?? [])])].slice(-8),
+      ...(cur.fix !== undefined || p.fix !== undefined ? { fix: 0, fixItem: cur.fixItem ?? p.fixItem } : {}),
+    };
+    if (out[now].fix === undefined) { delete out[now].fix; delete out[now].fixItem; }
+  }
+  return out;
+}

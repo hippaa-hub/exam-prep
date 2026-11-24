@@ -1,12 +1,14 @@
 // One question on screen. Each kind of item has its own way of being answered;
 // all of them report a single outcome and then show the marking.
 import { useEffect, useMemo, useState } from 'react';
-import type { ChoiceItem, ExpressionItem, Item, MatchItem, OrderItem, PairItem, ShortItem, TableItem, TermItem } from '../content/types';
+import type { ChoiceItem, ErrorFindItem, ExpressionItem, NumericItem, SequenceItem, Item, MatchItem, OrderItem, PairItem, ShortItem, TableItem, TermItem } from '../content/types';
 import { checkIdeas, hasEnoughWords, outcomeOfTicks, verdictSentence } from '../engine/check';
 import type { Outcome } from '../engine/progress';
 import { shuffle } from '../engine/rng';
 import { DictationBox } from './Dictation';
 import { MathsKeypad, lettersFor } from './MathsKeypad';
+import { NumberPad, readNumber, showNumber } from './NumberPad';
+import { fmtNum } from '../content/types';
 import { judgeExpression } from '../engine/judge';
 import { pretty } from '../engine/algebra';
 import { FillRows, type FillRow } from './FillRows';
@@ -46,6 +48,9 @@ export function ItemView(props: ViewProps<Item>) {
     case 'order': return <OrderView {...props} item={item} />;
     case 'short': return <ShortView {...props} item={item} />;
     case 'expression': return <ExpressionView {...props} item={item} />;
+    case 'numeric': return <NumericView {...props} item={item} />;
+    case 'sequence': return <SequenceView {...props} item={item} />;
+    case 'errorFind': return <ErrorFindView {...props} item={item} />;
   }
 }
 
@@ -395,8 +400,8 @@ function ExpressionView({ item, locked, onResult, onCommit }: ViewProps<Expressi
 
   return (
     <div className="item">
-      <Prompt text={item.prompt} kicker={item.kind === 'multiply' ? 'Multiply' : item.kind === 'collect' ? 'Simplify' : 'Work it out'} />
-      <div className="maths-big" aria-label="The expression">{pretty(item.expr)}</div>
+      <Prompt text={item.prompt} kicker={KICKER[item.kind ?? 'other']} />
+      <div className="maths-big" aria-label="The expression">{pretty(item.show ?? item.expr)}</div>
       <div className={`maths-answer${locked ? ' locked' : ''}`} aria-live="polite" aria-label="Your answer">
         <span className="eq">=</span>
         {text ? <span>{pretty(text)}</span> : <span className="placeholder">your answer</span>}
@@ -411,6 +416,171 @@ function ExpressionView({ item, locked, onResult, onCommit }: ViewProps<Expressi
           <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>
             I don't know yet. Show me.
           </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+const KICKER: Record<NonNullable<ExpressionItem['kind']>, string> = {
+  multiply: 'Multiply', collect: 'Simplify', brackets: 'Brackets', rule: 'Find the rule', other: 'Work it out',
+};
+
+/** Boxes for number answers, filled from the number pad. Tap a box to type into it. */
+function NumberBoxes({ labels, values, active, locked, marks, onPick }: {
+  labels: string[]; values: string[]; active: number; locked: boolean; marks?: boolean[]; onPick: (i: number) => void;
+}) {
+  return (
+    <div className="num-boxes">
+      {labels.map((label, i) => (
+        <button key={label + i} type="button" disabled={locked} onClick={() => onPick(i)}
+          className={`num-box${i === active && !locked ? ' active' : ''}${marks ? (marks[i] ? ' right' : ' wrong') : ''}`}>
+          <span className="num-label">{label}</span>
+          <span className="num-value">{values[i] ? showNumber(values[i]) : '?'}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function useNumberEntry(count: number) {
+  const [values, setValues] = useState<string[]>(() => Array(count).fill(''));
+  const [active, setActive] = useState(0);
+  const key = (k: string) => setValues((v) => v.map((x, i) => {
+    if (i !== active) return x;
+    if (k === '-') return x.startsWith('-') ? x.slice(1) : `-${x}`;
+    return x.length >= 6 ? x : x + k;
+  }));
+  const del = () => setValues((v) => v.map((x, i) => (i === active ? x.slice(0, -1) : x)));
+  const complete = values.every((v) => readNumber(v) !== null);
+  return { values, active, setActive, key, del, complete };
+}
+
+function NumericView({ item, locked, onResult, onCommit }: ViewProps<NumericItem>) {
+  const e = useNumberEntry(item.fields.length);
+  const [marks, setMarks] = useState<boolean[] | undefined>();
+  const check = () => {
+    onCommit?.();
+    const got = e.values.map(readNumber);
+    const m = item.fields.map((f, i) => got[i] === f.answer);
+    setMarks(m);
+    const slip = item.slips?.find((s) => s.answer === got[0]);
+    const say = slip?.say ?? (m.some((x) => !x) && item.fields.length > 1
+      ? `Check ${item.fields.filter((_, i) => !m[i]).map((f) => f.label).join(' and ')}.` : undefined);
+    onResult(m.every(Boolean) ? 'right' : 'wrong', say);
+  };
+  return (
+    <div className="item">
+      <Prompt text={item.prompt} kicker="Work it out" />
+      <NumberBoxes labels={item.fields.map((f) => f.label)} values={e.values} active={e.active} locked={locked} marks={marks} onPick={e.setActive} />
+      {!locked && (
+        <>
+          <NumberPad onKey={e.key} onDelete={e.del} />
+          {item.fields.length > 1 && e.active < item.fields.length - 1 && readNumber(e.values[e.active]) !== null && (
+            <button type="button" className="btn ghost small" onClick={() => e.setActive(e.active + 1)}>Next box ▶</button>
+          )}
+          <button type="button" className="btn primary" disabled={!e.complete} onClick={check}>Check my answer</button>
+          <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>I don't know yet. Show me.</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+const SEQ_KINDS: SequenceItem['kind'][] = ['arithmetic', 'geometric', 'neither'];
+
+/** Sequence Detective: the next two terms, arithmetic / geometric / neither, and the evidence. */
+function SequenceView({ item, locked, onResult, onCommit }: ViewProps<SequenceItem>) {
+  const e = useNumberEntry(2);
+  const [kind, setKind] = useState<SequenceItem['kind'] | null>(null);
+  const evidence = useMemo(() => shuffle(item.evidence), [item]);
+  const [rule, setRule] = useState<string | null>(null);
+  const [marks, setMarks] = useState<boolean[] | undefined>();
+  const check = () => {
+    onCommit?.();
+    const got = e.values.map(readNumber);
+    const m = [got[0] === item.next[0], got[1] === item.next[1]];
+    setMarks(m);
+    const parts = [m[0] && m[1] ? '' : 'the next terms', kind === item.kind ? '' : 'the type', rule === item.rule ? '' : 'the evidence'].filter(Boolean);
+    onResult(parts.length === 0 ? 'right' : 'wrong', parts.length ? `Check ${parts.join(', ')}.` : undefined);
+  };
+  return (
+    <div className="item">
+      <Prompt text={item.prompt} kicker="Sequence Detective" />
+      <div className="seq-row" aria-label="The sequence">
+        {item.terms.map((t, i) => <span key={i} className="seq-term">{fmtNum(t)}</span>)}
+      </div>
+      <NumberBoxes labels={['Next term', 'Then']} values={e.values} active={e.active} locked={locked} marks={marks} onPick={e.setActive} />
+      {!locked && <NumberPad onKey={(k) => { e.key(k); }} onDelete={e.del} />}
+      {!locked && e.active === 0 && readNumber(e.values[0]) !== null && (
+        <button type="button" className="btn ghost small" onClick={() => e.setActive(1)}>Next box ▶</button>
+      )}
+      <div className="seq-q">What kind of sequence?</div>
+      <div className="seq-kinds">
+        {SEQ_KINDS.map((k) => (
+          <button key={k} type="button" disabled={locked} onClick={() => setKind(k)}
+            className={locked ? (k === item.kind ? 'option right' : k === kind ? 'option wrong' : 'option dim') : k === kind ? 'option picked' : 'option'}>{k}</button>
+        ))}
+      </div>
+      <div className="seq-q">Your evidence:</div>
+      <div className="options">
+        {evidence.map((r) => (
+          <button key={r} type="button" disabled={locked} onClick={() => setRule(r)}
+            className={locked ? (r === item.rule ? 'option right' : r === rule ? 'option wrong' : 'option dim') : r === rule ? 'option picked' : 'option'}>{r}</button>
+        ))}
+      </div>
+      {!locked && (
+        <>
+          <button type="button" className="btn primary" disabled={!e.complete || !kind || !rule} onClick={check}>Check my answer</button>
+          <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>I don't know yet. Show me.</button>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Error Detective: tap the line with the mistake, then pick the fix. */
+function ErrorFindView({ item, locked, onResult, onCommit }: ViewProps<ErrorFindItem>) {
+  const [line, setLine] = useState<number | null>(null);
+  const fixes = useMemo(() => shuffle(item.fixes), [item]);
+  const [fix, setFix] = useState<string | null>(null);
+  const tapLine = (i: number) => {
+    if (locked || line !== null) return;
+    setLine(i);
+    if (i !== item.wrong) {
+      onCommit?.();
+      onResult('wrong', `Line ${i + 1} is correct. The mistake is in line ${item.wrong + 1}.`);
+    }
+  };
+  const pickFix = (f: string) => {
+    if (locked) return;
+    setFix(f);
+    onCommit?.();
+    onResult(f === item.fix ? 'right' : 'wrong', f === item.fix ? undefined : `You found the wrong line, well done. The fix is: ${pretty(item.fix)}.`);
+  };
+  return (
+    <div className="item">
+      <Prompt text={item.prompt} kicker="Error Detective 🔎" />
+      <ol className="err-lines">
+        {item.lines.map((l, i) => (
+          <li key={i}>
+            <button type="button" disabled={locked || line !== null} onClick={() => tapLine(i)}
+              className={`err-line${line === i ? (i === item.wrong ? ' right' : ' wrong') : ''}${locked && i === item.wrong ? ' right' : ''}`}>
+              <span className="num">{i + 1}</span>{pretty(l)}
+            </button>
+          </li>
+        ))}
+      </ol>
+      {line === null && <p className="hint">Tap the line with the mistake.</p>}
+      {line === item.wrong && (
+        <>
+          <div className="seq-q">Good eye! What should that line say?</div>
+          <div className="options">
+            {fixes.map((f) => (
+              <button key={f} type="button" disabled={locked || fix !== null} onClick={() => pickFix(f)}
+                className={fix === null ? 'option' : f === item.fix ? 'option right' : f === fix ? 'option wrong' : 'option dim'}>{pretty(f)}</button>
+            ))}
+          </div>
         </>
       )}
     </div>

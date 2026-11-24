@@ -79,6 +79,8 @@ export function tasksFor(
   mockMinutes = 35,
   /** The lessons of the day's topics, if the pack has them. */
   lessonInfo?: (topic: string) => LessonInfo | undefined,
+  /** The pack's round sizes, for the task cards. */
+  sizes: { round: number; lastDay: number } = { round: TODAY_SIZE, lastDay: LAST_DAY_SIZE },
 ): Task[] {
   const todays = sessions.filter((s) => s.date === today);
   const rounds = todays.filter((s) => s.kind === 'today').length;
@@ -96,7 +98,7 @@ export function tasksFor(
   const sprint = isSprint(plan);
   const mixDay = plan.phase === 'mix' || !!plan.mock || sprint;
   const mockDone = plan.mock ? didTask(mockTaskId(plan.mock)) : false;
-  const size = Math.min(TODAY_SIZE, due || TODAY_SIZE) + (mixDay ? wordsInMix : 0);
+  const size = Math.min(sizes.round, due || sizes.round) + (mixDay ? wordsInMix : 0);
   const tasks: Task[] = [];
 
   // The Key Terms flashcards come before the questions: she meets the words first, then is asked about them.
@@ -127,9 +129,9 @@ export function tasksFor(
   }
 
   tasks.push({
-    id: 'round-1', kind: 'round', title: mixDay ? 'A mixed round of everything' : "Round 1: today's questions",
+    id: 'round-1', kind: 'round', title: mixDay && plan.topics.length === 0 ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
-    tip: mixDay
+    tip: mixDay && plan.topics.length === 0
       ? 'Everything from both lessons, plus new glossary words. Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.'
       : 'Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
     done: rounds >= 1,
@@ -177,7 +179,7 @@ export function tasksFor(
       const done = rounds >= k || (rounds >= 1 && due === 0) || mockDone;
       tasks.push({
         id: `round-${k}`, kind: 'round', title: `Round ${k}: what is not full yet`,
-        detail: done ? 'Done' : rounds >= k - 1 ? questions(Math.min(LAST_DAY_SIZE, due || LAST_DAY_SIZE)) : `After round ${k - 1}`,
+        detail: done ? 'Done' : rounds >= k - 1 ? questions(Math.min(sizes.lastDay, due || sizes.lastDay)) : `After round ${k - 1}`,
         tip: 'Today every round counts. Each thing you get right in a new round fills one more step of your ring.',
         done,
       });

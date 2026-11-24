@@ -231,3 +231,255 @@ export const lessonA1: Lesson = {
     },
   ],
 };
+
+export const lessonP1: Lesson = {
+  topic: 'P1',
+  title: 'Sequences',
+  blurb: '3 short cards: arithmetic, geometric or neither, and how to prove it.',
+  cards: [
+    {
+      id: 'p1-1', emoji: '➕', title: 'Arithmetic: add the same number',
+      intro: 'In an arithmetic sequence the same number is added (or subtracted) every time. That number is the common difference.',
+      steps: [
+        { show: '5, 9, 13, 17, …', why: 'Look at how it changes from one term to the next.' },
+        { show: '9 − 5 = 4,  13 − 9 = 4,  17 − 13 = 4', why: 'Common difference = any term minus the term before it.' },
+        { show: 'Next: 21, 25', why: 'Keep adding 4: 17 + 4 = 21, 21 + 4 = 25.' },
+        { show: '20, 17, 14, 11 → −3 each time', why: 'A sequence that goes down has a negative common difference.' },
+      ],
+      tap: { question: 'What is the common difference of 28, 21, 14?', options: ['−7', '+7', '÷2'], answer: 0, why: '21 − 28 = −7: it goes down by 7 each time.' },
+      remember: 'Arithmetic: the SAME difference every time (+ or −).',
+    },
+    {
+      id: 'p1-2', emoji: '✖️', title: 'Geometric: multiply by the same number',
+      intro: 'In a geometric sequence each term is multiplied by the same number. That number is the common ratio.',
+      steps: [
+        { show: '3, 6, 12, 24, …', why: 'The differences are +3, +6, +12: they change, so it is not arithmetic.' },
+        { show: '6 ÷ 3 = 2,  12 ÷ 6 = 2,  24 ÷ 12 = 2', why: 'Common ratio = any term divided by the term before it.' },
+        { show: 'Next: 48, 96', why: 'Keep multiplying by 2.' },
+        { show: '81, 27, 9 → ÷3 (×⅓) → 3, 1', why: 'A geometric sequence can also get smaller: divide each time.' },
+      ],
+      tap: { question: 'Is 4, 12, 36, 108 arithmetic or geometric?', options: ['Geometric: ×3 each time', 'Arithmetic: +8 each time'], answer: 0, why: '12 − 4 = 8 but 36 − 12 = 24, so the difference changes. 12 ÷ 4 = 3 and 36 ÷ 12 = 3: geometric.' },
+      remember: 'Geometric: the SAME ratio every time (× or ÷).',
+    },
+    {
+      id: 'p1-3', emoji: '🕵️', title: 'Neither, and giving evidence',
+      intro: 'Some sequences are neither. Your teacher wants evidence, not just an answer.',
+      steps: [
+        { show: '1, 2, 4, 7, 11, 16, …', why: 'Check the differences first.' },
+        { show: '+1, +2, +3, +4, +5', why: 'The increase changes each time, so it is not arithmetic.' },
+        { show: '2 ÷ 1 = 2, but 7 ÷ 4 is not 2', why: 'No fixed ratio either, so it is not geometric. It is neither.' },
+        { show: 'Next: +6 → 22, then +7 → 29', why: 'The pattern in the increases tells you the next terms.' },
+      ],
+      tap: { question: 'Student A: "It must be arithmetic because it goes up." Is that good evidence?', options: ['No: going up is not a fixed difference', 'Yes: it goes up'], answer: 0, why: 'Arithmetic needs the SAME difference each time. Show the differences as your evidence.' },
+      remember: 'Always show your evidence: the differences, or the ratios.',
+    },
+  ],
+};
+
+export const lessonA2: Lesson = {
+  topic: 'A2',
+  title: 'Brackets',
+  blurb: '3 short cards: adding and subtracting expressions in brackets.',
+  cards: [
+    {
+      id: 'a2-1', emoji: '➕', title: 'A plus before a bracket: nothing changes',
+      intro: 'Your teacher\'s Example A. With a + before the bracket, just remove the brackets.',
+      steps: [
+        { show: '(5x + 3y − 7) + (2x − 6y + 4)', why: 'There is a + between the brackets.' },
+        { show: '= 5x + 3y − 7 + 2x − 6y + 4', why: 'Remove the brackets. Every sign stays the same.' },
+        { show: '= (5x + 2x) + (3y − 6y) + (−7 + 4)', why: 'Group the like terms.' },
+        { show: '= 7x − 3y − 3', why: 'Collect: 5 + 2 = 7, 3 − 6 = −3, −7 + 4 = −3.' },
+      ],
+      remember: 'A + before a bracket changes nothing.',
+    },
+    {
+      id: 'a2-2', emoji: '🔄', title: 'A minus before a bracket: EVERY sign changes',
+      intro: 'Your teacher\'s Example B. This is the most important rule of the topic.',
+      steps: [
+        { show: '(8a − 3b + 5) − (2a + 4b − 6)', why: 'There is a − before the second bracket.' },
+        { show: '= 8a − 3b + 5 − 2a − 4b + 6', why: 'Every sign inside the second bracket changes: +2a → −2a, +4b → −4b, −6 → +6.' },
+        { show: '= (8a − 2a) + (−3b − 4b) + (5 + 6)', why: 'Group the like terms.' },
+        { show: '= 6a − 7b + 11', why: 'Collect each group.' },
+      ],
+      tap: { question: 'What does −(2x − 7) become?', options: ['−2x + 7', '−2x − 7', '2x − 7'], answer: 0, why: 'Both signs change: +2x → −2x and −7 → +7.' },
+      faded: {
+        prompt: 'The brackets are removed and grouped. You finish it.',
+        expr: '(9x + 5) − (4x + 2)', kind: 'brackets',
+        given: [
+          { show: '= 9x + 5 − 4x − 2', why: 'The minus changes both signs in the second bracket.' },
+          { show: '= (9x − 4x) + (5 − 2)', why: 'Group the like terms.' },
+        ],
+        answer: '5x + 3', hint: '9 − 4 = 5 and 5 − 2 = 3: 5x + 3.',
+      },
+      remember: 'A − before a bracket changes the sign of EVERY term inside.',
+    },
+    {
+      id: 'a2-3', emoji: '🔲', title: 'Real life: perimeter',
+      intro: 'Brackets appear in real problems. A rectangle is (5x + 3) cm by (2x − 1) cm.',
+      steps: [
+        { show: 'Perimeter = 2 × length + 2 × width', why: 'Two lengths and two widths go round the rectangle.' },
+        { show: '= 2(5x + 3) + 2(2x − 1)', why: 'Put each side in brackets.' },
+        { show: '= 10x + 6 + 4x − 2', why: 'Multiply each term in the bracket by 2.' },
+        { show: '= 14x + 4 cm', why: 'Collect: 10x + 4x = 14x and 6 − 2 = 4.' },
+        { show: 'Check with x = 2: sides 13 and 3, perimeter 32; 14(2) + 4 = 32 ✓', why: 'Your teacher: verify by substituting a number.' },
+      ],
+      remember: 'Check an answer by putting in a number, for example x = 2.',
+    },
+  ],
+};
+
+export const lessonP4: Lesson = {
+  topic: 'P4',
+  title: 'Substitution with negative numbers',
+  blurb: '3 short cards: brackets for negatives, squares, and the order of operations.',
+  cards: [
+    {
+      id: 'p4-1', emoji: '🧤', title: 'Negative numbers need brackets!',
+      intro: 'To substitute, put the number in place of the letter. A negative number always goes in brackets.',
+      steps: [
+        { show: 'a = −3:  2a + 5', why: 'The letter a will be replaced by (−3).' },
+        { show: '= 2(−3) + 5', why: 'Brackets keep the minus sign with the 3.' },
+        { show: '= −6 + 5 = −1', why: 'Multiply first (order of operations), then add.' },
+        { show: '3(−2) + 1 = −5, but 3 − 2 + 1 = 2', why: 'Without brackets it looks like subtraction, and the answer is wrong.' },
+      ],
+      tap: { question: 'x = −2. Which line is right for 3x + 1?', options: ['3(−2) + 1 = −5', '3 − 2 + 1 = 2'], answer: 0, why: 'Keep the negative number in brackets: 3 × (−2) = −6, then −6 + 1 = −5.' },
+      remember: 'Negative numbers need brackets!',
+    },
+    {
+      id: 'p4-2', emoji: '²', title: 'Squaring a negative number',
+      intro: 'The square applies only to what is directly in front of it.',
+      steps: [
+        { show: '(−3)² = (−3) × (−3) = 9', why: 'Minus times minus is plus.' },
+        { show: '−3² = −(3 × 3) = −9', why: 'Without brackets only the 3 is squared.' },
+        { show: 'a = −3:  1 − a² = 1 − (−3)²', why: 'Substitute with brackets.' },
+        { show: '= 1 − 9 = −8', why: 'Square first: (−3)² = 9. The minus in front stays: 1 − 9.' },
+      ],
+      tap: { question: 'k = −2. What is 3k²?', options: ['12', '−12', '36'], answer: 0, why: '(−2)² = 4 first, then 3 × 4 = 12.' },
+      remember: '(−3)² = 9 but −3² = −9. Square first, then the rest.',
+    },
+    {
+      id: 'p4-3', emoji: '🎰', title: 'Rule machine with negatives',
+      intro: 'A rule machine: y = 4 − 2x. Put in each x, one at a time.',
+      steps: [
+        { show: 'x = −2:  4 − 2(−2) = 4 + 4 = 8', why: '2 × (−2) = −4, and taking away −4 is adding 4.' },
+        { show: 'x = −1:  4 − 2(−1) = 6', why: 'Same steps.' },
+        { show: 'x = 0, 1, 2:  4, 2, 0', why: 'The values fall by 2 each time.' },
+        { show: '8, 6, 4, 2, 0: arithmetic, difference −2', why: 'The −2 in front of x makes it go down by 2.' },
+        { show: 'a = −3:  4(8 − a) = 4(8 − (−3)) = 4(11) = 44', why: 'Inside the bracket first: 8 − (−3) = 8 + 3 = 11.' },
+      ],
+      remember: 'Subtracting a negative is adding: 8 − (−3) = 11.',
+    },
+  ],
+};
+
+export const lessonPR: Lesson = {
+  topic: 'PR',
+  title: 'Patterns and rules',
+  blurb: '4 short cards: from a picture to a rule, and using the rule.',
+  cards: [
+    {
+      id: 'pr-1', emoji: '🔥', title: 'Matchstick squares',
+      intro: 'Squares in a row. Count the matchsticks: 4, 7, 10, 13…',
+      picture: { kind: 'matchsticks', figures: [1, 2, 3, 4] },
+      steps: [
+        { show: 'Figure 1: 4 sticks', why: 'One square has four sides.' },
+        { show: 'Each new square: +3 sticks', why: 'It SHARES one side with the square before, so it needs only 3 new sticks, not 4.' },
+        { show: 'm = 4 + 3(n − 1) = 3n + 1', why: 'First square 4, then 3 more for each of the other (n − 1) squares.' },
+        { show: 'Test figure 4: 3(4) + 1 = 13 ✓', why: 'Always check the rule on a figure you can count.' },
+      ],
+      tap: { question: 'Why is m = 4n wrong?', options: ['It counts each shared side twice', 'It is too short', 'It is right'], answer: 0, why: 'Test n = 2: 4n = 8, but the picture has 7.' },
+      remember: 'Count what is NEW in each figure: that is the number in front of n.',
+    },
+    {
+      id: 'pr-2', emoji: '➕', title: 'The tile cross',
+      intro: 'One centre tile and four arms that grow by one tile each stage: 5, 9, 13…',
+      picture: { kind: 'tile-cross', figures: [1, 2, 3] },
+      steps: [
+        { show: 'Each stage: +4 tiles', why: 'One new tile on each of the 4 arms.' },
+        { show: 't = 4n + 1', why: '4 × n arm tiles, plus 1 centre tile.' },
+        { show: 'The 4 = four arms; the 1 = the centre', why: 'Link each number in the rule to the picture: that is justifying.' },
+        { show: 'Stage 12: 4(12) + 1 = 49', why: 'Use the rule instead of drawing 12 stages.' },
+      ],
+      remember: 'Justify: say what each number in the rule means in the picture.',
+    },
+    {
+      id: 'pr-3', emoji: '🧮', title: 'From a sequence to a rule',
+      intro: 'Your teacher\'s way to build an arithmetic rule, on 3, 7, 11, 15.',
+      steps: [
+        { show: 'Common difference: +4', why: '7 − 3 = 4, 11 − 7 = 4.' },
+        { show: 'Rule starts 4n', why: 'The number in front of n is the common difference.' },
+        { show: 'n = 1: 4 × 1 = 4, but the first term is 3 → subtract 1', why: 'rule = (difference) × n + (first term − difference).' },
+        { show: 'Rule: 4n − 1. Test n = 2: 7 ✓', why: 'Always test on another term.' },
+        { show: '20th term: 4(20) − 1 = 79', why: 'No need to list all 20 terms: algebra is the shortcut.' },
+      ],
+      faded: {
+        prompt: 'The difference is found. You write the rule.',
+        expr: '4n + 2', show: '6, 10, 14, 18, …', kind: 'rule',
+        given: [
+          { show: 'Common difference: +4 → the rule starts 4n', why: '10 − 6 = 4.' },
+          { show: 'n = 1: 4 × 1 = 4, but the first term is 6 → add 2', why: '6 − 4 = 2.' },
+        ],
+        answer: '4n + 2', hint: '4n, then + 2: 4n + 2.',
+      },
+      remember: 'Rule = difference × n, then adjust so term 1 is right. Test it!',
+    },
+    {
+      id: 'pr-4', emoji: '🎯', title: 'Which term is N?',
+      intro: 'Work backwards: which figure has a certain number?',
+      steps: [
+        { show: 'Matchsticks m = 3n + 1. Which figure has 31 sticks?', why: 'Set the rule equal to 31.' },
+        { show: '3n + 1 = 31', why: 'An equation to solve.' },
+        { show: '3n = 30', why: 'Take away 1 from both sides.' },
+        { show: 'n = 10', why: 'Divide both sides by 3. Figure 10 has 31 sticks.' },
+      ],
+      tap: { question: 'The rule is 4n + 2. Which term is 62?', options: ['15', '16', '60'], answer: 0, why: '4n + 2 = 62 → 4n = 60 → n = 15.' },
+      remember: 'Which term? Set rule = N, then undo: take away, then divide.',
+    },
+  ],
+};
+
+export const lessonIN: Lesson = {
+  topic: 'IN',
+  title: 'Investigations and explaining',
+  blurb: '3 short cards: the Criterion B steps and how to explain for Criterion C.',
+  cards: [
+    {
+      id: 'in-1', emoji: '🔬', title: 'The 5 investigation steps (Criterion B)',
+      intro: 'Your teacher\'s steps, on the concert seating: row 1 has 12 seats, and each row has 3 more.',
+      steps: [
+        { show: '1. Find what changes: +3 seats each row', why: 'Describe the pattern.' },
+        { show: '2. Table: row 1, 2, 3, 4 → 12, 15, 18, 21', why: 'Organise the values.' },
+        { show: '3. General rule: s = 3n + 9', why: 'Difference 3, so 3n; 3(1) = 3, and 12 − 3 = 9.' },
+        { show: '4. Test: row 4 → 3(4) + 9 = 21 ✓', why: 'Verify on another term.' },
+        { show: '5. Justify: 12 seats to start, then 3 more for every new row', why: 'Link the rule to the situation. Row 20: 3(20) + 9 = 69.' },
+      ],
+      tap: { question: 'Which step gets you from 5–6 marks to 7–8?', options: ['Testing and justifying the rule', 'Drawing more pictures', 'Writing more terms'], answer: 0, why: 'Criterion B 7–8: find, TEST and JUSTIFY the general rule.' },
+      remember: 'Find → table → rule → TEST → JUSTIFY.',
+    },
+    {
+      id: 'in-2', emoji: '🎟️', title: 'What each number means',
+      intro: 'School fair: tickets cost 3 GEL each, plus a 5 GEL booking fee per order.',
+      steps: [
+        { show: 'y = 3x + 5', why: 'x = number of tickets, y = total cost in GEL.' },
+        { show: '3 = the price of each ticket', why: 'It is multiplied by x: it grows with every ticket.' },
+        { show: '5 = the booking fee', why: 'It is added once, whatever the number of tickets.' },
+        { show: '15 tickets: 3(15) + 5 = 50 GEL', why: 'Forwards: substitute x.' },
+        { show: 'A 50 GEL receipt: 3x + 5 = 50 → x = 15', why: 'Backwards: solve for x.' },
+      ],
+      remember: 'Say what every number in your rule represents.',
+    },
+    {
+      id: 'in-3', emoji: '🗣️', title: 'Explaining clearly (Criterion C)',
+      intro: 'Your teacher\'s sentence frame and checklist for a full explanation.',
+      steps: [
+        { show: '"My pattern begins with 4 matchsticks."', why: 'Start with what you see.' },
+        { show: '"Each new figure adds 3 matchsticks."', why: 'Say what changes, and why (a shared side).' },
+        { show: '"Therefore, figure n has 3n + 1 matchsticks."', why: 'State the rule, and say n is the figure number.' },
+        { show: '"I checked this using figure 2: 3(2) + 1 = 7 ✓"', why: 'Test it on another figure.' },
+        { show: 'Checklist: variable defined · table or diagram · rule explained · tested', why: 'Never only "because that is the rule".' },
+      ],
+      tap: { question: '"The rule is 4n + 2. It is obvious." What is the biggest problem?', options: ['No reason: "obvious" explains nothing', 'The rule is too short', 'It uses the letter n'], answer: 0, why: 'Say what n means, why 4 and 2, and test it on a new stage.' },
+      remember: 'An answer + a mathematical reason.',
+    },
+  ],
+};

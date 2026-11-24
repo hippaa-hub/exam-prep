@@ -22,6 +22,16 @@ export interface ItemBase {
    * For a calculation it is also the worked solution shown after she answers.
    */
   how?: string[];
+  /** A drawn growing pattern shown above the question (matchsticks, dots, tiles…). */
+  picture?: Picture;
+}
+
+/** The growing patterns the app can draw from numbers. */
+export type PictureKind = 'matchsticks' | 'toothpicks' | 'tile-cross' | 'dot-triangles' | 'dot-squares' | 'mosaic';
+export interface Picture {
+  kind: PictureKind;
+  /** Which figures (stages) to draw, for example [1, 2, 3]. */
+  figures: number[];
 }
 
 /** One key idea a written answer should contain, with the words that show it is there. */
@@ -114,15 +124,58 @@ export interface ExpressionItem extends ItemBase {
   answer: string;
   /** True (the default) when the answer must be fully simplified: 5x + 2x is not accepted for 7x. */
   simplest?: boolean;
-  /** 'multiply' lets the app spot the usual multiplication slips by itself. */
-  kind?: 'multiply' | 'collect' | 'other';
+  /**
+   * 'multiply' lets the app spot the usual multiplication slips by itself. 'brackets' spots a sign not changed
+   * after a minus. 'rule' is an nth-term rule: any equal form is accepted and a wrong rule is tested on the terms.
+   */
+  kind?: 'multiply' | 'collect' | 'brackets' | 'rule' | 'other';
   /** Slips this question is known for, with what to say. */
   slips?: Slip[];
   /** Letters for the keypad. Left out, they are taken from the expression. */
   letters?: string[];
+  /** Shown instead of `expr` when the question is not the calculation itself (a missing expression, a rule to find). */
+  show?: string;
+  /** For a rule (kind 'rule'): the first terms, so a wrong rule can be tested against them. */
+  terms?: number[];
 }
 
-export type Item = TermItem | ChoiceItem | PairItem | MatchItem | TableItem | OrderItem | ShortItem | ExpressionItem;
+/** One or more number answers, typed on a number pad. */
+export interface NumericItem extends ItemBase {
+  type: 'numeric';
+  fields: {
+    label: string;
+    answer: number;
+    /** The calculation that gives the answer, for example "1 - (-3)^2". The tests work it out again. */
+    calc?: string;
+  }[];
+  /** Known wrong answers (for the first field) and what to say about them. */
+  slips?: { answer: number; say: string }[];
+}
+
+/** A sequence: type the next two terms, say what kind it is, and give the evidence. */
+export interface SequenceItem extends ItemBase {
+  type: 'sequence';
+  terms: number[];
+  next: [number, number];
+  kind: 'arithmetic' | 'geometric' | 'neither';
+  /** The evidence, as one of `evidence`'s options, for example "+4 each time". */
+  rule: string;
+  evidence: string[];
+}
+
+/** Error Detective: a worked solution with one wrong line. Tap the wrong line, then pick the fix. */
+export interface ErrorFindItem extends ItemBase {
+  type: 'errorFind';
+  lines: string[];
+  /** The index of the wrong line. */
+  wrong: number;
+  /** The corrected line (one of `fixes`). */
+  fix: string;
+  /** Options for the fix, including `fix`. */
+  fixes: string[];
+}
+
+export type Item = TermItem | ChoiceItem | PairItem | MatchItem | TableItem | OrderItem | ShortItem | ExpressionItem | NumericItem | SequenceItem | ErrorFindItem;
 export type ItemType = Item['type'];
 
 export interface Topic {
@@ -150,7 +203,9 @@ export interface LearnCard {
   /** A quick "why?" question after the steps. */
   tap?: { question: string; options: string[]; answer: number; why: string };
   /** A faded example: the first steps are given, she does the last one herself. */
-  faded?: { prompt: string; expr: string; given: LearnStep[]; answer: string; hint: string; kind?: 'multiply' | 'collect' };
+  faded?: { prompt: string; expr: string; given: LearnStep[]; answer: string; hint: string; kind?: 'multiply' | 'collect' | 'brackets' | 'rule'; show?: string };
+  /** A drawn pattern for the card. */
+  picture?: Picture;
   /** The one thing to remember. */
   remember: string;
 }
@@ -254,6 +309,10 @@ export interface Pack {
    * never the same one again. Fix My Mistakes does the same.
    */
   freshNumbers?: boolean;
+  /** Old names of things to know that were merged into others: saved progress moves to the new name. */
+  conceptAliases?: Record<ConceptId, ConceptId>;
+  /** Round sizes for this pack, when the default (15, and 20 on the last day) cannot fill the ring in time. */
+  sizes?: { round?: number; lastDay?: number };
   /** Questions added late (after a slide-by-slide check). A mixed day asks these first, in a round of their own. */
   lateAdditions?: ItemId[];
 }
@@ -299,7 +358,8 @@ export function examplesFor(pack: Pick<Pack, 'examples'>, item: Item): string[] 
 /** A short name for a question, for lists (the mistakes list, the end-of-session summary). */
 export function shortLabel(item: Item): string {
   if (item.type === 'term') return `Key term: ${item.term}`;
-  if (item.type === 'expression') return `${item.prompt} ${prettyMaths(item.expr)}`;
+  if (item.type === 'expression') return `${item.prompt} ${prettyMaths(item.show ?? item.expr)}`;
+  if (item.type === 'sequence') return `${item.terms.map(fmtNum).join(', ')}, …`;
   if (item.type === 'table') return `${item.group}: ${item.rowHeader}`;
   return item.prompt.replace(/\n/g, ' ');
 }
@@ -322,6 +382,11 @@ export function topicOfItem(pack: Pack, id: ItemId): Topic | undefined {
   return pack.topics.find((t) => t.items.some((i) => i.id === id));
 }
 
+/** A number with a real minus sign. */
+export function fmtNum(n: number): string {
+  return n < 0 ? `−${Math.abs(n)}` : String(n);
+}
+
 /** The right answer in words, for the feedback panel. */
 export function answerText(item: Item): string {
   switch (item.type) {
@@ -333,5 +398,8 @@ export function answerText(item: Item): string {
     case 'order': return item.steps.join(' → ');
     case 'short': return item.model;
     case 'expression': return prettyMaths(item.answer);
+    case 'numeric': return item.fields.map((f) => `${f.label}: ${fmtNum(f.answer)}`).join('\n');
+    case 'sequence': return `Next: ${item.next.map(fmtNum).join(', ')} · ${item.kind} · ${item.rule}`;
+    case 'errorFind': return `Wrong line: ${prettyMaths(item.lines[item.wrong])}\nFix: ${prettyMaths(item.fix)}`;
   }
 }

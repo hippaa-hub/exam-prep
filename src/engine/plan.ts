@@ -98,7 +98,21 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
   if (left === 0) return { ...base, phase: 'exam-day', label: 'Three-minute warm-up', topics: [] };
   if (left < 2 || studyDays.length === 0) {
     const day = pack.plan.find((d) => d.day === off);
-    return { ...base, phase: 'last-day', label: day?.label ?? 'Mixed quiz of everything', topics: [], mock, extras: day?.extras ?? [] };
+    const dayTopics = (day?.topics ?? []).filter((t) => known.has(t));
+    // Without new topics the last day is a mixed quiz of everything (owed topics are part of "everything").
+    if (left !== 1 || dayTopics.length === 0) {
+      return { ...base, phase: 'last-day', label: day?.label ?? 'Mixed quiz of everything', topics: [], mock, extras: day?.extras ?? [] };
+    }
+    // A short countdown can put new topics on the last day too (the maths test: patterns on the day before).
+    // Topics from earlier days that were never done come first, with their lessons.
+    const done = new Set(sessions.filter((s) => s.kind === 'today' && s.date < today).flatMap((s) => s.topics));
+    const owedDays = studyDays.filter((d) => d.day < off && d.topics.some((t) => !done.has(t)));
+    const owed = unique(owedDays.flatMap((d) => d.topics).filter((t) => !done.has(t)));
+    const owedLessons = owedDays.flatMap((d) => d.extras ?? []).filter((e) => e.kind === 'learn' && owed.includes(e.topic));
+    return {
+      ...base, phase: 'last-day', label: day?.label ?? 'Mixed quiz of everything', topics: unique([...owed, ...dayTopics]),
+      catchUp: owed, mock, extras: uniqueExtras([...owedLessons, ...(day?.extras ?? [])]),
+    };
   }
 
   const first = studyDays[0];
@@ -129,7 +143,9 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
   // A day was missed: re-spread everything still to do over the study days that are left.
   const future = studyDays.filter((d) => d.day > off).flatMap((d) => d.topics);
   const pending = unique([...missed, ...scheduled, ...future]);
-  const studyDaysLeft = Math.max(1, left - 1); // the last day before the exam is kept for the mock exam
+  // The last day before the exam is kept for the mock exam, unless the plan puts topics on it too.
+  const lastDayHasTopics = studyDays.some((d) => d.day === -1);
+  const studyDaysLeft = Math.max(1, left - 1 + (lastDayHasTopics ? 1 : 0));
   const perDay = Math.ceil(pending.length / studyDaysLeft);
   const topics = pending.slice(0, perDay);
   return {
@@ -140,9 +156,14 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
     catchUp: topics.filter((t) => missed.includes(t)),
     // The activities of the days whose topics landed on today: two at most, to keep the day short,
     // and the argument first, because it is the closest practice for half of the test.
-    extras: uniqueExtras(studyDays.filter((d) => d.topics.some((t) => topics.includes(t))).flatMap((d) => d.extras ?? []))
-      .sort((a, b) => Number(b.kind === 'argument') - Number(a.kind === 'argument'))
-      .slice(0, 2),
+    // Every lesson for today's topics comes too: a topic is always taught before it is asked.
+    extras: [
+      ...uniqueExtras(studyDays.flatMap((d) => d.extras ?? []).filter((e) => e.kind === 'learn' && topics.includes(e.topic))),
+      ...uniqueExtras(studyDays.filter((d) => d.topics.some((t) => topics.includes(t))).flatMap((d) => d.extras ?? []))
+        .filter((e) => e.kind !== 'learn')
+        .sort((a, b) => Number(b.kind === 'argument') - Number(a.kind === 'argument'))
+        .slice(0, 2),
+    ],
   };
 }
 

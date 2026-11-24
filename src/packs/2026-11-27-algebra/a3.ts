@@ -7,18 +7,18 @@ import type { ChoiceItem, Item, PairItem, ShortItem, Topic } from '../../content
 
 const items: Item[] = [
   // A number times a term
-  mul('a3-n-1', 'a3-number', '2x × 3', '6x'),
-  mul('a3-n-2', 'a3-number', '5 × 4y', '20y'),
-  mul('a3-n-3', 'a3-number', '7x × (−2)', '−14x'),
-  mul('a3-n-4', 'a3-number', '−3 × 6k', '−18k'),
-  mul('a3-n-5', 'a3-number', '9m × 4', '36m'),
+  mul('a3-n-1', 'a3-basic', '2x × 3', '6x'),
+  mul('a3-n-2', 'a3-basic', '5 × 4y', '20y'),
+  mul('a3-n-3', 'a3-basic', '7x × (−2)', '−14x'),
+  mul('a3-n-4', 'a3-basic', '−3 × 6k', '−18k'),
+  mul('a3-n-5', 'a3-basic', '9m × 4', '36m'),
 
   // Two different letters
-  mul('a3-t-1', 'a3-two-letters', '4m × 2n', '8mn'),
-  mul('a3-t-2', 'a3-two-letters', '6a × 3b', '18ab'),
-  mul('a3-t-3', 'a3-two-letters', '5p × 7q', '35pq'),
-  mul('a3-t-4', 'a3-two-letters', '2c × 9d', '18cd'),
-  mul('a3-t-5', 'a3-two-letters', '3y × 8x', '24xy', 'Multiply. Remember: letters go in alphabetical order.'),
+  mul('a3-t-1', 'a3-basic', '4m × 2n', '8mn'),
+  mul('a3-t-2', 'a3-basic', '6a × 3b', '18ab'),
+  mul('a3-t-3', 'a3-basic', '5p × 7q', '35pq'),
+  mul('a3-t-4', 'a3-basic', '2c × 9d', '18cd'),
+  mul('a3-t-5', 'a3-basic', '3y × 8x', '24xy', 'Multiply. Remember: letters go in alphabetical order.'),
 
   // Signs
   mul('a3-s-1', 'a3-signs', '−3a × 5b', '−15ab'),
@@ -108,11 +108,11 @@ const items: Item[] = [
   mul('a3-b-5', 'a3-big-terms', '(−2mn²)(−5m³n)', '10m⁴n³'),
 
   // Three factors
-  mul('a3-f-1', 'a3-three-factors', '3a × 2b × 5c', '30abc'),
-  mul('a3-f-2', 'a3-three-factors', '4m × 2m² × (−m)', '−8m⁴'),
-  mul('a3-f-3', 'a3-three-factors', '(−4k)(3k²)(−k)', '12k⁴'),
-  mul('a3-f-4', 'a3-three-factors', '2x × 5y × x', '10x²y'),
-  mul('a3-f-5', 'a3-three-factors', '−a × −a × −a', '−a³'),
+  mul('a3-f-1', 'a3-big-terms', '3a × 2b × 5c', '30abc'),
+  mul('a3-f-2', 'a3-big-terms', '4m × 2m² × (−m)', '−8m⁴'),
+  mul('a3-f-3', 'a3-big-terms', '(−4k)(3k²)(−k)', '12k⁴'),
+  mul('a3-f-4', 'a3-big-terms', '2x × 5y × x', '10x²y'),
+  mul('a3-f-5', 'a3-big-terms', '−a × −a × −a', '−a³'),
 
   // Squaring (or cubing) a whole term
   mul('a3-q-1', 'a3-square', '(−3a)²', '9a²', 'Work it out. The power applies to everything in the bracket.'),
@@ -169,7 +169,7 @@ const items: Item[] = [
 
   // Why the powers add (Criterion C)
   {
-    id: 'a3-why-q1', concept: 'a3-why-add', type: 'choice', prompt: 'Why is x³ × x² = x⁵ and not x⁶?',
+    id: 'a3-why-q1', concept: 'a3-product-rule', type: 'choice', prompt: 'Why is x³ × x² = x⁵ and not x⁶?',
     options: [
       'Write it out: (x × x × x) × (x × x) has five x\'s',
       'Because 3 × 2 = 5',
@@ -184,7 +184,7 @@ const items: Item[] = [
     },
   } satisfies ChoiceItem,
   {
-    id: 'a3-why-q2', concept: 'a3-why-add', type: 'choice', prompt: 'When can you add the powers?',
+    id: 'a3-why-q2', concept: 'a3-product-rule', type: 'choice', prompt: 'When can you add the powers?',
     options: ['When you multiply terms with the same letter', 'Whenever you see two powers', 'When you add two terms', 'When the letters are different'],
     answer: 0,
     explain: 'The product rule: aᵐ × aⁿ = aᵐ⁺ⁿ. It works only when you MULTIPLY and the base (letter) is the SAME.',
@@ -195,7 +195,7 @@ const items: Item[] = [
     },
   } satisfies ChoiceItem,
   {
-    id: 'a3-why-w1', concept: 'a3-why-add', type: 'short',
+    id: 'a3-why-w1', concept: 'a3-product-rule', type: 'short',
     prompt: 'Explain in your own words why a⁴ × a³ = a⁷. Write it out to show it.',
     ideas: [
       { label: 'Write out the a\'s: four a\'s times three a\'s', words: ['a × a', 'a x a', 'axa', 'a times a', 'four a', '4 a', 'three a', '3 a', 'write it out', 'written out'] },
@@ -206,11 +206,11 @@ const items: Item[] = [
 
   // The 3-step method, in order
   {
-    id: 'a3-o-1', concept: 'a3-method', type: 'order', prompt: 'Put the teacher\'s 3 steps for multiplying terms in order.',
+    id: 'a3-o-1', concept: 'a3-signs', type: 'order', prompt: 'Put the teacher\'s 3 steps for multiplying terms in order.',
     steps: ['Signs: count the minus signs', 'Numbers: multiply the coefficients', 'Letters: multiply them, in alphabetical order'],
   },
   {
-    id: 'a3-o-2', concept: 'a3-method', type: 'order', prompt: 'Put the working for 3x²y × (−2xy³) in order.',
+    id: 'a3-o-2', concept: 'a3-signs', type: 'order', prompt: 'Put the working for 3x²y × (−2xy³) in order.',
     steps: ['One minus sign, so the answer is −', '3 × 2 = 6', 'x² × x = x³', 'y × y³ = y⁴', '−6x³y⁴'],
   },
 ];

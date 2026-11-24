@@ -7,7 +7,7 @@ import { isSprint, occasionFor, planFor, type SessionKind, type SessionRecord } 
 import { applyAnswer, applyLook, packReadiness, topicReadiness, type ProgressMap } from './progress';
 import { packRing } from './ring';
 import { seeded } from './rng';
-import { answerRun, buildFixSession, buildTodaySession, currentId, dueToday, isFinished, LAST_DAY_SIZE, startRun, summarise, TODAY_SIZE } from './session';
+import { answerRun, buildFixSession, buildTodaySession, currentId, dueToday, isFinished, lastDaySize, roundSize, startRun, summarise } from './session';
 
 interface Result {
   readiness: number; answersPerDay: number[]; topics: Record<string, number>; untouched: number;
@@ -61,7 +61,8 @@ function simulate(pack: Pack, firstDay: number, rounds: number, accuracy: number
       const when = occasionFor(plan, sessions, today);
       if (r > 0 && dueToday(pack, progress, plan, when) === 0) break;
       const later = isSprint(plan) && r >= 1;
-      play(buildTodaySession(pack, progress, plan, when, rng, later ? LAST_DAY_SIZE : TODAY_SIZE, !later), 'today',
+      // As in the app: the later rounds of the last day ask everything that is not full yet.
+      play(buildTodaySession(pack, progress, later ? { ...plan, topics: [] } : plan, when, rng, later ? lastDaySize(pack) : roundSize(pack), !later), 'today',
         plan.phase === 'exam-day' ? 'warm-up' : `round-${r + 1}`);
     }
     if (first.phase !== 'exam-day' && rounds > 1) {

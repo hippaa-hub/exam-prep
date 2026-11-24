@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { conceptOf, itemsOf, type ExpressionItem } from '../content/types';
 import { equivalent, evaluate, isSimplified, normalise, parse } from '../engine/algebra';
 import { judgeExpression } from '../engine/judge';
+import { analyse } from '../content/maths';
+import { countOf } from '../ui/PatternPicture';
 import { packs } from './index';
 
 const mathsPacks = packs.filter((p) => p.subject === 'Mathematics');
@@ -60,6 +62,7 @@ describe.each(mathsPacks.map((p) => [p.id, p] as const))('maths pack %s', (_id, 
       expect(versions.length, c).toBeGreaterThanOrEqual(2);
       const calc = versions.filter((i) => i.type === 'expression');
       if (calc.length > 0) expect(calc.length, `${c}: calculations`).toBeGreaterThanOrEqual(4);
+      if (versions.some((i) => i.type === 'numeric')) expect(versions.length, `${c}: versions`).toBeGreaterThanOrEqual(3);
     }
   });
 
@@ -76,6 +79,67 @@ describe.each(mathsPacks.map((p) => [p.id, p] as const))('maths pack %s', (_id, 
       }
     }
     if (pack.catchUp) expect(pack.lessons?.find((l) => l.topic === pack.catchUp)?.cards.length).toBe(8);
+  });
+
+  it('has the right number answers, each worked out again from its calculation', () => {
+    // A tiny calculator for the checks: digits, + − × ÷, brackets and powers only.
+    const calc = (c: string) => {
+      const js = c.replace(/[−]/g, '-').replace(/\^/g, '**');
+      expect(js, c).toMatch(/^[\d+\-*/(). ]+$/);
+      return Function(`"use strict"; return (${js});`)() as number;
+    };
+    for (const it of items) {
+      if (it.type !== 'numeric') continue;
+      for (const f of it.fields) {
+        expect(Number.isInteger(f.answer), `${it.id}: ${f.label}`).toBe(true);
+        if (f.calc) expect(calc(f.calc), `${it.id}: ${f.label} = ${f.calc}`).toBe(f.answer);
+      }
+      for (const sl of it.slips ?? []) expect(sl.answer, `${it.id}: slip`).not.toBe(it.fields[0].answer);
+      expect(it.how?.length ?? 0, `${it.id}: steps`).toBeGreaterThanOrEqual(2);
+    }
+    // Every number answer that can be calculated carries its calculation (the two-plants weeks are counted by listing).
+    const withoutCalc = items.filter((it) => it.type === 'numeric' && it.fields.some((f) => !f.calc)).map((it) => it.id);
+    expect(withoutCalc.every((id) => id.startsWith('p1-c-'))).toBe(true);
+  });
+
+  it('has sequences whose next terms, type and evidence are right', () => {
+    for (const it of items) {
+      if (it.type !== 'sequence') continue;
+      const a = analyse(it.terms);
+      expect(a.kind, it.id).toBe(it.kind);
+      expect(a.next, it.id).toEqual(it.next);
+      expect(it.evidence, it.id).toContain(it.rule);
+      expect(new Set(it.evidence).size, it.id).toBe(it.evidence.length);
+    }
+  });
+
+  it('has rules that really give their terms', () => {
+    for (const it of exprs) {
+      if (it.kind !== 'rule') continue;
+      const v = (normalise(it.answer).match(/[a-z]/) ?? ['n'])[0];
+      it.terms!.forEach((t, i) => expect(evaluate(it.answer, { [v]: i + 1 }), `${it.id}: term ${i + 1}`).toBe(t));
+      // A wrong rule is caught and tested on the terms.
+      expect(judgeExpression(it, `${it.answer} + 1`).say, it.id).toMatch(/Test it/);
+    }
+  });
+
+  it('has Error Detective questions with one wrong line and a real fix', () => {
+    for (const it of items) {
+      if (it.type !== 'errorFind') continue;
+      expect(it.wrong, it.id).toBeGreaterThan(0);
+      expect(it.wrong, it.id).toBeLessThan(it.lines.length);
+      expect(it.fixes, it.id).toContain(it.fix);
+      expect(new Set(it.fixes).size, it.id).toBe(it.fixes.length);
+      expect(it.fixes, it.id).not.toContain(it.lines[it.wrong]);
+    }
+  });
+
+  it('draws each pattern with the number of pieces its rule says', () => {
+    // matchsticks 3n + 1, toothpicks 2n + 1, tile cross 4n + 1, mosaic 4n + 2, as in the questions.
+    for (const it of exprs) {
+      if (it.kind !== 'rule' || !it.picture) continue;
+      for (const n of it.picture.figures) expect(countOf(it.picture.kind, n), `${it.id}: figure ${n}`).toBe(it.terms![n - 1] ?? evaluate(it.answer, { n }));
+    }
   });
 
   it('never asks a question from the homework due 25 Nov', () => {

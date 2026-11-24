@@ -12,6 +12,10 @@ export const LAST_DAY_SIZE = 20;
 /** On a mixed day the round also brings in this many glossary words she has never met, so they are met inside the app. */
 export const GLOSSARY_IN_MIX = 10;
 export const PRACTICE_SIZE = 12;
+
+/** The size of a normal round for a pack, and of the later rounds of its last day. */
+export const roundSize = (pack: Pick<Pack, 'sizes'>) => pack.sizes?.round ?? TODAY_SIZE;
+export const lastDaySize = (pack: Pick<Pack, 'sizes'>) => pack.sizes?.lastDay ?? LAST_DAY_SIZE;
 export const WARM_UP_SIZE = 8;
 /** Each round keeps a few places for things met on earlier days (a mixed review every day). */
 export const REVIEW_SHARE = 4;

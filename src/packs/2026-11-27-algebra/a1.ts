@@ -5,7 +5,7 @@ import { collect } from '../../content/maths';
 import type { ChoiceItem, Item, PairItem, ShortItem, Topic } from '../../content/types';
 
 const coef = (id: string, term: string, answer: string, wrong: [string, string, string], explain: string, whyNot: Record<string, string>): ChoiceItem => ({
-  id, concept: 'a1-coefficient', type: 'choice', prompt: `What is the coefficient in ${term}?`,
+  id, concept: 'a1-parts', type: 'choice', prompt: `What is the coefficient in ${term}?`,
   options: [answer, ...wrong], answer: 0, explain, whyNot,
 });
 
@@ -38,7 +38,7 @@ const items: Item[] = [
     p: 'p is the variable. The coefficient is the number in front: an unwritten 1.',
   }),
   {
-    id: 'a1-c-5', concept: 'a1-coefficient', type: 'choice', prompt: 'In 5a − 8b + 3, what is the coefficient of b?',
+    id: 'a1-c-5', concept: 'a1-parts', type: 'choice', prompt: 'In 5a − 8b + 3, what is the coefficient of b?',
     options: ['−8', '8', '3', '5'], answer: 0,
     explain: 'Each term keeps the sign in front of it: the term is −8b, so the coefficient of b is −8.',
     whyNot: {
@@ -50,19 +50,19 @@ const items: Item[] = [
 
   // Exponents
   {
-    id: 'a1-e-1', concept: 'a1-exponent', type: 'choice', prompt: 'What is the exponent (power) of a in 8a³?',
+    id: 'a1-e-1', concept: 'a1-parts', type: 'choice', prompt: 'What is the exponent (power) of a in 8a³?',
     options: ['3', '8', '1', '24'], answer: 0,
     explain: 'The exponent is the small raised number: a³ means a × a × a, so the exponent is 3.',
     whyNot: { '8': '8 is the coefficient (the number in front).', '1': 'There is a small 3 written, so the exponent is 3.', '24': 'Nothing is multiplied here: the exponent is just the small number, 3.' },
   },
   {
-    id: 'a1-e-2', concept: 'a1-exponent', type: 'choice', prompt: 'What is the exponent of k in 5k?',
+    id: 'a1-e-2', concept: 'a1-parts', type: 'choice', prompt: 'What is the exponent of k in 5k?',
     options: ['1', '5', '0', '2'], answer: 0,
     explain: 'No small number written means the exponent is 1: k is k¹.',
     whyNot: { '5': '5 is the coefficient.', '0': 'k⁰ would be 1, not k. With nothing written, the exponent is 1.', '2': 'That would be k². Here it is just k, so the exponent is 1.' },
   },
   {
-    id: 'a1-e-3', concept: 'a1-exponent', type: 'choice', prompt: 'What is the exponent of n in −2n⁴?',
+    id: 'a1-e-3', concept: 'a1-parts', type: 'choice', prompt: 'What is the exponent of n in −2n⁴?',
     options: ['4', '−2', '2', '1'], answer: 0,
     explain: 'The small raised number is 4: n⁴ = n × n × n × n.',
     whyNot: { '−2': '−2 is the coefficient (the number in front, with its sign).', '2': '2 belongs to the coefficient −2. The exponent is the small 4.', '1': 'A small 4 is written, so the exponent is 4.' },
@@ -70,25 +70,25 @@ const items: Item[] = [
 
   // How many terms
   {
-    id: 'a1-t-1', concept: 'a1-terms', type: 'choice', prompt: 'How many terms are in 3a − 5b + 2?',
+    id: 'a1-t-1', concept: 'a1-parts', type: 'choice', prompt: 'How many terms are in 3a − 5b + 2?',
     options: ['3', '2', '1', '5'], answer: 0,
     explain: 'Terms are split by + and − signs: 3a, −5b and +2. That is 3 terms.',
     whyNot: { '2': 'Count the constant too: 3a, −5b and 2 are three terms.', '1': 'Each + or − starts a new term: 3a, −5b, +2.', '5': 'Count terms, not numbers: 3a, −5b and 2.' },
   },
   {
-    id: 'a1-t-2', concept: 'a1-terms', type: 'choice', prompt: 'How many terms are in 6m² − 1?',
+    id: 'a1-t-2', concept: 'a1-parts', type: 'choice', prompt: 'How many terms are in 6m² − 1?',
     options: ['2', '1', '3', '6'], answer: 0,
     explain: 'The − sign splits it into two terms: 6m² and −1.',
     whyNot: { '1': 'The − sign starts a new term: 6m² and −1.', '3': 'There are only two pieces: 6m² and −1.', '6': '6 is the coefficient, not the number of terms.' },
   },
   {
-    id: 'a1-t-3', concept: 'a1-terms', type: 'choice', prompt: 'How many terms are in 2p + q − 3r + 4?',
+    id: 'a1-t-3', concept: 'a1-parts', type: 'choice', prompt: 'How many terms are in 2p + q − 3r + 4?',
     options: ['4', '3', '2', '6'], answer: 0,
     explain: 'Four terms: 2p, +q, −3r and +4.',
     whyNot: { '3': 'Do not forget the constant +4: 2p, q, −3r, 4.', '2': 'Each + or − starts a new term. There are four.', '6': 'Count terms, not numbers and letters: 2p, q, −3r, 4.' },
   },
   {
-    id: 'a1-t-4', concept: 'a1-terms', type: 'choice', prompt: 'In 7x² − 4xy + 9, which term is the constant?',
+    id: 'a1-t-4', concept: 'a1-parts', type: 'choice', prompt: 'In 7x² − 4xy + 9, which term is the constant?',
     options: ['9', '7x²', '−4xy', '7'], answer: 0,
     explain: 'The constant is the term with no letter: +9. Its value never changes.',
     whyNot: { '7x²': '7x² has a letter, so its value changes with x.', '−4xy': '−4xy has letters, so it is not constant.', '7': '7 is the coefficient of x², not a term by itself.' },
@@ -103,17 +103,17 @@ const items: Item[] = [
   like('a1-l-6', '−k', '9k', true, 'Both are k (power 1). −k is just −1k.', 'Both are plain k: the same letter with the same power.'),
 
   // Collect like terms: one kind of term
-  collect('a1-o-1', 'a1-collect-one', '6k + 3k − 2k', '7k', '(6 + 3 − 2)k'),
-  collect('a1-o-2', 'a1-collect-one', '9y − 4y − y', '4y', '(9 − 4 − 1)y'),
-  collect('a1-o-3', 'a1-collect-one', '2b − 7b + 3b', '−2b', '(2 − 7 + 3)b'),
-  collect('a1-o-4', 'a1-collect-one', '−4p + 7p + 2', '3p + 2', '(−4p + 7p) + 2'),
+  collect('a1-o-1', 'a1-collect', '6k + 3k − 2k', '7k', '(6 + 3 − 2)k'),
+  collect('a1-o-2', 'a1-collect', '9y − 4y − y', '4y', '(9 − 4 − 1)y'),
+  collect('a1-o-3', 'a1-collect', '2b − 7b + 3b', '−2b', '(2 − 7 + 3)b'),
+  collect('a1-o-4', 'a1-collect', '−4p + 7p + 2', '3p + 2', '(−4p + 7p) + 2'),
 
   // Collect like terms: two kinds
-  collect('a1-w-1', 'a1-collect-two', '6x + 2y + 3x − 5y', '9x − 3y', '(6x + 3x) + (2y − 5y)'),
-  collect('a1-w-2', 'a1-collect-two', '7a + 4b − 2a + b', '5a + 5b', '(7a − 2a) + (4b + b)'),
-  collect('a1-w-3', 'a1-collect-two', '3m − 2n + m + 6n', '4m + 4n', '(3m + m) + (−2n + 6n)'),
-  collect('a1-w-4', 'a1-collect-two', '8p + 3 − 5p − 7', '3p − 4', '(8p − 5p) + (3 − 7)'),
-  collect('a1-w-5', 'a1-collect-two', '5 − 3d + 2 + 4d', '7 + d', '(5 + 2) + (−3d + 4d)'),
+  collect('a1-w-1', 'a1-collect', '6x + 2y + 3x − 5y', '9x − 3y', '(6x + 3x) + (2y − 5y)'),
+  collect('a1-w-2', 'a1-collect', '7a + 4b − 2a + b', '5a + 5b', '(7a − 2a) + (4b + b)'),
+  collect('a1-w-3', 'a1-collect', '3m − 2n + m + 6n', '4m + 4n', '(3m + m) + (−2n + 6n)'),
+  collect('a1-w-4', 'a1-collect', '8p + 3 − 5p − 7', '3p − 4', '(8p − 5p) + (3 − 7)'),
+  collect('a1-w-5', 'a1-collect', '5 − 3d + 2 + 4d', '7 + d', '(5 + 2) + (−3d + 4d)'),
 
   // Collect like terms with powers
   collect('a1-x-1', 'a1-collect-powers', '5x² + 4x − 2x² − x', '3x² + 3x', '(5x² − 2x²) + (4x − x)', [
