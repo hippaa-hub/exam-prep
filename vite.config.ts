@@ -1,6 +1,24 @@
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vitest/config';
+
+/** The repair script placed in the maths app under the old main-app script names (see tools/old-main-assets.json). */
+const REPAIR = `// An old offline copy of the main Exam Prep app answered for this address. Remove it and reload.
+(async () => {
+  try {
+    if (sessionStorage.getItem('maths-repair')) {
+      document.body.innerHTML = '<p style="font:600 18px sans-serif;padding:24px">Please close the app completely and open it again.</p>';
+      return;
+    }
+    sessionStorage.setItem('maths-repair', '1');
+    const regs = navigator.serviceWorker ? await navigator.serviceWorker.getRegistrations() : [];
+    await Promise.all(regs.map((r) => r.unregister()));
+    if (window.caches) { const keys = await caches.keys(); await Promise.all(keys.map((k) => caches.delete(k))); }
+  } catch (e) { /* reload anyway */ }
+  location.replace(location.pathname.replace(/[^/]*$/, '') + '?fresh=' + Date.now());
+})();
+`;
 
 // Two apps from the same code (Jenia, 24 Nov): the main "Exam Prep" at /exam-prep/, and "Prep Exam Maths"
 // at /exam-prep/maths/, which shows only maths tests and has an orange icon. `vite build --mode maths` makes the second.
@@ -20,6 +38,13 @@ export default defineConfig(({ mode }) => {
           .replace(/\.\/apple-touch-icon\.png/g, './maths-apple-touch-icon.png')
           .replace(/\.\/icon-192\.png/g, './maths-icon-192.png')
         : html),
+    },
+    maths && {
+      name: 'repair-old-main-copies',
+      generateBundle() {
+        const { names } = JSON.parse(readFileSync(new URL('./tools/old-main-assets.json', import.meta.url), 'utf8')) as { names: string[] };
+        for (const name of names) this.emitFile({ type: 'asset', fileName: `assets/${name}`, source: REPAIR });
+      },
     },
     VitePWA({
       registerType: 'autoUpdate',
@@ -44,7 +69,8 @@ export default defineConfig(({ mode }) => {
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webp,woff2,mp4}'],
         // The main app must not answer for the maths app's address with its own page.
-        ...(maths ? {} : { navigateFallbackDenylist: [/\/maths\//], globIgnores: ['maths/**'] }),
+        ...(maths ? { globIgnores: JSON.parse(readFileSync(new URL('./tools/old-main-assets.json', import.meta.url), 'utf8')).names.map((n: string) => `assets/${n}`) }
+          : { navigateFallbackDenylist: [/\/maths\//], globIgnores: ['maths/**'] }),
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),

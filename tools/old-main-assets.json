@@ -1,0 +1,4 @@
+{
+  "why": "Main-app script names of the versions published before the main service worker stopped answering for /maths/ (commit ba9f941). An old offline copy of the main app serves its own page at /exam-prep/maths/, and that page asks for ./assets/<one of these>. The maths build puts a small repair script under each name: it removes the old offline copy and reloads, so the maths app opens. Progress (IndexedDB) is not touched.",
+  "names": ["index-OF0eMk3U.js", "index-gbegmlBT.js", "index-6W379G8a.js", "index-COvQFKup.js", "index-DpaAAK9d.js", "index-Bu6noXcZ.js", "index-CF8g67Qy.js", "index-DGGTSrLn.js", "index-D05j6y3g.js"]
+}
