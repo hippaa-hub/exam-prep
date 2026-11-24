@@ -10,6 +10,7 @@ import { Mascot } from './Mascot';
 import { MathsKeypad, lettersFor } from './MathsKeypad';
 import { play } from './sound';
 import { PatternPicture } from './PatternPicture';
+import { GameView, TermAnatomy } from './LearnGame';
 
 interface Props {
   lesson: Lesson;
@@ -60,7 +61,7 @@ export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next 
   );
 }
 
-type Stage = 'steps' | 'tap' | 'faded' | 'remember';
+type Stage = 'steps' | 'game' | 'tap' | 'faded' | 'remember';
 
 function CardView({ card, last, onTapRight, onNext }: { card: LearnCard; last: boolean; onTapRight: () => void; onNext: () => void }) {
   const [shown, setShown] = useState(card.steps.length > 0 ? 1 : 0);
@@ -69,10 +70,12 @@ function CardView({ card, last, onTapRight, onNext }: { card: LearnCard; last: b
   // Keep what just appeared on screen: the newest step, or the question that opens after the steps.
   const bottom = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (stage === 'faded') return; // the faded example scrolls itself to its top
+    if (stage === 'faded' || stage === 'game') return; // these scroll themselves to their top
     if (shown > 1 || stage !== 'steps') bottom.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' });
   }, [shown, stage]);
-  const afterSteps = (): Stage => (card.tap ? 'tap' : card.faded ? 'faded' : 'remember');
+  const afterGame = (): Stage => (card.tap ? 'tap' : card.faded ? 'faded' : 'remember');
+  const afterSteps = (): Stage => (card.game ? 'game' : afterGame());
+  const past = (s: Stage) => (['steps', 'game', 'tap', 'faded', 'remember'] as Stage[]).indexOf(stage) > (['steps', 'game', 'tap', 'faded', 'remember'] as Stage[]).indexOf(s);
 
   return (
     <div className="learn-card">
@@ -80,6 +83,7 @@ function CardView({ card, last, onTapRight, onNext }: { card: LearnCard; last: b
       <h2 className="learn-title"><span className="learn-emoji" aria-hidden="true">{card.emoji}</span> {card.title}</h2>
       <p className="learn-intro">{card.intro}</p>
       {card.picture && <PatternPicture picture={card.picture} />}
+      {card.anatomy && <TermAnatomy term={card.anatomy} />}
 
       <ol className="learn-steps">
         {card.steps.slice(0, shown).map((s, i) => (
@@ -96,7 +100,11 @@ function CardView({ card, last, onTapRight, onNext }: { card: LearnCard; last: b
         </button>
       )}
       {stage === 'steps' && allShown && (
-        <button type="button" className="btn primary" onClick={() => setStage(afterSteps())}>Got it ▶</button>
+        <button type="button" className="btn primary" onClick={() => setStage(afterSteps())}>{card.game ? 'Got it. Let\'s play! 🎮' : 'Got it ▶'}</button>
+      )}
+
+      {card.game && (stage === 'game' || past('game')) && (
+        <GameView game={card.game} locked={stage !== 'game'} onDone={() => setStage(afterGame())} />
       )}
 
       {(stage === 'tap' || ((stage === 'faded' || stage === 'remember') && card.tap)) && card.tap && (

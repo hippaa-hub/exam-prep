@@ -8,6 +8,7 @@ import { analyse } from '../content/maths';
 import { countOf, shapeOf } from '../ui/PatternPicture';
 import { checkInvestigation, pickPart1, ruleAt } from '../engine/mathsMock';
 import { packs } from './index';
+import { termParts } from '../ui/LearnGame';
 
 const mathsPacks = packs.filter((p) => p.subject === 'Mathematics');
 
@@ -17,7 +18,7 @@ const HOMEWORK = [
   'x⁴ × x³', '2a² × 5a⁴', '3m²n × (−2mn³)', '(−2p³) × (−3p²)', '2x²y³ × 4xy', '(3q)²', '3x² × 4x³',
   '5x + 2x − x', '7y − 3y + 2', '6a² + 2a − 3a²', '4m + 3n − 2m + n', '−5p + 2p + 7', '8x² − 3x + x² + 2x',
 ];
-const HOMEWORK_TEXT = ['6x⁶', '3x² cm and 4x³', '3x² and −5x²', '4ab and 7ba', '2x³ and 2x²'];
+const HOMEWORK_TEXT = ['6x⁶', '3x² cm and 4x³', '3x² and −5x²', '4ab and 7ba', '2x³ and 2x²', '3p²q and 6pq²', '−x² means'];
 
 /** A few values for each letter, never 0 or 1, so a wrong answer cannot hide. */
 const ENVS = [
@@ -79,7 +80,7 @@ describe.each(mathsPacks.map((p) => [p.id, p] as const))('maths pack %s', (_id, 
         }
       }
     }
-    if (pack.catchUp) expect(pack.lessons?.find((l) => l.topic === pack.catchUp)?.cards.length).toBe(8);
+    if (pack.catchUp) expect(pack.lessons?.find((l) => l.topic === pack.catchUp)?.cards.length).toBe(10);
   });
 
   it('has the right number answers, each worked out again from its calculation', () => {
@@ -165,6 +166,29 @@ describe.each(mathsPacks.map((p) => [p.id, p] as const))('maths pack %s', (_id, 
       const ids = pickPart1(pack, m.maths!, {});
       expect(ids.length, m.id).toBe(m.maths!.part1.length);
       expect(new Set(ids).size, m.id).toBe(ids.length);
+    }
+  });
+
+  it('has the right answer in every lesson game, and nothing from the homework', () => {
+    const lessonText = JSON.stringify([pack.lessons, pack.toolkit]);
+    for (const t of HOMEWORK_TEXT) expect(lessonText.includes(t), t).toBe(false);
+    const hw = new Set(HOMEWORK.map((h) => normalise(h).replace(/[()]/g, '')));
+    for (const lesson of pack.lessons ?? []) for (const card of lesson.cards) {
+      if (card.anatomy) expect(termParts(card.anatomy), card.id).not.toBeNull();
+      for (const r of card.game?.rounds ?? []) {
+        const where = `${card.id}: ${r.show}`;
+        expect(r.answer, where).toBeLessThan(r.options.length);
+        expect(new Set(r.options).size, where).toBe(r.options.length);
+        expect(hw.has(normalise(r.show).replace(/[()]/g, '')), where).toBe(false);
+        if (r.anatomy) expect(termParts(r.anatomy), where).not.toBeNull();
+        if (r.ask === '= ?') {
+          expect(equivalent(r.show, r.options[r.answer]), where).toBe(true);
+          r.options.forEach((o, i) => { if (i !== r.answer && parse(o)) expect(equivalent(r.show, o), `${where} wrong option ${o}`).toBe(false); });
+        }
+        if (r.ask === 'What is the coefficient?') expect(termParts(r.show)![0].text, where).toBe(r.options[r.answer]);
+        if (r.ask === 'What is the exponent?') expect(termParts(r.show)![2].text, where).toBe(r.options[r.answer]);
+        if (r.ask === 'The answer is…') expect(evaluate(r.show.replace(/[a-z]/g, '2'), {})! > 0 ? '+' : '−', where).toBe(r.options[r.answer]);
+      }
     }
   });
 

@@ -737,3 +737,38 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .tool-example .learn-show { font-size: 1.1rem; }
 .tool-steps li::marker { color: var(--accent-dark); font-weight: 800; }
 .plain-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
+
+/* The parts of a term, each in its own colour, and the Learn quick-fire game. */
+.anatomy { margin: 0; background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 14px 10px 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.anatomy-row { display: flex; align-items: flex-start; justify-content: center; gap: 4px; }
+.an { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.an-val { font-size: 2.6rem; font-weight: 900; line-height: 1; padding: 6px 10px; border-radius: 12px; border: 3px solid transparent; }
+.an-coef .an-val { background: var(--orange-soft); border-color: var(--orange); color: var(--orange-ink); }
+.an-letter .an-val { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-dark); }
+.an-exp .an-val { font-size: 1.3rem; background: var(--blue-soft); border-color: var(--blue); color: var(--blue-dark); margin-top: -8px; }
+.an.invisible .an-val { border-style: dashed; opacity: 0.75; }
+.an-cap { font-size: 0.72rem; font-weight: 800; color: var(--ink-soft); text-align: center; max-width: 84px; line-height: 1.15; }
+.an-cap em { display: block; font-style: normal; color: var(--orange-ink); }
+.anatomy figcaption { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.an-key { font-size: 0.8rem; font-weight: 800; border-radius: 999px; padding: 3px 10px; }
+.an-key.coef { background: var(--orange-soft); color: var(--orange-ink); }
+.an-key.exp { background: var(--blue-soft); color: var(--blue-dark); }
+
+.game { display: flex; flex-direction: column; gap: 10px; background: var(--yellow-soft); border: 2px solid var(--yellow); border-radius: var(--radius); padding: 12px; scroll-margin-top: 70px; }
+.game-head { display: flex; justify-content: space-between; align-items: center; }
+.game-head h3 { font-size: 1.15rem; }
+.game-count { font-weight: 800; color: var(--ink-soft); }
+.game-intro { font-weight: 700; color: var(--ink-soft); }
+.game-dots { display: flex; gap: 5px; }
+.game-dots span { flex: 1; height: 8px; border-radius: 4px; background: #fff; border: 1px solid var(--yellow-dark); }
+.game-dots span.done { background: var(--yellow); }
+.game-dots span.now { background: var(--orange); border-color: var(--orange); }
+.game-show { font-size: 2rem; font-weight: 900; text-align: center; color: var(--accent-dark); background: #fff; border-radius: 12px; padding: 14px 8px; animation: game-pop 0.3s ease-out; }
+.game-ask { font-size: 1.1rem; font-weight: 800; text-align: center; }
+.options.game-grid { flex-direction: row; flex-wrap: wrap; }
+.options.game-grid .option { flex: 1 1 28%; text-align: center; font-size: 1.35rem; font-weight: 800; padding: 14px 6px; }
+.game-streak { text-align: center; font-weight: 900; color: var(--orange-ink); font-size: 1.1rem; animation: game-pop 0.35s ease-out; }
+.game-end { align-items: center; text-align: center; position: relative; overflow: hidden; }
+.game-stars { font-size: 1.6rem; letter-spacing: 2px; }
+@keyframes game-pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .game-show, .game-streak { animation: none; } }

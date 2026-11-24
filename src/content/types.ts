@@ -222,9 +222,26 @@ export interface LearnCard {
   faded?: { prompt: string; expr: string; given: LearnStep[]; answer: string; hint: string; kind?: 'multiply' | 'collect' | 'brackets' | 'rule'; show?: string };
   /** A drawn pattern for the card. */
   picture?: Picture;
+  /** One term drawn with its parts labelled (coefficient, letter, exponent), for example "5y³". */
+  anatomy?: string;
+  /** A quick-fire game after the steps: one tap per round, with a streak. Not marked. */
+  game?: LearnGame;
   /** The one thing to remember. */
   remember: string;
 }
+
+/** One round of a Learn game: a question, options to tap, and the reason shown after the tap. */
+export interface GameRound {
+  show: string;
+  ask: string;
+  options: string[];
+  answer: number;
+  why: string;
+  /** Draw this term with its parts labelled after the tap. */
+  anatomy?: string;
+}
+
+export interface LearnGame { title: string; intro: string; rounds: GameRound[] }
 
 /** The lesson for one topic: Learn cards to go through before the questions. */
 export interface Lesson {
