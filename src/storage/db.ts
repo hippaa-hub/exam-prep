@@ -3,6 +3,7 @@ import type { SessionRecord } from '../engine/plan';
 import type { ProgressMap } from '../engine/progress';
 import type { StudyTime } from '../engine/time';
 import type { MockResult, WrittenArgument } from '../engine/writing';
+import type { MathsMockResult } from '../engine/mathsMock';
 
 /** Everything saved for one exam pack. */
 export interface PackSave {
@@ -17,6 +18,8 @@ export interface PackSave {
   writing?: Record<string, WrittenArgument>;
   /** Her latest result for each mock exam. */
   mockResults?: Record<string, MockResult>;
+  /** Her latest result for each maths mock test. */
+  mathsMocks?: Record<string, MathsMockResult>;
   /** Unfinished writing, so nothing is lost if the app is closed half-way. Keyed by question or mock id. */
   drafts?: Record<string, string[]>;
   /** How many times, per day, she left the app while a question was waiting for her answer. */

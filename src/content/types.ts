@@ -27,11 +27,14 @@ export interface ItemBase {
 }
 
 /** The growing patterns the app can draw from numbers. */
-export type PictureKind = 'matchsticks' | 'toothpicks' | 'tile-cross' | 'dot-triangles' | 'dot-squares' | 'mosaic';
+export type PictureKind = 'matchsticks' | 'toothpicks' | 'tile-cross' | 'dot-triangles' | 'dot-squares' | 'mosaic' | 'columns';
 export interface Picture {
   kind: PictureKind;
   /** Which figures (stages) to draw, for example [1, 2, 3]. */
   figures: number[];
+  /** For 'columns': each stage adds a column of `per` blue tiles, beside `base` orange tiles that stay. */
+  per?: number;
+  base?: number;
 }
 
 /** One key idea a written answer should contain, with the words that show it is there. */
@@ -189,6 +192,19 @@ export interface Topic {
 /** An extra activity for a plan day, on top of the rounds of questions. */
 export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string } | { kind: 'argument' } | { kind: 'learn'; topic: TopicId };
 
+/** One solving system for the Toolkit: when to use it, the steps, a worked example, and the trap to avoid. */
+export interface Method {
+  id: string;
+  /** The topic it belongs to, for "Practise this". */
+  topic: TopicId;
+  emoji: string;
+  title: string;
+  when: string;
+  steps: string[];
+  example: { question: string; lines: string[] };
+  watch?: string;
+}
+
 /** One step of a worked example, with why it is done. */
 export interface LearnStep { show: string; why: string }
 
@@ -227,8 +243,36 @@ export interface ArgumentItem {
   example: string;
 }
 
+/** Part 2 of a maths mock test: an investigation of a growing pattern, in the Criterion B steps. */
+export interface Investigation {
+  /** What the pattern is, in words. */
+  intro: string;
+  picture: Picture;
+  /** The values for stages 1 to 6 (the table she fills). */
+  terms: number[];
+  /** The general rule, for example "5n + 2". Any equal form is accepted. */
+  rule: string;
+  /** A new stage to test the rule on, and its value. */
+  test: { stage: number; value: number };
+  /** "Which stage has N tiles?" */
+  target: { value: number; stage: number };
+  /** b) Describe what changes. */
+  describe: { ideas: Idea[]; model: string };
+  /** f) Why the rule works: the numbers in the rule linked to the picture. */
+  justify: { ideas: Idea[]; model: string };
+}
+
+/** A maths mock test: Part 1, short questions with working; Part 2, an investigation. */
+export interface MathsMock {
+  /** Part 1: one question from each of these things to know, a version she has not met recently. */
+  part1: ConceptId[];
+  investigation: Investigation;
+}
+
 /** A practice exam in the teacher's format. */
 export interface MockExam {
+  /** For a maths test: the maths mock (Part 1 + investigation). partA and partB are then empty. */
+  maths?: MathsMock;
   id: string;
   title: string;
   /** A sensible time for the whole paper. The app shows it but never cuts her off. */
@@ -311,6 +355,10 @@ export interface Pack {
   freshNumbers?: boolean;
   /** Old names of things to know that were merged into others: saved progress moves to the new name. */
   conceptAliases?: Record<ConceptId, ConceptId>;
+  /** "My toolkit": the system for every kind of problem, in one place. */
+  toolkit?: Method[];
+  /** Shown on Home on exam morning, before the warm-up: the last things to remember. */
+  examMorning?: { title: string; points: string[] };
   /** Round sizes for this pack, when the default (15, and 20 on the last day) cannot fill the ring in time. */
   sizes?: { round?: number; lastDay?: number };
   /** Questions added late (after a slide-by-slide check). A mixed day asks these first, in a round of their own. */

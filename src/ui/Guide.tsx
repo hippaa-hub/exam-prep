@@ -56,7 +56,7 @@ const MATHS_STEPS: { icon: string; title: string; text: string }[] = [
   {
     icon: '📚',
     title: 'Learn first, then practise',
-    text: 'Each topic starts with a lesson: your teacher\'s worked examples, one step at a time, with why each step works. Then a "Your turn" example where you do the last step. You can open any lesson again from "Lessons and extra practice" on Home.',
+    text: 'Start with "My toolkit" on Home: the system for every kind of problem, each with an example. Each topic starts with a lesson: your teacher\'s worked examples, one step at a time, with why each step works. Then a "Your turn" example where you do the last step. You can open any lesson again from "Lessons and extra practice" on Home.',
   },
   {
     icon: '💡',

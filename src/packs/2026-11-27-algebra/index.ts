@@ -9,6 +9,8 @@ import { a1 } from './a1';
 import { a2 } from './a2';
 import { a3 } from './a3';
 import { inv } from './inv';
+import { mocks } from './mocks';
+import { toolkit } from './toolkit';
 import { lessonA1, lessonA2, lessonA3, lessonIN, lessonP1, lessonP4, lessonPR } from './lessons';
 import { p1 } from './p1';
 import { p4 } from './p4';
@@ -114,6 +116,19 @@ export const pack: Pack = {
   lessons: [lessonA3, lessonA1, lessonP1, lessonA2, lessonP4, lessonPR, lessonIN],
   catchUp: 'A3',
   freshNumbers: true,
+  mocks,
+  toolkit,
+  examMorning: {
+    title: 'Before you go: the investigation steps',
+    points: [
+      '1. Find and describe what changes.',
+      '2. Organise the values in a table.',
+      '3. Form a general rule (say what n stands for).',
+      '4. Test your rule on another term.',
+      '5. Justify it: link each number in the rule to the pattern.',
+      'Show every step. An answer + a mathematical reason. Good luck! 🍀',
+    ],
+  },
   sizes: { round: 20, lastDay: 25 },
 
 

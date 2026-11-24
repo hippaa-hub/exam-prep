@@ -88,7 +88,7 @@ export function badgesFor(pack: Pack, save: PackSave): Badge[] {
       id: 'glossary', icon: '📖', title: 'Word collector', how: `Meet ${GLOSSARY_BADGE_WORDS} glossary words.`, earned: wordsMet >= GLOSSARY_BADGE_WORDS,
     },
     (pack.mocks?.length ?? 0) > 0 && {
-      id: 'mock', icon: '📝', title: 'Mock exam finished', how: 'Finish the mock exam.', earned: Object.keys(save.mockResults ?? {}).length > 0,
+      id: 'mock', icon: '📝', title: 'Mock exam finished', how: 'Finish the mock exam.', earned: Object.keys(save.mockResults ?? {}).length + Object.keys(save.mathsMocks ?? {}).length > 0,
     },
 
     // ---- Knowledge: for what she now knows ----

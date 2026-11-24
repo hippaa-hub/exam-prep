@@ -5,7 +5,8 @@ import { conceptOf, itemsOf, type ExpressionItem } from '../content/types';
 import { equivalent, evaluate, isSimplified, normalise, parse } from '../engine/algebra';
 import { judgeExpression } from '../engine/judge';
 import { analyse } from '../content/maths';
-import { countOf } from '../ui/PatternPicture';
+import { countOf, shapeOf } from '../ui/PatternPicture';
+import { checkInvestigation, pickPart1, ruleAt } from '../engine/mathsMock';
 import { packs } from './index';
 
 const mathsPacks = packs.filter((p) => p.subject === 'Mathematics');
@@ -140,6 +141,36 @@ describe.each(mathsPacks.map((p) => [p.id, p] as const))('maths pack %s', (_id, 
       if (it.kind !== 'rule' || !it.picture) continue;
       for (const n of it.picture.figures) expect(countOf(it.picture.kind, n), `${it.id}: figure ${n}`).toBe(it.terms![n - 1] ?? evaluate(it.answer, { n }));
     }
+  });
+
+  it('has mock tests whose investigations add up, and whose Part 1 can always be filled', () => {
+    const mocks = (pack.mocks ?? []).filter((m) => m.maths);
+    expect(mocks.length).toBe(2);
+    expect(pack.plan.some((d) => d.mock === 'mock-1')).toBe(true);
+    for (const m of mocks) {
+      const inv = m.maths!.investigation;
+      inv.terms.forEach((t, i) => expect(ruleAt(inv.rule, i + 1), `${m.id}: stage ${i + 1}`).toBe(t));
+      expect(ruleAt(inv.rule, inv.test.stage), `${m.id}: test`).toBe(inv.test.value);
+      expect(ruleAt(inv.rule, inv.target.stage), `${m.id}: target`).toBe(inv.target.value);
+      // The drawing has as many tiles as the table says.
+      for (const n of inv.picture.figures) {
+        expect(countOf(inv.picture.kind, n, inv.picture), `${m.id}: figure ${n}`).toBe(inv.terms[n - 1]);
+        expect(shapeOf(inv.picture.kind, n, inv.picture).body.length, `${m.id}: drawn ${n}`).toBe(inv.terms[n - 1]);
+      }
+      // A full answer is marked right, in any form of the rule and with any letter.
+      const full = { table: inv.terms, describe: 'x', rule: inv.rule, test: inv.test.value, which: inv.target.stage, justify: 'x' };
+      expect(checkInvestigation(inv, full)).toEqual({ table: inv.terms.map(() => true), rule: true, test: true, which: true });
+      expect(checkInvestigation(inv, { ...full, rule: inv.rule.replace(/n/g, 'x') }).rule).toBe(true);
+      expect(checkInvestigation(inv, { ...full, rule: '4n' }).rule).toBe(false);
+      const ids = pickPart1(pack, m.maths!, {});
+      expect(ids.length, m.id).toBe(m.maths!.part1.length);
+      expect(new Set(ids).size, m.id).toBe(ids.length);
+    }
+  });
+
+  it('has a toolkit tool for every topic', () => {
+    for (const t of pack.topics) expect(pack.toolkit?.some((m) => m.topic === t.id), t.id).toBe(true);
+    for (const m of pack.toolkit ?? []) expect(m.steps.length, m.id).toBeGreaterThanOrEqual(2);
   });
 
   it('never asks a question from the homework due 25 Nov', () => {

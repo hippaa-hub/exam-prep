@@ -12,8 +12,9 @@ const DOT = '#5b5bd6';
 type Shape = { w: number; h: number; body: JSX.Element[] };
 
 /** How many sticks, tiles or dots figure n has. Used by the tests to check the drawings. */
-export function countOf(kind: PictureKind, n: number): number {
+export function countOf(kind: PictureKind, n: number, picture?: Pick<Picture, 'per' | 'base'>): number {
   switch (kind) {
+    case 'columns': return (picture?.base ?? 0) + (picture?.per ?? 1) * n;
     case 'matchsticks': return 3 * n + 1;
     case 'toothpicks': return 2 * n + 1;
     case 'tile-cross': return 4 * n + 1;
@@ -31,9 +32,17 @@ const tile = (key: string, x: number, y: number, fill: string) => (
 );
 const dot = (key: string, x: number, y: number) => <circle key={key} cx={x} cy={y} r={6} fill={DOT} />;
 
-export function shapeOf(kind: PictureKind, n: number): Shape {
+export function shapeOf(kind: PictureKind, n: number, picture?: Pick<Picture, 'per' | 'base'>): Shape {
   const body: JSX.Element[] = [];
   switch (kind) {
+    case 'columns': {
+      const per = picture?.per ?? 1;
+      const base = picture?.base ?? 0;
+      const h = Math.max(per, base);
+      for (let r = 0; r < base; r++) body.push(tile(`o${r}`, 0, (h - base + r) * U, ORANGE));
+      for (let c = 0; c < n; c++) for (let r = 0; r < per; r++) body.push(tile(`c${c}-${r}`, (c + (base ? 1 : 0)) * U, (h - per + r) * U, BLUE));
+      return { w: (n + (base ? 1 : 0)) * U, h: h * U, body };
+    }
     case 'matchsticks': {
       for (let i = 0; i <= n; i++) body.push(line(`v${i}`, i * U, 0, i * U, U));
       for (let i = 0; i < n; i++) body.push(line(`t${i}`, i * U, 0, (i + 1) * U, 0), line(`b${i}`, i * U, U, (i + 1) * U, U));
@@ -75,18 +84,18 @@ export function shapeOf(kind: PictureKind, n: number): Shape {
 
 const NAMES: Record<PictureKind, string> = {
   matchsticks: 'matchstick squares', toothpicks: 'toothpick triangles', 'tile-cross': 'a tile cross',
-  'dot-triangles': 'dot triangles', 'dot-squares': 'dot squares', mosaic: 'a mosaic',
+  'dot-triangles': 'dot triangles', 'dot-squares': 'dot squares', mosaic: 'a mosaic', columns: 'a tile pattern',
 };
 
 export function PatternPicture({ picture }: { picture: Picture }) {
   return (
     <figure className="pattern" aria-label={`A drawing of ${NAMES[picture.kind]}, figures ${picture.figures.join(', ')}`}>
       {picture.figures.map((n) => {
-        const s = shapeOf(picture.kind, n);
+        const s = shapeOf(picture.kind, n, picture);
         const pad = 6;
         return (
           <div key={n} className="pattern-fig">
-            <svg viewBox={`${-pad} ${-pad} ${s.w + 2 * pad} ${s.h + 2 * pad}`} width={Math.min(170, (s.w + 2 * pad) * (picture.kind === "matchsticks" || picture.kind === "toothpicks" ? 1.3 : 0.85))}
+            <svg viewBox={`${-pad} ${-pad} ${s.w + 2 * pad} ${s.h + 2 * pad}`} width={Math.min(170, (s.w + 2 * pad) * (picture.kind === "matchsticks" || picture.kind === "toothpicks" ? 1.3 : picture.kind === 'columns' ? 0.6 : 0.85))}
               role="img" aria-label={`Figure ${n}`}>
               {s.body}
             </svg>

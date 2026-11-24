@@ -35,6 +35,8 @@ interface ViewProps<T extends Item> {
   simple?: string;
   /** A few short examples, shown with the simple words. */
   examples?: string[];
+  /** Exam mode (the mock test): nothing shows whether the answer is right until she hands in. */
+  quiet?: boolean;
 }
 
 export function ItemView(props: ViewProps<Item>) {
@@ -384,7 +386,7 @@ function ShortView({ item, locked, onResult, onCommit, simple, examples, fresh }
 }
 
 /** An algebra answer built on the maths keypad. The app checks it by value, and asks to simplify if needed. */
-function ExpressionView({ item, locked, onResult, onCommit }: ViewProps<ExpressionItem>) {
+function ExpressionView({ item, locked, onResult, onCommit, quiet }: ViewProps<ExpressionItem>) {
   const [text, setText] = useState('');
   const [note, setNote] = useState<string | null>(null);
   const letters = useMemo(() => item.letters ?? lettersFor(item.expr, item.answer), [item]);
@@ -392,7 +394,11 @@ function ExpressionView({ item, locked, onResult, onCommit }: ViewProps<Expressi
   const check = () => {
     const verdict = judgeExpression(item, text);
     if (verdict.kind === 'unreadable') { setNote(verdict.say); return; }
-    if (verdict.kind === 'simplify') { setNote(verdict.say); play('almost'); return; }
+    if (verdict.kind === 'simplify') {
+      setNote(quiet ? 'Write your answer in its simplest form.' : verdict.say);
+      if (!quiet) play('almost');
+      return;
+    }
     onCommit?.();
     setNote(null);
     onResult(verdict.kind === 'right' ? 'right' : 'wrong', verdict.say);
@@ -412,10 +418,12 @@ function ExpressionView({ item, locked, onResult, onCommit }: ViewProps<Expressi
           <MathsKeypad letters={letters} onKey={(k) => { setNote(null); setText((t) => t + k); }}
             onDelete={() => { setNote(null); setText((t) => [...t].slice(0, -1).join('')); }}
             onClear={() => { setNote(null); setText(''); }} />
-          <button type="button" className="btn primary" disabled={!text.trim()} onClick={check}>Check my answer</button>
-          <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>
-            I don't know yet. Show me.
-          </button>
+          <button type="button" className="btn primary" disabled={!text.trim()} onClick={check}>{quiet ? 'Save my answer' : 'Check my answer'}</button>
+          {!quiet && (
+            <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>
+              I don't know yet. Show me.
+            </button>
+          )}
         </>
       )}
     </div>
@@ -427,7 +435,7 @@ const KICKER: Record<NonNullable<ExpressionItem['kind']>, string> = {
 };
 
 /** Boxes for number answers, filled from the number pad. Tap a box to type into it. */
-function NumberBoxes({ labels, values, active, locked, marks, onPick }: {
+export function NumberBoxes({ labels, values, active, locked, marks, onPick }: {
   labels: string[]; values: string[]; active: number; locked: boolean; marks?: boolean[]; onPick: (i: number) => void;
 }) {
   return (
@@ -456,14 +464,14 @@ function useNumberEntry(count: number) {
   return { values, active, setActive, key, del, complete };
 }
 
-function NumericView({ item, locked, onResult, onCommit }: ViewProps<NumericItem>) {
+function NumericView({ item, locked, onResult, onCommit, quiet }: ViewProps<NumericItem>) {
   const e = useNumberEntry(item.fields.length);
   const [marks, setMarks] = useState<boolean[] | undefined>();
   const check = () => {
     onCommit?.();
     const got = e.values.map(readNumber);
     const m = item.fields.map((f, i) => got[i] === f.answer);
-    setMarks(m);
+    if (!quiet) setMarks(m);
     const slip = item.slips?.find((s) => s.answer === got[0]);
     const say = slip?.say ?? (m.some((x) => !x) && item.fields.length > 1
       ? `Check ${item.fields.filter((_, i) => !m[i]).map((f) => f.label).join(' and ')}.` : undefined);
@@ -479,8 +487,8 @@ function NumericView({ item, locked, onResult, onCommit }: ViewProps<NumericItem
           {item.fields.length > 1 && e.active < item.fields.length - 1 && readNumber(e.values[e.active]) !== null && (
             <button type="button" className="btn ghost small" onClick={() => e.setActive(e.active + 1)}>Next box ▶</button>
           )}
-          <button type="button" className="btn primary" disabled={!e.complete} onClick={check}>Check my answer</button>
-          <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>I don't know yet. Show me.</button>
+          <button type="button" className="btn primary" disabled={!e.complete} onClick={check}>{quiet ? 'Save my answer' : 'Check my answer'}</button>
+          {!quiet && <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>I don't know yet. Show me.</button>}
         </>
       )}
     </div>
@@ -490,7 +498,10 @@ function NumericView({ item, locked, onResult, onCommit }: ViewProps<NumericItem
 const SEQ_KINDS: SequenceItem['kind'][] = ['arithmetic', 'geometric', 'neither'];
 
 /** Sequence Detective: the next two terms, arithmetic / geometric / neither, and the evidence. */
-function SequenceView({ item, locked, onResult, onCommit }: ViewProps<SequenceItem>) {
+function SequenceView({ item, locked: lockedProp, onResult, onCommit, quiet }: ViewProps<SequenceItem>) {
+  // In exam mode a saved answer stays as she left it: no right or wrong colours.
+  const locked = lockedProp && !quiet;
+  const frozen = lockedProp;
   const e = useNumberEntry(2);
   const [kind, setKind] = useState<SequenceItem['kind'] | null>(null);
   const evidence = useMemo(() => shuffle(item.evidence), [item]);
@@ -500,7 +511,7 @@ function SequenceView({ item, locked, onResult, onCommit }: ViewProps<SequenceIt
     onCommit?.();
     const got = e.values.map(readNumber);
     const m = [got[0] === item.next[0], got[1] === item.next[1]];
-    setMarks(m);
+    if (!quiet) setMarks(m);
     const parts = [m[0] && m[1] ? '' : 'the next terms', kind === item.kind ? '' : 'the type', rule === item.rule ? '' : 'the evidence'].filter(Boolean);
     onResult(parts.length === 0 ? 'right' : 'wrong', parts.length ? `Check ${parts.join(', ')}.` : undefined);
   };
@@ -510,29 +521,29 @@ function SequenceView({ item, locked, onResult, onCommit }: ViewProps<SequenceIt
       <div className="seq-row" aria-label="The sequence">
         {item.terms.map((t, i) => <span key={i} className="seq-term">{fmtNum(t)}</span>)}
       </div>
-      <NumberBoxes labels={['Next term', 'Then']} values={e.values} active={e.active} locked={locked} marks={marks} onPick={e.setActive} />
-      {!locked && <NumberPad onKey={(k) => { e.key(k); }} onDelete={e.del} />}
-      {!locked && e.active === 0 && readNumber(e.values[0]) !== null && (
+      <NumberBoxes labels={['Next term', 'Then']} values={e.values} active={e.active} locked={frozen} marks={marks} onPick={e.setActive} />
+      {!frozen && <NumberPad onKey={(k) => { e.key(k); }} onDelete={e.del} />}
+      {!frozen && e.active === 0 && readNumber(e.values[0]) !== null && (
         <button type="button" className="btn ghost small" onClick={() => e.setActive(1)}>Next box ▶</button>
       )}
       <div className="seq-q">What kind of sequence?</div>
       <div className="seq-kinds">
         {SEQ_KINDS.map((k) => (
-          <button key={k} type="button" disabled={locked} onClick={() => setKind(k)}
+          <button key={k} type="button" disabled={frozen} onClick={() => setKind(k)}
             className={locked ? (k === item.kind ? 'option right' : k === kind ? 'option wrong' : 'option dim') : k === kind ? 'option picked' : 'option'}>{k}</button>
         ))}
       </div>
       <div className="seq-q">Your evidence:</div>
       <div className="options">
         {evidence.map((r) => (
-          <button key={r} type="button" disabled={locked} onClick={() => setRule(r)}
+          <button key={r} type="button" disabled={frozen} onClick={() => setRule(r)}
             className={locked ? (r === item.rule ? 'option right' : r === rule ? 'option wrong' : 'option dim') : r === rule ? 'option picked' : 'option'}>{r}</button>
         ))}
       </div>
-      {!locked && (
+      {!frozen && (
         <>
-          <button type="button" className="btn primary" disabled={!e.complete || !kind || !rule} onClick={check}>Check my answer</button>
-          <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>I don't know yet. Show me.</button>
+          <button type="button" className="btn primary" disabled={!e.complete || !kind || !rule} onClick={check}>{quiet ? 'Save my answer' : 'Check my answer'}</button>
+          {!quiet && <button type="button" className="text-link" onClick={() => { onCommit?.(); onResult('wrong', undefined, true); }}>I don't know yet. Show me.</button>}
         </>
       )}
     </div>

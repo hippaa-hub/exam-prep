@@ -34,6 +34,8 @@ interface Props {
   /** True when another day is being previewed with ?today= in the address. */
   preview?: boolean;
   onTask: (task: Task) => void;
+  /** Opens "My toolkit": the system for every kind of problem. */
+  onToolkit?: () => void;
   /** A lesson she missed in class and has not done yet: a big card at the top until it is done. */
   catchUp?: { title: string; cards: number; start: () => void };
   /** Called when today's tasks are all done but today is not yet among `daysDone`, so the day gets its tick. */
@@ -109,7 +111,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 
 export function Home({
   pack, plan, progress, points, today, when, ring, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
-  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, catchUp, onExtra, onPractise, onGuide, onParent,
+  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, catchUp, onToolkit, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = ring;
   const cd = countdown(plan.daysToGo);
@@ -171,6 +173,24 @@ export function Home({
           <span className="catch-up-text">
             <strong>Catch up: the lesson you missed</strong>
             <span>{catchUp.title} · {catchUp.cards} Learn cards, step by step</span>
+          </span>
+          <span className="chev" aria-hidden="true">›</span>
+        </button>
+      )}
+
+      {plan.phase === 'exam-day' && pack.examMorning && (
+        <section className="card exam-morning" aria-labelledby="morning-h">
+          <h2 id="morning-h">{pack.examMorning.title}</h2>
+          <ul className="plain-list">{pack.examMorning.points.map((p) => <li key={p}>{p}</li>)}</ul>
+        </section>
+      )}
+
+      {onToolkit && (
+        <button type="button" className="card link-card toolkit-card" onClick={onToolkit}>
+          <span className="link-icon" aria-hidden="true">🧰</span>
+          <span>
+            <strong>My toolkit: how to solve every type</strong>
+            <span className="muted">{pack.toolkit?.length} systems, step by step, each with an example.</span>
           </span>
           <span className="chev" aria-hidden="true">›</span>
         </button>

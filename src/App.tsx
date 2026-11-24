@@ -13,6 +13,9 @@ import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeS
 import { badgesFor } from './engine/rewards';
 import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, learnTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type LessonInfo, type Task } from './engine/tasks';
 import { LearnScreen } from './ui/LearnScreen';
+import { ToolkitScreen } from './ui/ToolkitScreen';
+import { MathsMockScreen } from './ui/MathsMockScreen';
+import { pickPart1 } from './engine/mathsMock';
 import { addStudyTime, creditSeconds, QUESTION_CAP_SECONDS, secondsOn, TABLE_CAP_SECONDS, WRITTEN_CAP_SECONDS } from './engine/time';
 import { mockScore, nextArgument, outcomeOfMockAnswer, type MockResult } from './engine/writing';
 import { packs as allPacks } from './packs';
@@ -54,8 +57,9 @@ type View =
   | { name: 'table'; group: string; key: number; guided: boolean }
   | { name: 'arguments' }
   | { name: 'argument'; id: string; key: number; guided: boolean }
-  | { name: 'mock'; id: string; key: number; guided: boolean }
-  | { name: 'learn'; topic: string; key: number; guided: boolean };
+  | { name: 'mock'; id: string; key: number; guided: boolean; part1?: ItemId[] }
+  | { name: 'learn'; topic: string; key: number; guided: boolean }
+  | { name: 'toolkit'; from: Tab };
 
 /** For looking at another day without waiting for it: add ?today=2026-11-17 to the address. */
 function previewDay(): string | null {
@@ -389,7 +393,12 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   };
 
   const openArgument = (id: string, guided = false) => go({ name: 'argument', id, key: nextKey.current++, guided });
-  const openMock = (id: string, guided = false) => go({ name: 'mock', id, key: nextKey.current++, guided });
+  const openMock = (id: string, guided = false) => {
+    const mock = pack.mocks?.find((m) => m.id === id);
+    // A maths mock picks its Part 1 questions fresh each time: versions she has not met recently.
+    const part1 = mock?.maths ? pickPart1(pack, mock.maths, currentSave().progress) : undefined;
+    go({ name: 'mock', id, key: nextKey.current++, guided, part1 });
+  };
   const openLearn = (topic: string, guided = false) => go({ name: 'learn', topic, key: nextKey.current++, guided });
   const lessonDraftKey = (topic: string) => learnTaskId(topic);
 
@@ -442,6 +451,16 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     }
   }
 
+  if (view.name === 'toolkit') {
+    return (
+      <ToolkitScreen pack={pack} onExit={() => goTab(view.from)}
+        onPractise={(topic) => {
+          const t = pack.topics.find((x) => x.id === topic);
+          if (t) startPractice(t.short, t.items);
+        }} />
+    );
+  }
+
   if (view.name === 'learn') {
     const lesson = pack.lessons?.find((l) => l.topic === view.topic);
     if (lesson) {
@@ -472,6 +491,30 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
 
   if (view.name === 'mock') {
     const mock = pack.mocks?.find((m) => m.id === view.id);
+    if (mock?.maths) {
+      return (
+        <MathsMockScreen
+          key={view.key}
+          mock={mock}
+          items={byId}
+          part1={view.part1 ?? []}
+          draft={save.drafts?.[mock.id]?.[0]}
+          onDraft={(json) => saveDraft(mock.id, [json])}
+          onDone={(r) => {
+            // Part 1 counts like any other answer: right ones earn a level, missed ones go to Fix My Mistakes.
+            for (const p of r.part1) answer(p.id, p.outcome, true, false);
+            updatePack(pack.id, (p) => ({ ...p, mathsMocks: { ...p.mathsMocks, [mock.id]: { ...r, date: today } }, drafts: dropDraft(p, mock.id) }));
+            finish({ kind: 'practice', topics: [], task: mockTaskId(mock.id) }, {
+              asked: r.part1.length, firstTimeRight: r.part1.filter((x) => x.outcome === 'right').length, missed: [],
+            });
+          }}
+          onTime={addTime}
+          onExit={() => goTab(view.guided ? 'home' : 'practise')}
+          onLeft={noteLeft}
+          next={view.guided ? next : undefined}
+        />
+      );
+    }
     if (mock) {
       return (
         <MockScreen
@@ -550,6 +593,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             daysDone={save.daysDone ?? []}
             studyTime={save.studyTime}
             mockResults={save.mockResults ?? {}}
+            mathsMocks={save.mathsMocks ?? {}}
             writing={save.writing ?? {}}
             items={byId}
             today={today}
@@ -611,10 +655,11 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             showGuideHint={!saved.settings.guideSeen}
             preview={preview !== null}
             onTask={startTask}
+            onToolkit={pack.toolkit ? () => go({ name: 'toolkit', from: 'home' }) : undefined}
             catchUp={(() => {
               const topic = pack.catchUp;
               const lesson = pack.lessons?.find((l) => l.topic === topic);
-              if (!topic || !lesson || save.sessions.some((x) => x.task === learnTaskId(topic))) return undefined;
+              if (!topic || !lesson || plan.phase === 'exam-day' || plan.phase === 'past' || save.sessions.some((x) => x.task === learnTaskId(topic))) return undefined;
               const task = tasks.find((t) => t.id === learnTaskId(topic));
               return { title: lesson.title, cards: lesson.cards.length, start: () => (task ? startTask(task) : openLearn(topic)) };
             })()}
@@ -629,11 +674,13 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             pack={pack}
             progress={progress}
             mockResults={save.mockResults ?? {}}
+            mathsMocks={save.mathsMocks ?? {}}
             writing={save.writing ?? {}}
             items={byId}
             onStart={(title, pool, game) => startPractice(title, pool, game ? gameTaskId(game) : undefined)}
             onTable={(group) => openTable(group)}
             onLesson={(topic) => openLearn(topic)}
+            onToolkit={pack.toolkit ? () => go({ name: 'toolkit', from: 'practise' }) : undefined}
             onGlossary={() => startGlossary()}
             onArguments={() => go({ name: 'arguments' })}
             onMock={(id) => openMock(id)}

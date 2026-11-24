@@ -695,3 +695,45 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .pattern { display: flex; gap: 14px; align-items: flex-end; overflow-x: auto; padding: 10px; background: #fff; border: 2px solid var(--line); border-radius: var(--radius); margin: 0; }
 .pattern-fig { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: none; }
 .pattern-fig figcaption { font-size: 0.8rem; font-weight: 800; color: var(--ink-soft); }
+
+/* ---- Phase 3: maths mock test, parent verdict ---- */
+.exam-clock small { font-size: 0.75rem; }
+.saved-note { font-weight: 800; color: var(--accent-dark); }
+.inv-part { display: flex; flex-direction: column; gap: 10px; padding: 12px; background: #fff; border: 2px solid var(--line); border-radius: var(--radius); }
+.inv-part h3 { font-size: 1.05rem; line-height: 1.4; }
+.inv-part .num-box { min-width: 90px; }
+.mock-marks { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mock-marks li { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; }
+.mock-marks .mark { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; }
+.mock-marks li.good .mark { background: var(--green-soft); color: var(--green-ink); }
+.mock-marks li.bad .mark { background: var(--orange-soft); color: var(--orange-ink); }
+.mock-marks small { font-weight: 600; color: var(--ink-soft); }
+.crit-scores { display: flex; gap: 12px; justify-content: center; margin: 8px 0; }
+.crit-scores > div { display: flex; flex-direction: column; align-items: center; padding: 10px 16px; border-radius: 14px; background: var(--accent-soft); min-width: 120px; }
+.crit-scores span { font-size: 0.85rem; font-weight: 800; color: var(--accent-dark); }
+.crit-scores strong { font-size: 2rem; }
+.crit-scores small { color: var(--ink-soft); font-weight: 700; }
+.verdict-card h2 strong { margin-left: 6px; }
+.verdict-card.ready { background: var(--green-soft); border-color: var(--green); }
+.verdict-card.nearly { background: var(--yellow-soft); border-color: var(--yellow); }
+.verdict-card.not-yet { background: var(--orange-soft); border-color: var(--orange); }
+.exam-morning { background: var(--yellow-soft); border-color: var(--yellow); }
+.tools { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.tool-head {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; font: inherit; text-align: left; cursor: pointer;
+  background: #fff; border: 2px solid var(--line); border-bottom-width: 4px; border-radius: var(--radius); color: var(--ink);
+}
+.tool-head.open { border-color: var(--accent); background: var(--accent-soft); }
+.tool-emoji { font-size: 1.6rem; }
+.tool-title { flex: 1; display: flex; flex-direction: column; font-weight: 800; font-size: 1.05rem; }
+.tool-title small { font-size: 0.75rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.tool-body { display: flex; flex-direction: column; gap: 10px; padding: 12px 4px 4px; }
+.tool-steps { list-style: decimal; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
+.tool-example { display: flex; flex-direction: column; gap: 6px; background: #fff; border: 2px dashed var(--accent-line); border-radius: 14px; padding: 10px 12px; }
+.tool-example > span { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--accent-dark); }
+.maths-big.small { font-size: 1.3rem; padding: 8px; }
+.tool-watch { background: var(--orange-soft); border-radius: 12px; padding: 10px 12px; color: var(--orange-ink); font-weight: 700; }
+.toolkit-card { border-color: var(--accent); }
+.tool-example .learn-show { font-size: 1.1rem; }
+.tool-steps li::marker { color: var(--accent-dark); font-weight: 800; }
+.plain-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 6px; font-weight: 700; }

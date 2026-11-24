@@ -12,6 +12,8 @@ import { accuracy, dayReports } from '../engine/report';
 import type { Task } from '../engine/tasks';
 import { formatDuration, totalSeconds, type StudyTime } from '../engine/time';
 import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
+import type { MathsMockResult } from '../engine/mathsMock';
+import { readyVerdict } from '../engine/verdict';
 import type { Saved } from '../storage/db';
 import { Backup } from './Backup';
 import { Ring } from './Ring';
@@ -25,6 +27,7 @@ interface Props {
   daysDone: DateKey[];
   studyTime?: StudyTime;
   mockResults: Record<string, MockResult>;
+  mathsMocks?: Record<string, MathsMockResult>;
   writing: Record<string, WrittenArgument>;
   items: Map<ItemId, Item>;
   today: DateKey;
@@ -104,13 +107,14 @@ function Notifications({ topic, onTopic, onTest }: { topic?: string; onTopic: Pr
   );
 }
 
-export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, writing, items, today, tasks, mistakeCount, leftDuring = {}, name, notifyTopic, onNotifyTopic, onTestNotify, saved, onRestore, onClose, onChangeCode }: Props) {
+export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mockResults, mathsMocks = {}, writing, items, today, tasks, mistakeCount, leftDuring = {}, name, notifyTopic, onNotifyTopic, onTestNotify, saved, onRestore, onClose, onChangeCode }: Props) {
   const reports = dayReports(pack, sessions, studyTime, daysDone, today);
   const todayReport = reports.find((r) => r.day === today);
   const doneCount = tasks.filter((t) => t.done).length;
   const todayAccuracy = todayReport ? accuracy(todayReport) : null;
   const ready = packRing(pack, progress, sessions);
   const days = plan.daysToGo;
+  const verdict = readyVerdict(pack, progress, sessions, ready, mistakeCount, mathsMocks);
 
   return (
     <div className="session">
@@ -125,6 +129,22 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
           Exam on {formatLong(pack.date)}
           {days > 0 ? ` (${days} day${days === 1 ? '' : 's'} to go)` : days === 0 ? ' (today)' : ''}
         </p>
+
+        <section className={`card verdict-card ${verdict.level}`} aria-labelledby="p-verdict">
+          <h2 id="p-verdict">Ready for the test? <strong>{verdict.headline}</strong></h2>
+          {verdict.todo.length > 0 && (
+            <>
+              <p className="label">Still to do</p>
+              <ul className="bullets">{verdict.todo.map((t) => <li key={t}>{t}</li>)}</ul>
+            </>
+          )}
+          {verdict.done.length > 0 && (
+            <>
+              <p className="label">Done</p>
+              <ul className="bullets done-list">{verdict.done.map((t) => <li key={t}>✓ {t}</li>)}</ul>
+            </>
+          )}
+        </section>
 
         <section className="card" aria-labelledby="p-today">
           <div className="time-today">
@@ -191,7 +211,16 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
           <section className="card" aria-labelledby="p-exam">
             <h2 id="p-exam">Exam practice</h2>
             <ul className="facts">
-              {(pack.mocks ?? []).map((m) => {
+              {(pack.mocks ?? []).filter((m) => m.maths).map((m) => {
+                const r = mathsMocks[m.id];
+                return (
+                  <li key={m.id}>
+                    <span>{m.title}{r ? ` · ${formatShort(r.date)} · ${formatDuration(r.seconds)}` : ''}</span>
+                    <strong>{r ? `B ${r.b} · C ${r.c} · Part 1 ${r.part1.filter((x) => x.outcome === 'right').length}/${r.part1.length}` : 'Not done'}</strong>
+                  </li>
+                );
+              })}
+              {(pack.mocks ?? []).filter((m) => !m.maths).map((m) => {
                 const r = mockResults[m.id];
                 const sc = r ? mockScore(r, items) : null;
                 return (
@@ -205,10 +234,12 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
                 <li><span>Arguments written</span><strong>{Object.keys(writing).length} of {pack.arguments!.length}</strong></li>
               )}
             </ul>
-            <p className="muted small">
+            {(pack.mocks ?? []).some((m) => m.maths) ? (
+              <p className="muted small">B and C are her own marks out of 8, from the teacher's simplified descriptors. Part 1 is marked by the app. It is practice, not a grade.</p>
+            ) : <p className="muted small">
               Part A counts answers with the key ideas. Part B counts her own ticks against a {ARGUMENT_CHECKLIST.length}-point checklist.
               It is her own marking: practice, not a grade.
-            </p>
+            </p>}
             {(pack.arguments ?? []).filter((q) => writing[q.id]).map((q) => (
               <details key={q.id} className="written">
                 <summary>{q.prompt}</summary>

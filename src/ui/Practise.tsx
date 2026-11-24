@@ -2,6 +2,7 @@ import type { Game, Item, ItemId, Pack } from '../content/types';
 import { gameOf, glossaryOf, itemsOf } from '../content/types';
 import { formatShort } from '../engine/dates';
 import { READY_AT, readiness, topicReadiness, type ProgressMap } from '../engine/progress';
+import type { MathsMockResult } from '../engine/mathsMock';
 import { mockScore, type MockResult, type WrittenArgument } from '../engine/writing';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
   /** A round of glossary words: half met before, half new. */
   onGlossary: () => void;
   mockResults: Record<string, MockResult>;
+  mathsMocks?: Record<string, MathsMockResult>;
   writing: Record<string, WrittenArgument>;
   items: Map<ItemId, Item>;
   onArguments: () => void;
@@ -20,6 +22,8 @@ interface Props {
   onBack: () => void;
   /** Opens a lesson (Learn cards) again. */
   onLesson?: (topic: string) => void;
+  /** Opens "My toolkit". */
+  onToolkit?: () => void;
 }
 
 const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: string }[] = [
@@ -31,7 +35,7 @@ const GAMES: { game: Game; title: string; blurb: string; icon: string; tone: str
   { game: 'write', title: 'Say it or write it', blurb: 'Full-sentence answers, checked for the key ideas', icon: '🎤', tone: 'blue' },
 ];
 
-export function Practise({ pack, progress, onStart, onTable, onGlossary, mockResults, writing, items, onArguments, onMock, onBack, onLesson }: Props) {
+export function Practise({ pack, progress, onStart, onTable, onGlossary, mockResults, mathsMocks = {}, writing, items, onArguments, onMock, onBack, onLesson, onToolkit }: Props) {
   const all = itemsOf(pack);
   const groups = [...new Set(all.flatMap((it) => (it.type === 'table' ? [it.group] : [])))];
   const glossary = glossaryOf(pack);
@@ -43,6 +47,14 @@ export function Practise({ pack, progress, onStart, onTable, onGlossary, mockRes
         <h1>More practice</h1>
         <p>Extra, for when today's tasks are done. Pick a game. Each round starts with the questions you know least.</p>
       </header>
+
+      {onToolkit && (
+        <button type="button" className="card link-card toolkit-card" onClick={onToolkit}>
+          <span className="link-icon" aria-hidden="true">🧰</span>
+          <span><strong>My toolkit</strong><span className="muted">The system for every kind of problem.</span></span>
+          <span className="chev" aria-hidden="true">›</span>
+        </button>
+      )}
 
       {(pack.lessons?.length ?? 0) > 0 && onLesson && (
         <section className="card" aria-labelledby="lessons-h">
@@ -98,12 +110,14 @@ export function Practise({ pack, progress, onStart, onTable, onGlossary, mockRes
             {(pack.mocks ?? []).map((m) => {
               const r = mockResults[m.id];
               const sc = r ? mockScore(r, items) : null;
+              const mm = mathsMocks[m.id];
               return (
                 <li key={m.id}>
                   <button type="button" onClick={() => onMock(m.id)}>
                     <span className="topic-name">📝 {m.title}</span>
-                    <span className={r ? 'pct ready' : 'pct'}>
-                      {r && sc ? `✓ ${formatShort(r.date)} · Part A ${sc.partARight}/${sc.partATotal}` : `About ${m.minutes} min`}
+                    <span className={r || mm ? 'pct ready' : 'pct'}>
+                      {mm ? `✓ ${formatShort(mm.date)} · B ${mm.b} · C ${mm.c}`
+                        : r && sc ? `✓ ${formatShort(r.date)} · Part A ${sc.partARight}/${sc.partATotal}` : `About ${m.minutes} min`}
                     </span>
                   </button>
                 </li>
