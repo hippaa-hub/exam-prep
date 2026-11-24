@@ -1,9 +1,11 @@
 // Generates the app icons (no image libraries needed).
 // A violet square with a three-quarter white progress ring - the app's readiness ring.
+// The maths app (Prep Exam Maths) gets the same ring on orange, so the two are easy to tell apart.
 import { deflateSync } from 'node:zlib';
 import { writeFileSync } from 'node:fs';
 
-const BG = [0x5b, 0x5b, 0xd6];
+const VIOLET = [0x5b, 0x5b, 0xd6];
+const ORANGE = [0xff, 0x8a, 0x00];
 const RING = [0xff, 0xff, 0xff];
 
 const crcTable = (() => {
@@ -31,7 +33,7 @@ function chunk(type, data) {
   return Buffer.concat([len, body, crc]);
 }
 
-function png(size) {
+function png(size, BG = VIOLET) {
   const S = 4; // supersampling
   const cx = size / 2;
   const cy = size / 2;
@@ -87,4 +89,6 @@ function png(size) {
 for (const [name, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['apple-touch-icon.png', 180]]) {
   writeFileSync(new URL(`../public/${name}`, import.meta.url), png(size));
   console.log('wrote public/' + name);
+  writeFileSync(new URL(`../public/maths-${name}`, import.meta.url), png(size, ORANGE));
+  console.log('wrote public/maths-' + name);
 }
