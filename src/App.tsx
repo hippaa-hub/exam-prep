@@ -469,8 +469,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         <LearnScreen
           key={view.key}
           lesson={lesson}
-          startAt={Number(save.drafts?.[key]?.[0] ?? 0)}
-          onProgress={(i) => saveDraft(key, [String(i)])}
+          startAt={Math.max(0, lesson.cards.findIndex((c) => c.id === save.drafts?.[key]?.[1]))}
+          onProgress={(i) => saveDraft(key, [String(i), lesson.cards[i]?.id ?? ''])}
           onDone={(tapsRight) => {
             updatePack(pack.id, (p) => ({ ...p, drafts: dropDraft(p, key) }));
             finish({ kind: 'practice', topics: [], task: key }, { asked: lesson.cards.length, firstTimeRight: tapsRight, missed: [] });

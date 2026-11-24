@@ -29,6 +29,8 @@ export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next 
   const [tapsRight, setTapsRight] = useState(0);
   const [finished, setFinished] = useState(false);
   const card = lesson.cards[index];
+  const [resumed, setResumed] = useState(startAt > 0);
+  const restart = () => { setResumed(false); setIndex(0); onProgress(0); window.scrollTo(0, 0); };
 
   const nextCard = () => {
     if (index + 1 >= lesson.cards.length) {
@@ -36,6 +38,7 @@ export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next 
       onDone(tapsRight);
       return;
     }
+    setResumed(false);
     setIndex(index + 1);
     onProgress(index + 1);
     window.scrollTo(0, 0);
@@ -54,6 +57,12 @@ export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next 
         <span className="count">{index + 1}/{lesson.cards.length}</span>
       </header>
       <main className="session-body">
+        {resumed && index > 0 && (
+          <div className="learn-resume">
+            <span>Welcome back! You stopped at card {index + 1}.</span>
+            <button type="button" className="btn ghost" onClick={restart}>↺ Start from card 1</button>
+          </div>
+        )}
         <CardView key={card.id} card={card} last={index + 1 === lesson.cards.length}
           onTapRight={() => setTapsRight((n) => n + 1)} onNext={nextCard} />
       </main>
