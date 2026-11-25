@@ -11,7 +11,7 @@ import { dayReports, reportMessage } from './engine/report';
 import { POINTS_FIXED_MISTAKE, POINTS_SESSION } from './engine/rewards';
 import { buildFixSession, buildGlossarySession, buildLateSession, buildPracticeSession, buildTodaySession, dueToday, GLOSSARY_IN_MIX, lastDaySize, roundSize, type RunSummary } from './engine/session';
 import { badgesFor } from './engine/rewards';
-import { ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, learnTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type LessonInfo, type Task } from './engine/tasks';
+import { AHEAD_TASK, ARGUMENT_TASK, GLOSSARY_TASK, LATE_TASK, dayFinished, gameTaskId, learnTaskId, mockTaskId, nextTask, tableTaskId, tasksFor, type LessonInfo, type Task } from './engine/tasks';
 import { LearnScreen } from './ui/LearnScreen';
 import { ToolkitScreen } from './ui/ToolkitScreen';
 import { MathsMockScreen } from './ui/MathsMockScreen';
@@ -24,7 +24,7 @@ import { ntfyPublish, type Publish } from './storage/notify';
 import { ArgumentList } from './ui/ArgumentList';
 import { ArgumentScreen } from './ui/ArgumentScreen';
 import { Guide } from './ui/Guide';
-import { Home } from './ui/Home';
+import { Home, type AheadDay } from './ui/Home';
 import { Mistakes } from './ui/Mistakes';
 import { MockScreen } from './ui/MockScreen';
 import { Parent } from './ui/Parent';
@@ -432,6 +432,42 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   };
   const next = upcoming ? { title: upcoming.title, start: () => startTask(upcoming) } : undefined;
 
+  /**
+   * Tomorrow's work, open early (Jenia, 25 Nov: "so she can switch to the second day too").
+   * The topics not on today's list, with their lessons, a practice round, and tomorrow's mock test.
+   */
+  const ahead: AheadDay | undefined = (() => {
+    if (plan.daysToGo < 2 || plan.phase === 'past' || plan.phase === 'exam-day' || plan.topics.length === 0) return undefined;
+    const tomorrow = addDays(today, 1);
+    const topics = pack.topics.filter((t) => !plan.topics.includes(t.id));
+    const sessions = save.sessions;
+    const items: AheadDay['items'] = [];
+    for (const t of topics) {
+      const info = lessonInfo(t.id);
+      if (!info) continue;
+      const id = learnTaskId(t.id);
+      items.push({ id, title: info.title, detail: info.detail, done: sessions.some((x) => x.task === id), start: () => openLearn(t.id, true) });
+    }
+    const pool = topics.flatMap((t) => t.items);
+    if (pool.length > 0) {
+      items.push({
+        id: AHEAD_TASK, title: "Practice: tomorrow's topics", detail: '12 questions · about 8 min',
+        done: sessions.some((x) => x.date === today && x.task === AHEAD_TASK),
+        start: () => startPractice("Tomorrow's topics", pool, AHEAD_TASK, true),
+      });
+    }
+    const mockId = pack.plan.find((d) => d.mock && addDays(pack.date, d.day) === tomorrow)?.mock;
+    const mock = pack.mocks?.find((m) => m.id === mockId);
+    if (mock) {
+      items.push({
+        id: mockTaskId(mock.id), title: mock.title, detail: `About ${mock.minutes} min · like the real test`,
+        done: sessions.some((x) => x.task === mockTaskId(mock.id)), start: () => openMock(mock.id, true),
+      });
+    }
+    const names = topics.map((t) => t.short).join(', ');
+    return items.length > 0 ? { date: tomorrow, label: mock ? `${names}, then the Mock Test` : names, items } : undefined;
+  })();
+
   if (view.name === 'argument') {
     const item = pack.arguments?.find((a) => a.id === view.id);
     if (item) {
@@ -655,6 +691,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             showGuideHint={!saved.settings.guideSeen}
             preview={preview !== null}
             onTask={startTask}
+            ahead={ahead}
             onToolkit={pack.toolkit ? () => go({ name: 'toolkit', from: 'home' }) : undefined}
             catchUp={(() => {
               const topic = pack.catchUp;

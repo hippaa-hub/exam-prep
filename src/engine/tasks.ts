@@ -52,6 +52,8 @@ export const ARGUMENT_TASK = 'argument';
 /** Marks a finished round of glossary words (Part 2). It is optional, so it is not one of the day's tasks. */
 export const GLOSSARY_TASK = 'glossary';
 export const LATE_TASK = 'round-new';
+/** A practice round of tomorrow's topics, done early. Optional, so it is not one of the day's tasks. */
+export const AHEAD_TASK = 'ahead';
 
 const minutes = (questions: number) => Math.max(2, Math.round(questions * 0.65));
 const questions = (n: number) => `${n} question${n === 1 ? '' : 's'} · about ${minutes(n)} min`;

@@ -774,3 +774,9 @@ textarea:focus { outline: none; border-color: var(--blue); }
 @media (prefers-reduced-motion: reduce) { .game-show, .game-streak { animation: none; } }
 .learn-resume { display: flex; flex-direction: column; gap: 8px; background: var(--accent-soft); border: 2px solid var(--accent-line); border-radius: var(--radius); padding: 10px 12px; font-weight: 800; margin-bottom: 12px; }
 .start-again { display: flex; flex-direction: column; gap: 8px; background: var(--orange-soft); border: 2px solid var(--orange); border-radius: var(--radius); padding: 12px; }
+
+/* Tomorrow's work, open early */
+.ahead-card { border-color: var(--orange-soft); }
+.ahead-card .card-kicker { color: var(--orange-ink); }
+.task.done-ahead { background: transparent; border-bottom-width: 2px; }
+.task.done-ahead .task-num { background: var(--green-ink, #2e7d32); border-color: transparent; color: #fff; }

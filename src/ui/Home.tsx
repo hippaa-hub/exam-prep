@@ -11,6 +11,13 @@ import { Mascot, type Mood } from './Mascot';
 import { Ring } from './Ring';
 import { play } from './sound';
 
+/** Tomorrow's work, which she can start early. */
+export interface AheadDay {
+  date: DateKey;
+  label: string;
+  items: { id: string; title: string; detail: string; done: boolean; start: () => void }[];
+}
+
 interface Props {
   pack: Pack;
   plan: TodayPlan;
@@ -34,6 +41,8 @@ interface Props {
   /** True when another day is being previewed with ?today= in the address. */
   preview?: boolean;
   onTask: (task: Task) => void;
+  /** Tomorrow's lessons, practice and mock, open now. */
+  ahead?: AheadDay;
   /** Opens "My toolkit": the system for every kind of problem. */
   onToolkit?: () => void;
   /** A lesson she missed in class and has not done yet: a big card at the top until it is done. */
@@ -111,7 +120,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 
 export function Home({
   pack, plan, progress, points, today, when, ring, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
-  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, catchUp, onToolkit, onExtra, onPractise, onGuide, onParent,
+  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, ahead, catchUp, onToolkit, onExtra, onPractise, onGuide, onParent,
 }: Props) {
   const ready = ring;
   const cd = countdown(plan.daysToGo);
@@ -296,6 +305,28 @@ export function Home({
           </>
         )}
       </section>
+
+      {ahead && (
+        <section className="card ahead-card" aria-labelledby="ahead-h">
+          <div className="card-top">
+            <span className="card-kicker">Tomorrow · {formatShort(ahead.date)}</span>
+            <span className="count-chip">{ahead.items.filter((t) => t.done).length} of {ahead.items.length} done</span>
+          </div>
+          <h2 id="ahead-h">{ahead.label}</h2>
+          <p className="muted small">Open now: you can start tomorrow's work today.</p>
+          <ol className="tasks" aria-label="Tomorrow's tasks">
+            {ahead.items.map((t, i) => (
+              <li key={t.id}>
+                <button type="button" className={t.done ? 'task done-ahead' : 'task'} onClick={t.start}>
+                  <span className="task-num" aria-hidden="true">{t.done ? '✓' : i + 1}</span>
+                  <span className="task-text"><strong>{t.title}</strong><small>{t.done ? 'Done · tap to do it again' : t.detail}</small></span>
+                  <span className="chev" aria-hidden="true">›</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
       {(pack.lessons?.length ?? 0) > 0 && (
         <button type="button" className="card link-card" onClick={onPractise}>
