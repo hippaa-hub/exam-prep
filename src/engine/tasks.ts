@@ -125,7 +125,7 @@ export function tasksFor(
   if (mixDay && lateLeft > 0) {
     tasks.push({
       id: LATE_TASK, kind: 'round', title: 'New questions from the slides', detail: questions(lateLeft),
-      tip: 'These were added after checking every slide. Say or type your answers; new to you? Tap "I don\'t know yet" and read why.',
+      tip: 'These were added after checking every slide. Answer them; new to you? Tap "I don\'t know yet" and read why.',
       done: didTask(LATE_TASK),
     });
   }
@@ -134,8 +134,8 @@ export function tasksFor(
     id: 'round-1', kind: 'round', title: mixDay && plan.topics.length === 0 ? 'A mixed round of everything' : "Round 1: today's questions",
     detail: rounds >= 1 ? 'Done' : questions(size),
     tip: mixDay && plan.topics.length === 0
-      ? 'Everything from both lessons, plus new glossary words. Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.'
-      : 'Say or type your answers from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
+      ? 'Everything from both lessons, plus new glossary words. Answer from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.'
+      : 'Answer from memory. New to you? Tap "I don\'t know yet" and I will show you. After each answer, read why.',
     done: rounds >= 1,
   });
 

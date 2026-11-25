@@ -1,7 +1,7 @@
 // PR: Visual patterns and rules (Parts D2 and D3): matchsticks, tile cross, toothpicks, dot patterns;
 // from a pattern to the nth-term rule; the value of a far term; which term equals N.
 import { nums, rule } from '../../content/maths';
-import type { ChoiceItem, Item, MatchItem, Picture, ShortItem, Topic } from '../../content/types';
+import type { ChoiceItem, Item, MatchItem, Picture, Topic } from '../../content/types';
 
 const pic = (kind: Picture['kind'], figures = [1, 2, 3]): Picture => ({ kind, figures });
 
@@ -142,16 +142,6 @@ const items: Item[] = [
     ],
     explain: 'y = 4x + 2 → 6, 10, 14, 18. y = 2x + 5 → 7, 9, 11, 13. y = 12 − 3x → 9, 6, 3, 0.',
   } satisfies MatchItem,
-  {
-    id: 'pr-c-w1', concept: 'pr-meaning', type: 'short',
-    prompt: 'Connected matchstick squares: explain why the rule is 3n + 1 and not 4n.',
-    ideas: [
-      { label: 'Each new square shares a side, so it needs only 3 new sticks', words: ['share', 'shares', 'shared', '3 new', 'three new', 'only 3', 'only three'] },
-      { label: 'The +1 is the first stick (the first square has 4)', words: ['+1', '+ 1', 'first square', 'first stick', 'extra stick', '4 sticks', 'four sticks'] },
-      { label: 'Test: figure 2 has 7 sticks, 4n would give 8', words: ['7', 'seven', 'test', 'check', '8', 'eight', 'twice'] },
-    ], need: 2,
-    model: 'Each new square shares one side with the square before, so it only needs 3 new matchsticks: that is the 3n. The first square needs one extra stick to close it, which is the +1. 4n is wrong because it counts every shared side twice. Test: figure 2 has 7 sticks; 3(2) + 1 = 7, but 4(2) = 8.',
-  } satisfies ShortItem,
 ];
 
 export const pr: Topic = { id: 'PR', title: 'Visual patterns and nth-term rules', short: 'Patterns and rules', items };

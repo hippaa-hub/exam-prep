@@ -2,7 +2,7 @@
 // From the teacher's lesson: the anatomy of −4x² + 3xy − 7, "same variable part, same powers", Examples A and B.
 // None of these is a question from the homework due 25 Nov (packs.test.ts checks this).
 import { collect } from '../../content/maths';
-import type { ChoiceItem, Item, PairItem, ShortItem, Topic } from '../../content/types';
+import type { ChoiceItem, Item, PairItem, Topic } from '../../content/types';
 
 const coef = (id: string, term: string, answer: string, wrong: [string, string, string], explain: string, whyNot: Record<string, string>): ChoiceItem => ({
   id, concept: 'a1-parts', type: 'choice', prompt: `What is the coefficient in ${term}?`,
@@ -114,15 +114,6 @@ const items: Item[] = [
     explain: 'Like terms: add the numbers in front, 3 + 4 = 7. The power stays a². Adding never changes the power.',
     whyNot: { '7a⁴': 'The powers only add when you MULTIPLY. When you add like terms, the power stays the same: 7a².' },
   } satisfies PairItem,
-  {
-    id: 'a1-why-w1', concept: 'a1-why-like', type: 'short',
-    prompt: 'Why can 3p + 2p be combined, but 3p + 2p² cannot?',
-    ideas: [
-      { label: '3p and 2p are like terms (same letter, same power)', words: ['like terms', 'same power', 'same letter', 'same variable', 'same exponent', 'both p'] },
-      { label: 'p and p² have different powers, so they are unlike', words: ['unlike', 'different power', 'different exponent', 'not the same power', 'different', 'p squared', 'p²', 'p2'] },
-    ],
-    model: '3p and 2p are like terms: same letter, same power, so 3p + 2p = 5p. 3p and 2p² are unlike terms: p has power 1 but p² has power 2. Unlike terms cannot be collected, so 3p + 2p² stays as it is.',
-  } satisfies ShortItem,
 ];
 
 export const a1: Topic = {

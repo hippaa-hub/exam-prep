@@ -2,7 +2,7 @@
 // "Negative numbers need brackets!" and the order of operations. Every answer carries its calculation,
 // which the tests work out again.
 import { nums } from '../../content/maths';
-import type { ChoiceItem, ErrorFindItem, Item, NumericItem, ShortItem, Topic } from '../../content/types';
+import type { ChoiceItem, ErrorFindItem, Item, NumericItem, Topic } from '../../content/types';
 
 /** Substitute one value: `put` is the line with the value in brackets, `calc` the same in plain maths. */
 const sub = (id: string, concept: string, given: string, expr: string, put: string, steps: string[], answer: number, calc: string, slips?: NumericItem['slips']): NumericItem =>
@@ -83,15 +83,6 @@ const items: Item[] = [
       'You only need brackets for squares': 'Negative numbers ALWAYS need brackets when you substitute.',
     },
   } satisfies ChoiceItem,
-  {
-    id: 'p4-w-w1', concept: 'p4-why', type: 'short',
-    prompt: 'Explain why (−2)² is different from −2².',
-    ideas: [
-      { label: '(−2)² = (−2) × (−2) = 4', words: ['(−2) × (−2)', '(-2) x (-2)', '(-2)(-2)', '-2 × -2', '-2 x -2', 'minus times minus', '= 4', 'is 4', 'positive 4', 'plus 4'] },
-      { label: '−2² = −(2 × 2) = −4: the square applies only to the 2', words: ['−4', '-4', 'minus 4', 'negative 4', 'only the 2', 'only to the 2', 'directly in front', 'just the 2'] },
-    ],
-    model: '(−2)² means (−2) × (−2), and a minus times a minus is a plus, so it is 4. −2² means −(2 × 2) = −4, because the square applies only to the 2 directly in front of it. So (−2)² = 4 but −2² = −4.',
-  } satisfies ShortItem,
 ];
 
 export const p4: Topic = { id: 'P4', title: 'Substitution, including negative numbers', short: 'Substitution', items };

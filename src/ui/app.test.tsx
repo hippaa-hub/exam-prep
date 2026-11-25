@@ -72,7 +72,7 @@ describe('the app', () => {
     expect(within(list).getAllByRole('button')).toHaveLength(3); // every task can be opened
     expect(within(list).getAllByRole('button')[0]).toHaveTextContent('Round 1');
     expect(within(list).getAllByRole('button')[0]).toHaveClass('next');
-    expect(screen.getByRole('status')).toHaveTextContent(/3 tasks for today\. Start with the first one, or tap any task\. Say or type your answers from memory/);
+    expect(screen.getByRole('status')).toHaveTextContent(/3 tasks for today\. Start with the first one, or tap any task\. Answer from memory/);
     expect(screen.getByText('Exam: Wednesday 18 November')).toBeInTheDocument();
   });
 

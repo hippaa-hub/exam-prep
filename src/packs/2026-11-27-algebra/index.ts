@@ -7,6 +7,7 @@
 import type { Pack } from '../../content/types';
 import { a1 } from './a1';
 import { a3 } from './a3';
+import { choicesA1, choicesA3, choicesIN, choicesP1, choicesP4, choicesPR } from './choices';
 import { inv } from './inv';
 import { mocks } from './mocks';
 import { toolkit } from './toolkit';
@@ -99,7 +100,15 @@ export const pack: Pack = {
   title: 'Patterns and Algebraic Expressions',
   date: '2026-11-27',
   criteria: ['B: investigating patterns', 'C: communicating'],
-  topics: [a3, a1, p1, p4, pr, inv],
+  // More choose-the-answer questions are added to every topic (Jenia, 25 Nov).
+  topics: [
+    { ...a3, items: [...a3.items, ...choicesA3] },
+    { ...a1, items: [...a1.items, ...choicesA1] },
+    { ...p1, items: [...p1.items, ...choicesP1] },
+    { ...p4, items: [...p4.items, ...choicesP4] },
+    { ...pr, items: [...pr.items, ...choicesPR] },
+    { ...inv, items: [...inv.items, ...choicesIN] },
+  ],
   lessons: [lessonA3, lessonA1, lessonP1, lessonP4, lessonPR, lessonIN],
   catchUp: 'A3',
   freshNumbers: true,

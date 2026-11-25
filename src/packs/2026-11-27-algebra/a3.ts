@@ -3,7 +3,7 @@
 // Every idea has several versions with different numbers, so a miss comes back with new numbers.
 // None of these is a question from the homework due 25 Nov (packs.test.ts checks this).
 import { mul } from '../../content/maths';
-import type { ChoiceItem, Item, PairItem, ShortItem, Topic } from '../../content/types';
+import type { ChoiceItem, Item, PairItem, Topic } from '../../content/types';
 
 const items: Item[] = [
   // A number times a term
@@ -74,15 +74,6 @@ const items: Item[] = [
   mul('a3-c-3', 'a3-coef-powers', '(−2a²)(4a³)', '−8a⁵'),
   mul('a3-c-4', 'a3-coef-powers', '3k⁴ × (−2k)', '−6k⁵'),
   mul('a3-c-5', 'a3-coef-powers', '6m² × 2m⁵', '12m⁷'),
-  {
-    id: 'a3-c-w1', concept: 'a3-coef-powers', type: 'short',
-    prompt: 'A student writes 4y³ × 2y² = 8y⁶. Explain the mistake, and give the right answer.',
-    ideas: [
-      { label: 'The powers were multiplied, but they should be added', words: ['add', 'added', 'adding', 'plus', '3 + 2', '3+2'] },
-      { label: 'The right answer is 8y⁵', words: ['8y5', '8y⁵', 'y5', 'y⁵', '8 y5', 'y to the power 5', 'power of 5', 'power 5'] },
-    ],
-    model: 'The student multiplied the powers (3 × 2 = 6). When you multiply terms with the same base, you add the powers: y³ × y² = y³⁺² = y⁵. The numbers are right: 4 × 2 = 8. So 4y³ × 2y² = 8y⁵.',
-  } satisfies ShortItem,
 
   // Different letters: the powers cannot be added
   mul('a3-d-1', 'a3-diff-bases', 'x² × y³', 'x²y³'),
@@ -151,15 +142,6 @@ const items: Item[] = [
       '10 × y × 2': 'That is 20y: there is only one y, so no y².',
     },
   } satisfies ChoiceItem,
-  {
-    id: 'a3-am-w1', concept: 'a3-add-vs-mul', type: 'short',
-    prompt: 'Explain why 2x + 3x = 5x, but 2x × 3x = 6x².',
-    ideas: [
-      { label: 'Adding: count how many x\'s (2 + 3 = 5 lots of x)', words: ['lots of', 'add', 'adding', 'copies', 'count', 'plus'] },
-      { label: 'Multiplying: multiply the numbers and x × x = x²', words: ['multiply', 'multiplying', 'x × x', 'x times x', 'x x x', 'times', '2 × 3', '2x3', 'squared'] },
-    ],
-    model: '2x + 3x is adding: 2 lots of x and 3 more lots of x make 5 lots of x, so 5x (the power stays 1). 2x × 3x is multiplying: multiply the numbers, 2 × 3 = 6, and multiply the letters, x × x = x². So 2x × 3x = 6x².',
-  } satisfies ShortItem,
 
   // Why the powers add (Criterion C)
   {
@@ -188,15 +170,6 @@ const items: Item[] = [
       'When the letters are different': 'Different letters keep their own powers: a² × b³ = a²b³.',
     },
   } satisfies ChoiceItem,
-  {
-    id: 'a3-why-w1', concept: 'a3-product-rule', type: 'short',
-    prompt: 'Explain in your own words why a⁴ × a³ = a⁷. Write it out to show it.',
-    ideas: [
-      { label: 'Write out the a\'s: four a\'s times three a\'s', words: ['a × a', 'a x a', 'axa', 'a times a', 'four a', '4 a', 'three a', '3 a', 'write it out', 'written out'] },
-      { label: 'Add the powers: 4 + 3 = 7', words: ['4 + 3', '4+3', 'add', 'added', 'adding', 'plus', 'seven', '7'] },
-    ],
-    model: 'a⁴ means a × a × a × a and a³ means a × a × a. Multiplied together that is 4 + 3 = 7 a\'s: a × a × a × a × a × a × a = a⁷. So when we multiply the same base, we add the powers.',
-  } satisfies ShortItem,
 
   // The 3-step method, in order
   {

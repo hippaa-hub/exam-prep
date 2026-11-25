@@ -1,7 +1,7 @@
 // IN: Real-life rules and investigations (Part D5) and Criterion C, communicating (Part D6).
 // The Criterion B steps: find what changes, table, general rule, test it, justify it.
 import { nums, rule } from '../../content/maths';
-import type { ChoiceItem, Item, OrderItem, ShortItem, Topic } from '../../content/types';
+import type { ChoiceItem, Item, OrderItem, Topic } from '../../content/types';
 
 const items: Item[] = [
   // Using a real-life rule
@@ -98,33 +98,6 @@ const items: Item[] = [
     explain: 'Define the variable clearly: n is the position, the figure or stage number.',
     whyNot: { 'n is a number': 'Too vague: WHICH number? Say it is the figure (position) number.', 'n is the answer': 'The answer (the number of sticks) is m, worked out FROM n.', 'n is the number of sticks': 'The number of sticks is what the rule gives you. n is the figure number.' },
   } satisfies ChoiceItem,
-  {
-    id: 'in-c-w1', concept: 'in-explain', type: 'short',
-    prompt: 'Explain why y = 2n − 1 always gives odd numbers.',
-    ideas: [
-      { label: '2n is always even (a multiple of 2)', words: ['even', 'multiple of 2', 'times 2', '× 2', 'double'] },
-      { label: 'One less than an even number is odd', words: ['one less', '1 less', 'minus 1', '− 1', '- 1', 'take away 1', 'subtract 1', 'odd'] },
-    ],
-    model: '2n is 2 times a whole number, so it is always even. Taking away 1 from an even number always gives an odd number. So 2n − 1 gives 1, 3, 5, 7, …: the odd numbers.',
-  } satisfies ShortItem,
-  {
-    id: 'in-c-w2', concept: 'in-explain', type: 'short',
-    prompt: 'Explain in two sentences how the matchstick pattern grows, then predict figure 8.',
-    ideas: [
-      { label: 'It starts with 4 sticks, and each figure adds 3 (shared side)', words: ['add 3', 'adds 3', '+3', '3 more', 'three more', '3 new', 'share'] },
-      { label: 'Figure 8 has 25 sticks', words: ['25', 'twenty-five', 'twenty five'] },
-    ],
-    model: 'My pattern begins with 4 matchsticks. Each new figure adds 3 matchsticks, because each new square shares a side. Therefore figure n has 3n + 1 matchsticks, and figure 8 has 3(8) + 1 = 25. I checked this using figure 2: 3(2) + 1 = 7 ✓.',
-  } satisfies ShortItem,
-  {
-    id: 'in-c-w3', concept: 'in-meaning', type: 'short',
-    prompt: 'The tile cross rule is t = 4n + 1. Explain what the 4 and the 1 mean in the picture.',
-    ideas: [
-      { label: 'The 4: each of the four arms grows by one tile each stage', words: ['four arms', '4 arms', 'arms', 'each arm', '4 new', 'four new'] },
-      { label: 'The 1: the centre tile, which stays', words: ['centre', 'center', 'middle', 'stays', 'one tile'] },
-    ],
-    model: 'The 4 means four new tiles at each stage: each of the four arms grows by one tile. The 1 is the centre tile, which is there at every stage and does not grow. So stage n has 4n + 1 tiles.',
-  } satisfies ShortItem,
 ];
 
 export const inv: Topic = { id: 'IN', title: 'Real-life rules, investigations and explaining', short: 'Investigations', items };

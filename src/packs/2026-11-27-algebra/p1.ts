@@ -1,7 +1,7 @@
 // P1: Sequences: arithmetic, geometric or neither; common difference and ratio; next terms (Part D1).
 // The teacher's sequences, plus new ones with different numbers so a miss comes back fresh.
 import { nums, seq } from '../../content/maths';
-import type { ChoiceItem, Item, ShortItem, Topic } from '../../content/types';
+import type { ChoiceItem, Item, Topic } from '../../content/types';
 
 const A = (d: number) => (d < 0 ? `−${-d} each time` : `+${d} each time`);
 
@@ -83,16 +83,6 @@ const items: Item[] = [
       'Because 15 is the last term': 'Where it stops does not matter. Look at how it grows.',
     },
   } satisfies ChoiceItem,
-  {
-    id: 'p1-e-w1', concept: 'p1-evidence', type: 'short',
-    prompt: 'Is 4, 12, 36, 108 arithmetic or geometric? Give your evidence.',
-    ideas: [
-      { label: 'Geometric', words: ['geometric'] },
-      { label: 'Evidence: the same ratio, ×3 (12 ÷ 4 = 3, 36 ÷ 12 = 3)', words: ['×3', 'x3', 'times 3', 'multiply by 3', 'multiplied by 3', 'ratio', '÷ 4 = 3', '/4 = 3', 'divide'] },
-      { label: 'Not arithmetic: the differences change (+8, +24…)', words: ['difference', '+8', '+24', 'not arithmetic', 'not the same'] },
-    ], need: 2,
-    model: 'It is geometric. Each term is multiplied by 3: 12 ÷ 4 = 3, 36 ÷ 12 = 3, 108 ÷ 36 = 3, so the common ratio is ×3. It is not arithmetic because the differences change: +8, +24, +72.',
-  } satisfies ShortItem,
 ];
 
 export const p1: Topic = { id: 'P1', title: 'Sequences: arithmetic, geometric or neither', short: 'Sequences', items };
