@@ -68,9 +68,9 @@ const items: Item[] = [
   nums('pr-d-1', 'pr-dots', 'Dot triangles: 1, 3, 6, 10. How many dots in figures 5 and 6?',
     [{ label: 'Figure 5', answer: 15, calc: '10+5' }, { label: 'Figure 6', answer: 21, calc: '10+5+6' }],
     ['The increases are +2, +3, +4.', 'Each figure adds a new row with one more dot.', 'Figure 5 adds 5: 10 + 5 = 15. Figure 6 adds 6: 21.', '15 and 21.'], { picture: pic('dot-triangles', [1, 2, 3, 4]) }),
-  nums('pr-d-2', 'pr-dots', 'Square dots: 1, 4, 9, 16. How many dots in figures 5 and 6?',
-    [{ label: 'Figure 5', answer: 25, calc: '5^2' }, { label: 'Figure 6', answer: 36, calc: '6^2' }],
-    ['Figure n is an n by n square: n² dots.', 'The increases are +3, +5, +7 (odd numbers).', '5² = 25 and 6² = 36.', '25 and 36.'], { picture: pic('dot-squares', [1, 2, 3, 4]) }),
+  nums('pr-d-3', 'pr-dots', 'Dot triangles: 1, 3, 6, 10, 15, 21. How many dots in figures 7 and 8?',
+    [{ label: 'Figure 7', answer: 28, calc: '21+7' }, { label: 'Figure 8', answer: 36, calc: '21+7+8' }],
+    ['The increases are +2, +3, +4, +5, +6.', 'The next increases are +7 and +8.', 'Figure 7: 21 + 7 = 28. Figure 8: 28 + 8 = 36.', '28 and 36.'], { picture: pic('dot-triangles', [1, 2, 3, 4]) }),
   {
     id: 'pr-d-q1', concept: 'pr-dots', type: 'choice', picture: pic('dot-triangles', [1, 2, 3, 4]),
     prompt: 'Why is the dot triangle pattern 1, 3, 6, 10 NOT arithmetic?',

@@ -439,9 +439,8 @@ export const lessonP4: Lesson = {
         { show: 'x = −1:  4 − 2(−1) = 6', why: 'Same steps.' },
         { show: 'x = 0, 1, 2:  4, 2, 0', why: 'The values fall by 2 each time.' },
         { show: '8, 6, 4, 2, 0: arithmetic, difference −2', why: 'The −2 in front of x makes it go down by 2.' },
-        { show: 'a = −3:  4(8 − a) = 4(8 − (−3)) = 4(11) = 44', why: 'Inside the bracket first: 8 − (−3) = 8 + 3 = 11.' },
       ],
-      remember: 'Subtracting a negative is adding: 8 − (−3) = 11.',
+      remember: 'Put the negative x in brackets: 4 − 2(−2) = 4 + 4 = 8.',
     },
   ],
 };

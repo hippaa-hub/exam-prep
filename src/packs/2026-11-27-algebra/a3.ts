@@ -107,19 +107,13 @@ const items: Item[] = [
   mul('a3-b-4', 'a3-big-terms', '4a²b³ × 2ab', '8a³b⁴'),
   mul('a3-b-5', 'a3-big-terms', '(−2mn²)(−5m³n)', '10m⁴n³'),
 
-  // Three factors
-  mul('a3-f-1', 'a3-big-terms', '3a × 2b × 5c', '30abc'),
-  mul('a3-f-2', 'a3-big-terms', '4m × 2m² × (−m)', '−8m⁴'),
-  mul('a3-f-3', 'a3-big-terms', '(−4k)(3k²)(−k)', '12k⁴'),
-  mul('a3-f-4', 'a3-big-terms', '2x × 5y × x', '10x²y'),
-  mul('a3-f-5', 'a3-big-terms', '−a × −a × −a', '−a³'),
 
   // Squaring (or cubing) a whole term
   mul('a3-q-1', 'a3-square', '(−3a)²', '9a²', 'Work it out. The power applies to everything in the bracket.'),
   mul('a3-q-2', 'a3-square', '(4c)²', '16c²', 'Work it out. The power applies to everything in the bracket.'),
   mul('a3-q-3', 'a3-square', '(5y)²', '25y²', 'Work it out. The power applies to everything in the bracket.'),
-  mul('a3-q-4', 'a3-square', '(−2n)³', '−8n³', 'Work it out. The power applies to everything in the bracket.'),
-  mul('a3-q-5', 'a3-square', '(2x)³', '8x³', 'Work it out. The power applies to everything in the bracket.'),
+  mul('a3-q-4', 'a3-square', '(−2n)²', '4n²', 'Work it out. The power applies to everything in the bracket.'),
+  mul('a3-q-5', 'a3-square', '(6m)²', '36m²', 'Work it out. The power applies to everything in the bracket.'),
   {
     id: 'a3-q-q1', concept: 'a3-square', type: 'pair', prompt: 'Is 2x² the same as (2x)²?',
     options: ['Yes, the same', 'No, different'], answer: 1,

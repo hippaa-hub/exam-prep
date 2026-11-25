@@ -40,14 +40,6 @@ const items: Item[] = [
     whyNot: { '−3²': 'Without brackets the square applies only to the 3: −3² = −9.' },
   },
 
-  // Brackets in the expression
-  sub('p4-k-1', 'p4-brackets', 'a = −3', '4(8 − a)', '4(8 − (−3))', ['Inside the bracket first: 8 − (−3) = 8 + 3 = 11.', 'Then 4 × 11 = 44.'], 44, '4*(8-(-3))',
-    [{ answer: 20, say: '8 − (−3) is 8 + 3 = 11, not 5. Subtracting a negative is adding.' }]),
-  sub('p4-k-2', 'p4-brackets', 'x = −4', '2(5 − x)', '2(5 − (−4))', ['Inside the bracket first: 5 − (−4) = 5 + 4 = 9.', 'Then 2 × 9 = 18.'], 18, '2*(5-(-4))',
-    [{ answer: 2, say: '5 − (−4) is 5 + 4 = 9. Subtracting a negative is adding.' }]),
-  sub('p4-k-3', 'p4-brackets', 'a = −2', '3(a + 7)', '3((−2) + 7)', ['Inside the bracket first: −2 + 7 = 5.', 'Then 3 × 5 = 15.'], 15, '3*((-2)+7)'),
-  sub('p4-k-4', 'p4-brackets', 'm = −3', '5(1 − m)', '5(1 − (−3))', ['Inside the bracket first: 1 − (−3) = 1 + 3 = 4.', 'Then 5 × 4 = 20.'], 20, '5*(1-(-3))',
-    [{ answer: -10, say: '1 − (−3) is 1 + 3 = 4. Then 5 × 4 = 20.' }]),
 
   // Rule Machine: a table of values, including negative x
   nums('p4-t-1', 'p4-table', 'Rule machine: y = 4 − 2x. Fill in y for each x.',
@@ -79,9 +71,6 @@ const items: Item[] = [
   err('p4-e-4', 'Maths courtroom. a = −4, work out 2 − a². Which step is false?',
     ['2 − a²', '= 2 − (−4)²', '= 2 + 16', '= 18'], 2, '= 2 − 16', ['= 2 − 8', '= 2 + 8'],
     '(−4)² = 16, and the minus in front stays: 2 − 16 = −14.'),
-  err('p4-e-5', 'Maths courtroom. x = −5, work out 3(x + 2). Which step is false?',
-    ['3(x + 2)', '= 3((−5) + 2)', '= 3(7)', '= 21'], 2, '= 3(−3)', ['= 3(3)', '= 3(−7)'],
-    '−5 + 2 = −3, so 3 × (−3) = −9.'),
 
   // Why brackets (Criterion C)
   {
@@ -92,16 +81,6 @@ const items: Item[] = [
       'Brackets make it look neater': 'It is not about looks: without brackets the answer changes (2 instead of −5).',
       'Both give the same answer': '3(−2) + 1 = −5, but 3 − 2 + 1 = 2. Different!',
       'You only need brackets for squares': 'Negative numbers ALWAYS need brackets when you substitute.',
-    },
-  } satisfies ChoiceItem,
-  {
-    id: 'p4-w-q2', concept: 'p4-why', type: 'choice', prompt: 'Error detective: "4(8 − (−3)) = 4 × 5". What went wrong?',
-    options: ['8 − (−3) is 8 + 3 = 11, so it is 4 × 11 = 44', 'Nothing, it is correct', 'It should be 4 × (−5)', 'You should add the 4 first'], answer: 0,
-    explain: 'Subtracting a negative is adding: 8 − (−3) = 11. So 4(11) = 44.',
-    whyNot: {
-      'Nothing, it is correct': '8 − (−3) is not 5. Subtracting a negative number means adding it.',
-      'It should be 4 × (−5)': '8 − (−3) = 8 + 3 = 11, a positive number.',
-      'You should add the 4 first': 'Work out the bracket first, then multiply: 4 × 11.',
     },
   } satisfies ChoiceItem,
   {

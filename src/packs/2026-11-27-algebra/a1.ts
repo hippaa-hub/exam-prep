@@ -68,32 +68,6 @@ const items: Item[] = [
     whyNot: { '−2': '−2 is the coefficient (the number in front, with its sign).', '2': '2 belongs to the coefficient −2. The exponent is the small 4.', '1': 'A small 4 is written, so the exponent is 4.' },
   },
 
-  // How many terms
-  {
-    id: 'a1-t-1', concept: 'a1-parts', type: 'choice', prompt: 'How many terms are in 3a − 5b + 2?',
-    options: ['3', '2', '1', '5'], answer: 0,
-    explain: 'Terms are split by + and − signs: 3a, −5b and +2. That is 3 terms.',
-    whyNot: { '2': 'Count the constant too: 3a, −5b and 2 are three terms.', '1': 'Each + or − starts a new term: 3a, −5b, +2.', '5': 'Count terms, not numbers: 3a, −5b and 2.' },
-  },
-  {
-    id: 'a1-t-2', concept: 'a1-parts', type: 'choice', prompt: 'How many terms are in 6m² − 1?',
-    options: ['2', '1', '3', '6'], answer: 0,
-    explain: 'The − sign splits it into two terms: 6m² and −1.',
-    whyNot: { '1': 'The − sign starts a new term: 6m² and −1.', '3': 'There are only two pieces: 6m² and −1.', '6': '6 is the coefficient, not the number of terms.' },
-  },
-  {
-    id: 'a1-t-3', concept: 'a1-parts', type: 'choice', prompt: 'How many terms are in 2p + q − 3r + 4?',
-    options: ['4', '3', '2', '6'], answer: 0,
-    explain: 'Four terms: 2p, +q, −3r and +4.',
-    whyNot: { '3': 'Do not forget the constant +4: 2p, q, −3r, 4.', '2': 'Each + or − starts a new term. There are four.', '6': 'Count terms, not numbers and letters: 2p, q, −3r, 4.' },
-  },
-  {
-    id: 'a1-t-4', concept: 'a1-parts', type: 'choice', prompt: 'In 7x² − 4xy + 9, which term is the constant?',
-    options: ['9', '7x²', '−4xy', '7'], answer: 0,
-    explain: 'The constant is the term with no letter: +9. Its value never changes.',
-    whyNot: { '7x²': '7x² has a letter, so its value changes with x.', '−4xy': '−4xy has letters, so it is not constant.', '7': '7 is the coefficient of x², not a term by itself.' },
-  },
-
   // Like or unlike?
   like('a1-l-1', '6y²', '−2y²', true, 'Same letter, same power (y²). The sign and the number in front do not matter.', 'They are both y². Only the letters and the powers have to match.'),
   like('a1-l-2', '3pq', '5qp', true, 'pq and qp are the same (p × q = q × p), so these are like terms.', 'qp is the same as pq: the order of the letters does not matter.'),

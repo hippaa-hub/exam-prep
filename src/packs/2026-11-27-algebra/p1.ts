@@ -61,23 +61,6 @@ const items: Item[] = [
     },
   } satisfies ChoiceItem,
 
-  // Two plants: adding overtaken by doubling
-  nums('p1-c-1', 'p1-compare', 'Plant A is 10 cm and grows 3 cm a week. Plant B is 2 cm and doubles each week. In which week is B first taller? (Week 1: A = 10, B = 2.)',
-    [{ label: 'Week', answer: 5 }], ['List both: A 10, 13, 16, 19, 22. B 2, 4, 8, 16, 32.', 'Week 4: B is 16, A is 19. Not yet.', 'Week 5: B is 32, A is 22. B is taller.', 'Week 5.']),
-  nums('p1-c-2', 'p1-compare', 'Plant A is 12 cm and grows 4 cm a week. Plant B is 3 cm and doubles each week. In which week is B first taller? (Week 1: A = 12, B = 3.)',
-    [{ label: 'Week', answer: 5 }], ['List both: A 12, 16, 20, 24, 28. B 3, 6, 12, 24, 48.', 'Week 4: both are 24. Equal is not taller.', 'Week 5: B is 48, A is 28.', 'Week 5.']),
-  nums('p1-c-3', 'p1-compare', 'Plant A is 20 cm and grows 5 cm a week. Plant B is 1 cm and doubles each week. In which week is B first taller? (Week 1: A = 20, B = 1.)',
-    [{ label: 'Week', answer: 7 }], ['List both: A 20, 25, 30, 35, 40, 45, 50. B 1, 2, 4, 8, 16, 32, 64.', 'Week 6: B is 32, A is 45. Not yet.', 'Week 7: B is 64, A is 50.', 'Week 7.']),
-  {
-    id: 'p1-c-w1', concept: 'p1-compare', type: 'short',
-    prompt: 'Plant A starts taller and grows 3 cm a week. Plant B doubles each week. Explain why B ends up taller.',
-    ideas: [
-      { label: 'A is arithmetic: it adds the same amount (3) each week', words: ['add', 'adds', '+3', 'same amount', 'arithmetic', '3 cm'] },
-      { label: 'B is geometric: doubling adds more and more each week', words: ['double', 'doubles', 'doubling', '×2', 'geometric', 'more and more', 'faster'] },
-    ],
-    model: 'Plant A is arithmetic: it always adds 3 cm. Plant B is geometric: it doubles, so it adds more each week (2, 4, 8, 16…). Soon the amount B adds is bigger than 3, so B catches up and passes A. In week 5, B is 32 cm and A is 22 cm.',
-  } satisfies ShortItem,
-
   // Evidence, not just an answer (Criterion C)
   {
     id: 'p1-e-q1', concept: 'p1-evidence', type: 'choice', prompt: 'Pattern battle: 1, 2, 4, 7, 11, 16. Who has better evidence?',

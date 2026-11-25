@@ -37,7 +37,7 @@ export const mocks: MockExam[] = [
   {
     id: 'mock-2', title: 'Mock Test 2', minutes: 45, partA: [], partB: [],
     maths: {
-      part1: ['p1-geometric', 'a1-collect-powers', 'a2-subtract', 'a3-big-terms', 'a3-square', 'p4-brackets', 'a3-area', 'in-find-rule'],
+      part1: ['p1-geometric', 'a1-collect-powers', 'a2-subtract', 'a3-big-terms', 'a3-square', 'p4-negative', 'a3-area', 'in-find-rule'],
       investigation: {
         intro: 'A tile pattern: 4 orange tiles stay at every stage, and each new stage adds a column of 3 blue tiles.',
         picture: { kind: 'columns', figures: [1, 2, 3], per: 3, base: 4 },
