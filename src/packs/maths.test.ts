@@ -147,7 +147,7 @@ describe.each(mathsPacks.map((p) => [p.id, p] as const))('maths pack %s', (_id, 
   it('has mock tests whose investigations add up, and whose Part 1 can always be filled', () => {
     const mocks = (pack.mocks ?? []).filter((m) => m.maths);
     expect(mocks.length).toBe(2);
-    expect(pack.plan.some((d) => d.mock === 'mock-1')).toBe(true);
+    // The mock tests are not in the plan any more (Jenia, 25 Nov: tomorrow is mixed practice); they stay in extra practice.
     for (const m of mocks) {
       const inv = m.maths!.investigation;
       inv.terms.forEach((t, i) => expect(ruleAt(inv.rule, i + 1), `${m.id}: stage ${i + 1}`).toBe(t));

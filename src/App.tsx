@@ -439,33 +439,26 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const ahead: AheadDay | undefined = (() => {
     if (plan.daysToGo < 2 || plan.phase === 'past' || plan.phase === 'exam-day' || plan.topics.length === 0) return undefined;
     const tomorrow = addDays(today, 1);
-    const topics = pack.topics.filter((t) => !plan.topics.includes(t.id));
-    const sessions = save.sessions;
-    const items: AheadDay['items'] = [];
-    for (const t of topics) {
-      const info = lessonInfo(t.id);
-      if (!info) continue;
-      const id = learnTaskId(t.id);
-      items.push({ id, title: info.title, detail: info.detail, done: sessions.some((x) => x.task === id), start: () => openLearn(t.id, true) });
-    }
-    const pool = topics.flatMap((t) => t.items);
-    if (pool.length > 0) {
-      items.push({
-        id: AHEAD_TASK, title: "Practice: tomorrow's topics", detail: '12 questions · about 8 min',
-        done: sessions.some((x) => x.date === today && x.task === AHEAD_TASK),
-        start: () => startPractice("Tomorrow's topics", pool, AHEAD_TASK, true),
-      });
-    }
-    const mockId = pack.plan.find((d) => d.mock && addDays(pack.date, d.day) === tomorrow)?.mock;
-    const mock = pack.mocks?.find((m) => m.id === mockId);
-    if (mock) {
-      items.push({
-        id: mockTaskId(mock.id), title: mock.title, detail: `About ${mock.minutes} min · like the real test`,
-        done: sessions.some((x) => x.task === mockTaskId(mock.id)), start: () => openMock(mock.id, true),
-      });
-    }
-    const names = topics.map((t) => t.short).join(', ');
-    return items.length > 0 ? { date: tomorrow, label: mock ? `${names}, then the Mock Test` : names, items } : undefined;
+    // Jenia, 25 Nov: tomorrow is mixed practice of everything, mostly the topics not on today's list,
+    // with a few questions from today's topics (the review share of a round).
+    const rest = pack.topics.filter((t) => !plan.topics.includes(t.id)).map((t) => t.id);
+    if (rest.length === 0) return undefined;
+    const done = save.sessions.filter((x) => x.date === today && x.task === AHEAD_TASK).length;
+    const start = () => {
+      const p = currentSave().progress;
+      const ids = buildTodaySession(pack, p, { ...plan, topics: rest }, stamp(), Math.random, roundSize(pack), false);
+      if (ids.length > 0) open({ kind: 'practice', title: 'Mixed practice', topics: [], ids, task: AHEAD_TASK, guided: true });
+    };
+    const names = pack.topics.filter((t) => rest.includes(t.id)).map((t) => t.short).join(', ');
+    return {
+      date: tomorrow,
+      label: 'Mixed practice of everything',
+      items: [{
+        id: AHEAD_TASK, title: done > 0 ? 'Mixed practice: another round' : 'Mixed practice: everything',
+        detail: done > 0 ? `${done} done · tap for another round` : `${roundSize(pack)} questions · mostly ${names}`,
+        done: false, start,
+      }],
+    };
   })();
 
   if (view.name === 'argument') {

@@ -327,6 +327,8 @@ export interface PlanDay {
   extras?: DayExtra[];
   /** A full mock exam (arrives in Phase 2). */
   mock?: string;
+  /** Practice only: no lessons are added for topics owed from earlier days (Jenia, 25 Nov). */
+  practiceOnly?: boolean;
 }
 
 export interface Pack {

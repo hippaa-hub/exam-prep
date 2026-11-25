@@ -147,8 +147,9 @@ export const pack: Pack = {
       extras: [{ kind: 'learn', topic: 'P1' }, { kind: 'learn', topic: 'P4' }, { kind: 'learn', topic: 'PR' }],
     },
     {
-      day: -1, label: 'Investigations and explaining, then the Mock Test', topics: ['IN'],
-      extras: [{ kind: 'learn', topic: 'IN' }], mock: 'mock-1',
+      // Mixed practice of everything, mostly the topics not practised yet (Jenia, 25 Nov).
+      // The Mock Tests stay in "Lessons and extra practice".
+      day: -1, label: 'Mixed practice of everything', topics: ['P4', 'PR', 'IN'], practiceOnly: true,
     },
   ],
   examTips: [

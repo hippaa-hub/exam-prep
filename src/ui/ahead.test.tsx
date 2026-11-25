@@ -9,17 +9,16 @@ import { memoryStore } from '../storage/db';
 afterEach(cleanup);
 
 describe("tomorrow's tasks", () => {
-  it('lists tomorrow\'s lessons, a practice round and the mock test, all open today', async () => {
+  it('offers one mixed practice of everything, mostly the topics not on today\'s list', async () => {
     const user = userEvent.setup();
     render(<App store={memoryStore()} packs={[pack]} now={() => new Date(2026, 10, 25, 17, 0)} />);
     const list = await screen.findByRole('list', { name: "Tomorrow's tasks" });
     const buttons = within(list).getAllByRole('button');
-    expect(buttons.map((b) => b.querySelector('strong')?.textContent)).toEqual([
-      'Learn: Substitution with negative numbers', 'Learn: Patterns and rules', 'Learn: Investigations and explaining',
-      "Practice: tomorrow's topics", 'Mock Test 1',
-    ]);
-    await user.click(buttons[2]);
-    expect(screen.getByText(/The 5 investigation steps/)).toBeInTheDocument();
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]).toHaveTextContent('Mixed practice: everything');
+    expect(buttons[0]).toHaveTextContent('mostly Substitution, Patterns and rules, Investigations');
+    await user.click(buttons[0]);
+    expect(screen.queryByRole('list', { name: "Tomorrow's tasks" })).toBeNull();
   });
 
   it('is not shown on the last day before the exam', async () => {

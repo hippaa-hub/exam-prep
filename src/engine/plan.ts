@@ -108,7 +108,7 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
     const done = new Set(sessions.filter((s) => s.kind === 'today' && s.date < today).flatMap((s) => s.topics));
     const owedDays = studyDays.filter((d) => d.day < off && d.topics.some((t) => !done.has(t)));
     const owed = unique(owedDays.flatMap((d) => d.topics).filter((t) => !done.has(t)));
-    const owedLessons = owedDays.flatMap((d) => d.extras ?? []).filter((e) => e.kind === 'learn' && owed.includes(e.topic));
+    const owedLessons = day?.practiceOnly ? [] : owedDays.flatMap((d) => d.extras ?? []).filter((e) => e.kind === 'learn' && owed.includes(e.topic));
     return {
       ...base, phase: 'last-day', label: day?.label ?? 'Mixed quiz of everything', topics: unique([...owed, ...dayTopics]),
       catchUp: owed, mock, extras: uniqueExtras([...owedLessons, ...(day?.extras ?? [])]),
