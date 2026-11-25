@@ -2,16 +2,15 @@
 // 45 minutes, marked on Criterion B (investigating patterns) and Criterion C (communicating).
 // Content comes only from the teacher's lessons and homework (MATHS_ALGEBRA_TEST_APP.md, Part D).
 // Phase 1 (24 Nov): the lesson Adele missed (A3, multiplying terms) and like terms (A1).
-// Phase 2 (24 Nov, evening): sequences (P1), brackets (A2), substitution (P4), patterns and rules (PR),
+// Phase 2 (24 Nov, evening): sequences (P1), substitution (P4), patterns and rules (PR),
 // real-life rules, investigations and explaining (IN).
 import type { Pack } from '../../content/types';
 import { a1 } from './a1';
-import { a2 } from './a2';
 import { a3 } from './a3';
 import { inv } from './inv';
 import { mocks } from './mocks';
 import { toolkit } from './toolkit';
-import { lessonA1, lessonA2, lessonA3, lessonIN, lessonP1, lessonP4, lessonPR } from './lessons';
+import { lessonA1, lessonA3, lessonIN, lessonP1, lessonP4, lessonPR } from './lessons';
 import { p1 } from './p1';
 import { p4 } from './p4';
 import { pr } from './pr';
@@ -37,10 +36,6 @@ const simple: Record<string, string> = {
   'p1-geometric': 'Geometric: every term is multiplied by the same number.',
   'p1-neither': 'Neither: the difference changes and there is no fixed ratio, so look at how the increase grows.',
   'p1-evidence': 'Common difference: subtract; common ratio: divide. Give evidence: show the differences or the ratios, not just "it goes up".',
-  'a2-add': 'A plus before a bracket changes nothing: remove the brackets, then collect like terms.',
-  'a2-subtract': 'A minus before a bracket changes the sign of every term inside it.',
-  'a2-real': 'Write each part in brackets, then remove the brackets and collect like terms.',
-  'a2-error': 'Most bracket mistakes come from not changing EVERY sign after a minus.',
   'p4-negative': 'Put a negative number in brackets, then multiply before you add.',
   'p4-square': 'Square first: (−3)² = 9, and a minus in front of the square stays.',
   'p4-table': 'Put each x in brackets into the rule, one at a time.',
@@ -80,10 +75,6 @@ const examples: Record<string, string[]> = {
   'p1-geometric': ['3, 6, 12, 24: ×2', '81, 27, 9: ÷3'],
   'p1-neither': ['1, 3, 6, 10: +2, +3, +4', '1, 4, 9, 16: +3, +5, +7'],
   'p1-evidence': ['+1, +2, +3: not arithmetic', '7 ÷ 4 ≠ 2: not geometric'],
-  'a2-add': ['(7x + 4) + (3x − 9) = 10x − 5'],
-  'a2-subtract': ['(12p − 7) − (5p − 11) = 7p + 4', '−(2x − 7) = −2x + 7'],
-  'a2-real': ['Perimeter 2(5x + 3) + 2(2x − 1) = 14x + 4'],
-  'a2-error': ['(6x + 4) − (2x − 7) = 4x + 11, not 4x − 3'],
   'p4-negative': ['a = −3: 2(−3) + 5 = −1', 'x = −2: 3(−2) + 1 = −5'],
   'p4-square': ['(−3)² = 9', '−3² = −9', '1 − (−3)² = −8'],
   'p4-table': ['y = 4 − 2x: 8, 6, 4, 2, 0 for x = −2 to 2'],
@@ -108,8 +99,8 @@ export const pack: Pack = {
   title: 'Patterns and Algebraic Expressions',
   date: '2026-11-27',
   criteria: ['B: investigating patterns', 'C: communicating'],
-  topics: [a3, a1, p1, a2, p4, pr, inv],
-  lessons: [lessonA3, lessonA1, lessonP1, lessonA2, lessonP4, lessonPR, lessonIN],
+  topics: [a3, a1, p1, p4, pr, inv],
+  lessons: [lessonA3, lessonA1, lessonP1, lessonP4, lessonPR, lessonIN],
   catchUp: 'A3',
   freshNumbers: true,
   mocks,
@@ -143,8 +134,8 @@ export const pack: Pack = {
       extras: [{ kind: 'learn', topic: 'A3' }, { kind: 'learn', topic: 'A1' }],
     },
     {
-      day: -2, label: 'Sequences, brackets, negative numbers, and patterns to rules', topics: ['P1', 'A2', 'P4', 'PR'],
-      extras: [{ kind: 'learn', topic: 'P1' }, { kind: 'learn', topic: 'A2' }, { kind: 'learn', topic: 'P4' }, { kind: 'learn', topic: 'PR' }],
+      day: -2, label: 'Sequences, negative numbers, and patterns to rules', topics: ['P1', 'P4', 'PR'],
+      extras: [{ kind: 'learn', topic: 'P1' }, { kind: 'learn', topic: 'P4' }, { kind: 'learn', topic: 'PR' }],
     },
     {
       day: -1, label: 'Investigations and explaining, then the Mock Test', topics: ['IN'],

@@ -7,7 +7,7 @@ export const mocks: MockExam[] = [
   {
     id: 'mock-1', title: 'Mock Test 1', minutes: 45, partA: [], partB: [],
     maths: {
-      part1: ['p1-arithmetic', 'a1-collect', 'a2-subtract', 'a3-coef-powers', 'a3-square', 'p4-square', 'a2-real', 'pr-rule'],
+      part1: ['p1-arithmetic', 'a1-collect', 'a1-collect-powers', 'a3-coef-powers', 'a3-square', 'p4-square', 'a3-area', 'pr-rule'],
       investigation: {
         intro: 'A tile pattern: 2 orange tiles stay at every stage, and each new stage adds a column of blue tiles.',
         picture: { kind: 'columns', figures: [1, 2, 3], per: 5, base: 2 },
@@ -37,7 +37,7 @@ export const mocks: MockExam[] = [
   {
     id: 'mock-2', title: 'Mock Test 2', minutes: 45, partA: [], partB: [],
     maths: {
-      part1: ['p1-geometric', 'a1-collect-powers', 'a2-subtract', 'a3-big-terms', 'a3-square', 'p4-negative', 'a3-area', 'in-find-rule'],
+      part1: ['p1-geometric', 'a1-collect-powers', 'a1-collect', 'a3-big-terms', 'a3-square', 'p4-negative', 'a3-area', 'in-find-rule'],
       investigation: {
         intro: 'A tile pattern: 4 orange tiles stay at every stage, and each new stage adds a column of 3 blue tiles.',
         picture: { kind: 'columns', figures: [1, 2, 3], per: 3, base: 4 },

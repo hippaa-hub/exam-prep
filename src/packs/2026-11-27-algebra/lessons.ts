@@ -350,58 +350,6 @@ export const lessonP1: Lesson = {
   ],
 };
 
-export const lessonA2: Lesson = {
-  topic: 'A2',
-  title: 'Brackets',
-  blurb: '3 short cards: adding and subtracting expressions in brackets.',
-  cards: [
-    {
-      id: 'a2-1', emoji: '➕', title: 'A plus before a bracket: nothing changes',
-      intro: 'Your teacher\'s Example A. With a + before the bracket, just remove the brackets.',
-      steps: [
-        { show: '(5x + 3y − 7) + (2x − 6y + 4)', why: 'There is a + between the brackets.' },
-        { show: '= 5x + 3y − 7 + 2x − 6y + 4', why: 'Remove the brackets. Every sign stays the same.' },
-        { show: '= (5x + 2x) + (3y − 6y) + (−7 + 4)', why: 'Group the like terms.' },
-        { show: '= 7x − 3y − 3', why: 'Collect: 5 + 2 = 7, 3 − 6 = −3, −7 + 4 = −3.' },
-      ],
-      remember: 'A + before a bracket changes nothing.',
-    },
-    {
-      id: 'a2-2', emoji: '🔄', title: 'A minus before a bracket: EVERY sign changes',
-      intro: 'Your teacher\'s Example B. This is the most important rule of the topic.',
-      steps: [
-        { show: '(8a − 3b + 5) − (2a + 4b − 6)', why: 'There is a − before the second bracket.' },
-        { show: '= 8a − 3b + 5 − 2a − 4b + 6', why: 'Every sign inside the second bracket changes: +2a → −2a, +4b → −4b, −6 → +6.' },
-        { show: '= (8a − 2a) + (−3b − 4b) + (5 + 6)', why: 'Group the like terms.' },
-        { show: '= 6a − 7b + 11', why: 'Collect each group.' },
-      ],
-      tap: { question: 'What does −(2x − 7) become?', options: ['−2x + 7', '−2x − 7', '2x − 7'], answer: 0, why: 'Both signs change: +2x → −2x and −7 → +7.' },
-      faded: {
-        prompt: 'The brackets are removed and grouped. You finish it.',
-        expr: '(9x + 5) − (4x + 2)', kind: 'brackets',
-        given: [
-          { show: '= 9x + 5 − 4x − 2', why: 'The minus changes both signs in the second bracket.' },
-          { show: '= (9x − 4x) + (5 − 2)', why: 'Group the like terms.' },
-        ],
-        answer: '5x + 3', hint: '9 − 4 = 5 and 5 − 2 = 3: 5x + 3.',
-      },
-      remember: 'A − before a bracket changes the sign of EVERY term inside.',
-    },
-    {
-      id: 'a2-3', emoji: '🔲', title: 'Real life: perimeter',
-      intro: 'Brackets appear in real problems. A rectangle is (5x + 3) cm by (2x − 1) cm.',
-      steps: [
-        { show: 'Perimeter = 2 × length + 2 × width', why: 'Two lengths and two widths go round the rectangle.' },
-        { show: '= 2(5x + 3) + 2(2x − 1)', why: 'Put each side in brackets.' },
-        { show: '= 10x + 6 + 4x − 2', why: 'Multiply each term in the bracket by 2.' },
-        { show: '= 14x + 4 cm', why: 'Collect: 10x + 4x = 14x and 6 − 2 = 4.' },
-        { show: 'Check with x = 2: sides 13 and 3, perimeter 32; 14(2) + 4 = 32 ✓', why: 'Your teacher: verify by substituting a number.' },
-      ],
-      remember: 'Check an answer by putting in a number, for example x = 2.',
-    },
-  ],
-};
-
 export const lessonP4: Lesson = {
   topic: 'P4',
   title: 'Substitution with negative numbers',

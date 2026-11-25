@@ -38,18 +38,6 @@ export const toolkit: Method[] = [
     watch: 'x² and x are unlike: 4x² + 3x stays as it is. Adding never changes a power.',
   },
   {
-    id: 'tk-brackets', topic: 'A2', emoji: '🔄', title: 'Adding and subtracting brackets',
-    when: 'Expressions in brackets joined by + or −.',
-    steps: [
-      'A + before a bracket: just remove the brackets.',
-      'A − before a bracket: change the sign of EVERY term inside, then remove the brackets.',
-      'Collect like terms.',
-      'Check: put in a number (for example x = 2) on both sides.',
-    ],
-    example: { question: '(8a − 3b + 5) − (2a + 4b − 6)', lines: ['= 8a − 3b + 5 − 2a − 4b + 6', '= (8a − 2a) + (−3b − 4b) + (5 + 6)', '= 6a − 7b + 11'] },
-    watch: '(6x + 4) − (2x − 7): the −7 becomes +7, so the answer is 4x + 11.',
-  },
-  {
     id: 'tk-substitute', topic: 'P4', emoji: '🧤', title: 'Substituting a negative number',
     when: '"a = −3, work out …"',
     steps: [
