@@ -69,9 +69,10 @@ describe('the app', () => {
     expect(within(bar).getAllByRole('button').map((b) => b.textContent)).toEqual(['🏠Home', '🔧Fix', '📖Guide']);
     expect(screen.queryByRole('button', { name: 'More practice' })).toBeNull();
     const list = screen.getByRole('list', { name: "Today's tasks" });
-    expect(within(list).getAllByRole('button')).toHaveLength(1); // only the first task can be opened
-    expect(within(list).getByRole('button')).toHaveTextContent('Round 1');
-    expect(screen.getByRole('status')).toHaveTextContent(/3 tasks for today\. They open one at a time\. Say or type your answers from memory/);
+    expect(within(list).getAllByRole('button')).toHaveLength(3); // every task can be opened
+    expect(within(list).getAllByRole('button')[0]).toHaveTextContent('Round 1');
+    expect(within(list).getAllByRole('button')[0]).toHaveClass('next');
+    expect(screen.getByRole('status')).toHaveTextContent(/3 tasks for today\. Start with the first one, or tap any task\. Say or type your answers from memory/);
     expect(screen.getByText('Exam: Wednesday 18 November')).toBeInTheDocument();
   });
 
@@ -91,11 +92,10 @@ describe('the app', () => {
     render(<App store={store} packs={[pack]} now={friday} />);
     expect(await screen.findByText('1 of 3 done')).toBeInTheDocument();
 
-    // Tasks open one at a time: Round 2 is next, and Fix My Mistakes stays locked until it is finished.
+    // Every task is open: Round 2 is next (highlighted), and Fix My Mistakes can be tapped too.
     const tasks = screen.getByRole('list', { name: "Today's tasks" });
-    expect(within(tasks).getByRole('button', { name: /Round 2/ })).toBeInTheDocument();
-    expect(within(tasks).queryByRole('button', { name: /Fix My Mistakes/ })).toBeNull();
-    expect(within(tasks).getByText('Opens when you finish task 2')).toBeInTheDocument();
+    expect(within(tasks).getByRole('button', { name: /Round 2/ })).toHaveClass('next');
+    expect(within(tasks).getByRole('button', { name: /Fix My Mistakes/ })).not.toHaveClass('next');
 
     // The Fix tab is always open, so the mistake itself can still be found there.
     await user.click(within(screen.getByRole('navigation')).getByRole('button', { name: /Fix/ }));

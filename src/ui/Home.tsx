@@ -104,7 +104,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
   }
   if (!next) return { text: `Hi ${name}!`, mood: 'wave' };
   if (doneCount === 0) {
-    return { text: `Hi ${name}! ${tasks.length} tasks for today. They open one at a time. ${next.tip}`, mood: 'wave' };
+    return { text: `Hi ${name}! ${tasks.length} tasks for today. Start with the first one, or tap any task. ${next.tip}`, mood: 'wave' };
   }
   return { text: `Task ${doneCount + 1} of ${tasks.length}. ${next.tip}`, mood: next.kind === 'fix' ? 'think' : 'happy' };
 }
@@ -249,16 +249,12 @@ export function Home({
                     <span className="chev" aria-hidden="true">›</span>
                   </button>
                 ) : (
-                  // Later tasks stay locked until the one before is finished, so she does them in order.
-                  <div className="task locked" aria-disabled="true">
+                  // Every task is open: she can pick any of them. The next one in order is highlighted.
+                  <button type="button" className="task" onClick={() => onTask(t)}>
                     <span className="task-num" aria-hidden="true">{i + 1}</span>
-                    <span className="task-text">
-                      <strong>{t.title}</strong>
-                      <small>Opens when you finish task {tasks.indexOf(next!) + 1}</small>
-                    </span>
-                    <span className="lock" aria-hidden="true">🔒</span>
-                    <span className="sr-only">Locked</span>
-                  </div>
+                    <span className="task-text"><strong>{t.title}</strong><small>{t.detail}</small></span>
+                    <span className="chev" aria-hidden="true">›</span>
+                  </button>
                 )}
               </li>
             ))}

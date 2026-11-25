@@ -12,7 +12,7 @@ const STEPS: { icon: string; title: string; text: string }[] = [
   {
     icon: '▶️',
     title: "Every day, finish today's tasks",
-    text: `Home lists a few tasks for the day: two rounds of up to ${TODAY_SIZE} questions, one special activity, and Fix My Mistakes. They open one at a time, so just press Start. When all are ticked, today's preparation is finished. If you want more, "More practice" appears then.`,
+    text: `Home lists a few tasks for the day: two rounds of up to ${TODAY_SIZE} questions, one special activity, and Fix My Mistakes. Press Start for the first one, or tap any task you want. When all are ticked, today's preparation is finished. If you want more, "More practice" appears then.`,
   },
   {
     icon: '🧠',
