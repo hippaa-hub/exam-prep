@@ -773,3 +773,4 @@ textarea:focus { outline: none; border-color: var(--blue); }
 @keyframes game-pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .game-show, .game-streak { animation: none; } }
 .learn-resume { display: flex; flex-direction: column; gap: 8px; background: var(--accent-soft); border: 2px solid var(--accent-line); border-radius: var(--radius); padding: 10px 12px; font-weight: 800; margin-bottom: 12px; }
+.start-again { display: flex; flex-direction: column; gap: 8px; background: var(--orange-soft); border: 2px solid var(--orange); border-radius: var(--radius); padding: 12px; }

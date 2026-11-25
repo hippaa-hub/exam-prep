@@ -291,9 +291,31 @@ export function Parent({ pack, plan, progress, sessions, daysDone, studyTime, mo
 
         <p className="muted small center">Her answers and progress are saved on this phone only.</p>
         <Backup saved={saved} today={today} onRestore={onRestore} />
+        <StartAgain pack={pack} saved={saved} onRestore={onRestore} />
 
         <button type="button" className="text-link" onClick={onChangeCode}>Change the parent code</button>
       </main>
     </div>
+  );
+}
+
+/** Clears this exam's progress only (other exams, the name and the parent code stay), after asking twice. */
+function StartAgain({ pack, saved, onRestore }: { pack: Pack; saved: Saved; onRestore: (saved: Saved) => void }) {
+  const [ask, setAsk] = useState(false);
+  const [done, setDone] = useState(false);
+  if (done) return <p className="remember" role="status">Done. "{pack.title}" starts again from zero today.</p>;
+  if (!saved.packs[pack.id]) return null;
+  return ask ? (
+    <section className="start-again">
+      <p><strong>Start "{pack.title}" again from zero?</strong> Her answers, points and lesson places for this exam are deleted. Other exams are kept. This cannot be undone.</p>
+      <button type="button" className="btn primary" onClick={() => {
+        const { [pack.id]: _gone, ...packs } = saved.packs;
+        onRestore({ ...saved, packs });
+        setDone(true);
+      }}>Yes, start again</button>
+      <button type="button" className="btn ghost" onClick={() => setAsk(false)}>No, keep it</button>
+    </section>
+  ) : (
+    <button type="button" className="btn ghost" onClick={() => setAsk(true)}>↺ Start this exam again from zero</button>
   );
 }
