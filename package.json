@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build && vite build --mode maths",
+    "build": "vite build && vite build --mode maths && vite build --mode science",
+    "dev:science": "vite --host --mode science",
     "dev:maths": "vite --host --mode maths",
     "preview": "vite preview --host",
     "typecheck": "tsc --noEmit",

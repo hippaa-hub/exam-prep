@@ -28,8 +28,9 @@ jobs:
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
-          # The same code is also published as its own site, hippaa-hub.github.io/maths-prep/ (only the maths app).
-          path: ${{ github.repository == 'hippaa-hub/maths-prep' && 'dist/maths' || 'dist' }}
+          # The same code is also published as its own sites: hippaa-hub.github.io/maths-prep/ (only the maths app)
+          # and hippaa-hub.github.io/exam-prepSCI/ (only the science app).
+          path: ${{ github.repository == 'hippaa-hub/maths-prep' && 'dist/maths' || github.repository == 'hippaa-hub/exam-prepSCI' && 'dist/science' || 'dist' }}
   deploy:
     needs: build
     runs-on: ubuntu-latest

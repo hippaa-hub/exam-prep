@@ -23,9 +23,12 @@ const REPAIR = `// An old offline copy of the main Exam Prep app answered for th
 // Two apps from the same code (Jenia, 24 Nov): the main "Exam Prep" at /exam-prep/, and "Prep Exam Maths"
 // at /exam-prep/maths/, which shows only maths tests and has an orange icon. `vite build --mode maths` makes the second.
 // Both are on the same site, so they share her saved progress.
+// A third app, "exam-prepSCI" (Jenia, 28 Nov): `vite build --mode science` shows only science tests, with a green icon.
+// It is published as its own site (hippaa-hub.github.io/exam-prepSCI/), outside the main app's service worker.
 export default defineConfig(({ mode }) => {
   const maths = mode === 'maths';
-  const icon = (name: string) => (maths ? `maths-${name}` : name);
+  const science = mode === 'science';
+  const icon = (name: string) => (maths ? `maths-${name}` : science ? `science-${name}` : name);
   return {
   plugins: [
     react(),
@@ -37,7 +40,13 @@ export default defineConfig(({ mode }) => {
           .replace('content="#5b5bd6"', 'content="#ff8a00"')
           .replace(/\.\/apple-touch-icon\.png/g, './maths-apple-touch-icon.png')
           .replace(/\.\/icon-192\.png/g, './maths-icon-192.png')
-        : html),
+        : science
+          ? html.replace(/<title>[^<]*<\/title>/, '<title>exam-prepSCI</title>')
+            .replace('content="Exam Prep"', 'content="exam-prepSCI"')
+            .replace('content="#5b5bd6"', 'content="#1f9d55"')
+            .replace(/\.\/apple-touch-icon\.png/g, './science-apple-touch-icon.png')
+            .replace(/\.\/icon-192\.png/g, './science-icon-192.png')
+          : html),
     },
     maths && {
       name: 'repair-old-main-copies',
@@ -50,16 +59,16 @@ export default defineConfig(({ mode }) => {
       registerType: 'autoUpdate',
       includeAssets: [icon('icon-192.png'), icon('icon-512.png'), icon('apple-touch-icon.png')],
       manifest: {
-        id: maths ? 'prep-exam-maths' : 'exam-prep',
-        name: maths ? 'Prep Exam Maths' : "Adele's Exam Prep",
-        short_name: maths ? 'Prep Exam Maths' : 'Exam Prep',
-        description: maths ? 'Get ready for the maths test, a little every day.' : 'Revise for the next exam, ten minutes a day.',
+        id: maths ? 'prep-exam-maths' : science ? 'exam-prep-sci' : 'exam-prep',
+        name: maths ? 'Prep Exam Maths' : science ? 'exam-prepSCI' : "Adele's Exam Prep",
+        short_name: maths ? 'Prep Exam Maths' : science ? 'exam-prepSCI' : 'Exam Prep',
+        description: maths ? 'Get ready for the maths test, a little every day.' : science ? 'Get ready for the science test, a little every day.' : 'Revise for the next exam, ten minutes a day.',
         start_url: './',
         scope: './',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#f6f5fb',
-        theme_color: maths ? '#ff8a00' : '#5b5bd6',
+        theme_color: maths ? '#ff8a00' : science ? '#1f9d55' : '#5b5bd6',
         icons: [
           { src: icon('icon-192.png'), sizes: '192x192', type: 'image/png' },
           { src: icon('icon-512.png'), sizes: '512x512', type: 'image/png' },
@@ -70,13 +79,14 @@ export default defineConfig(({ mode }) => {
         globPatterns: ['**/*.{js,css,html,png,svg,webp,woff2,mp4}'],
         // The main app must not answer for the maths app's address with its own page.
         ...(maths ? { globIgnores: JSON.parse(readFileSync(new URL('./tools/old-main-assets.json', import.meta.url), 'utf8')).names.map((n: string) => `assets/${n}`) }
-          : { navigateFallbackDenylist: [/\/maths\//], globIgnores: ['maths/**'] }),
+          : science ? {}
+            : { navigateFallbackDenylist: [/\/maths\//, /\/science\//], globIgnores: ['maths/**', 'science/**'] }),
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),
   ],
   base: './',
-  build: maths ? { outDir: 'dist/maths', emptyOutDir: true } : {},
+  build: maths ? { outDir: 'dist/maths', emptyOutDir: true } : science ? { outDir: 'dist/science', emptyOutDir: true } : {},
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],

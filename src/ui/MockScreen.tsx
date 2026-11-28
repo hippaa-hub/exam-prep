@@ -122,7 +122,7 @@ export function MockScreen({ mock, pack, items, draft, onDraft, onDone, onTime, 
               <h2>How it works</h2>
               <ul className="bullets">
                 <li><strong>Part A:</strong> {partA.length} questions on knowing and understanding. Answer in full sentences.</li>
-                <li><strong>Part B:</strong> {partB.length} questions on thinking critically. Build an argument in four boxes.</li>
+                {partB.length > 0 && <li><strong>Part B:</strong> {partB.length} questions on thinking critically. Build an argument in four boxes.</li>}
                 <li>Write your answers in full sentences, or say them with the microphone and fix the words. In the real test you will write.</li>
                 <li>Notes closed. No help and no answers until you hand in.</li>
                 <li>About {mock.minutes} minutes. The clock is only a guide: nobody stops you.</li>

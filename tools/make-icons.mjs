@@ -6,6 +6,7 @@ import { writeFileSync } from 'node:fs';
 
 const VIOLET = [0x5b, 0x5b, 0xd6];
 const ORANGE = [0xff, 0x8a, 0x00];
+const GREEN = [0x1f, 0x9d, 0x55]; // exam-prepSCI, the science app
 const RING = [0xff, 0xff, 0xff];
 
 const crcTable = (() => {
@@ -91,4 +92,6 @@ for (const [name, size] of [['icon-192.png', 192], ['icon-512.png', 512], ['appl
   console.log('wrote public/' + name);
   writeFileSync(new URL(`../public/maths-${name}`, import.meta.url), png(size, ORANGE));
   console.log('wrote public/maths-' + name);
+  writeFileSync(new URL(`../public/science-${name}`, import.meta.url), png(size, GREEN));
+  console.log('wrote public/science-' + name);
 }

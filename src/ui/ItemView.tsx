@@ -40,6 +40,29 @@ interface ViewProps<T extends Item> {
 }
 
 export function ItemView(props: ViewProps<Item>) {
+  const { item, locked, quiet, onCommit, onResult } = props;
+  // Written answers and flashcards show their marking before the screen locks, so the picture follows
+  // the first of: her answer committed, a result reported, or the screen locked.
+  const [answered, setAnswered] = useState(false);
+  useEffect(() => { setAnswered(false); }, [item.id]);
+  const view = itemBody({
+    ...props,
+    onCommit: () => { setAnswered(true); onCommit?.(); },
+    onResult: (outcome, chosen, dontKnow) => { setAnswered(true); onResult(outcome, chosen, dontKnow); },
+  });
+  // The picture comes after the answer, with the explanation, never as a clue (and never in the mock test).
+  if (item.photo && (locked || answered) && !quiet) {
+    return (
+      <>
+        {view}
+        <img className="photo" src={`./img/${item.photo}.webp`} alt="" loading="lazy" />
+      </>
+    );
+  }
+  return view;
+}
+
+function itemBody(props: ViewProps<Item>) {
   const { item } = props;
   switch (item.type) {
     case 'term': return <TermView {...props} item={item} />;

@@ -24,6 +24,8 @@ export interface ItemBase {
   how?: string[];
   /** A drawn growing pattern shown above the question (matchsticks, dots, tiles…). */
   picture?: Picture;
+  /** An illustration (a file in public/img, without .webp), shown once she has answered. */
+  photo?: string;
 }
 
 /** The growing patterns the app can draw from numbers. */
