@@ -138,7 +138,23 @@ export const whyNot: Record<string, Record<string, string>> = {
     'Because nobody understands cells': 'Scientists understand cells well. Regulation is needed because the technology is new and powerful.',
   },
 
+  'c1-model': {
+    'The outer boundary (membrane)': 'The outer boundary is the membrane. It controls what goes in and out, but it does not hold the instructions.',
+    'The cytoplasm': 'The cytoplasm is the jelly the parts float in. The instructions are in the nucleus.',
+    'A small part near the edge': 'The small parts work together as a system. The control centre is the big nucleus.',
+  },
+  'c4-named': {
+    'Heart and lungs': 'Those are organs of the body, not parts of a cell.',
+    'Stage and eyepiece': 'Those are parts of a microscope, not of a cell.',
+    'Insulin and glucose': 'Those are substances, not parts drawn in the cell.',
+  },
+
   // C2
+  'c2-hooke-lamp': {
+    'With the sun only': 'Hooke used his own light: an oil lamp and a globe lens.',
+    'With an electric light bulb': 'There were no electric lights in 1665.',
+    'He did not use any light': 'You need light to see a specimen. Hooke used an oil lamp and a globe lens.',
+  },
   'c2-ancient': {
     'Mirrors and candles': 'Mirrors reflect light. They do not make things bigger. People used curved glass, water drops and clear pebbles.',
     Telescopes: 'Telescopes are for far-away things. Early magnifiers were curved glass and water drops.',

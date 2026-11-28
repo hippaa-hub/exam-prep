@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { challengesOf, starsFor, type PartInfo, type World } from '../../content/adventure';
 import { Confetti } from '../Confetti';
+import { LearnedGain } from '../LearnedGain';
 import { Mascot } from '../Mascot';
 import { play } from '../sound';
 import { ChallengeView, howTo, type Result } from './challenges';
@@ -19,11 +20,14 @@ interface Props {
   onExit: () => void;
   /** True when this world is one of today's tasks. */
   guided?: boolean;
+  /** How much of the test material she has learned now (the ring), shown before and after at the end. */
+  learned?: number;
 }
 
 type Phase = { name: 'intro' } | { name: 'level'; level: number } | { name: 'play'; level: number; index: number } | { name: 'end' };
 
-export function WorldScreen({ world, parts, onAnswer, onFinish, onExit, guided }: Props) {
+export function WorldScreen({ world, parts, onAnswer, onFinish, onExit, guided, learned }: Props) {
+  const learnedAtStart = useRef(learned);
   const [phase, setPhase] = useState<Phase>({ name: 'intro' });
   const [firstTry, setFirstTry] = useState<Record<string, boolean>>({});
   const [result, setResult] = useState<Result | null>(null);
@@ -100,7 +104,8 @@ export function WorldScreen({ world, parts, onAnswer, onFinish, onExit, guided }
           </div>
           <p className="points-gain pop">+{points} points</p>
           <p className="bold">{right} of {all.length} right on the first try.</p>
-          <p className="muted">{stars === 3 ? 'Amazing. You really know this.' : stars === 2 ? 'Good work. Play again to get three stars.' : 'You finished it! Play again: it gets easier every time.'}</p>
+          <p className="muted">{stars === 3 ? 'Amazing. You really know this.' : stars === 2 ? 'Good work. The mistakes come back in tomorrow\'s clues.' : 'You finished it! The hard ones come back in tomorrow\'s clues.'}</p>
+          {learned !== undefined && learnedAtStart.current !== undefined && <LearnedGain before={learnedAtStart.current} after={learned} />}
           <button type="button" className="btn primary big" onClick={onExit}>{guided ? 'Back to today\'s tasks' : 'Back to games'}</button>
         </main>
       </div>

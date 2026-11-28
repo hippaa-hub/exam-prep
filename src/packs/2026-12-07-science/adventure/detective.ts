@@ -15,21 +15,6 @@ export const detective: World = {
       intro: 'Start with easy cases. Use few clues for more points.',
       challenges: [
         {
-          id: 'sort-cells', kind: 'sort', concept: 'c1-cells', photo: 'c1-living-things',
-          bins: ['Made of cells', 'Not made of cells'],
-          cards: [
-            { text: 'A eucalyptus tree', bin: 'Made of cells', why: 'A tree is a living organism, so it is made of cells.' },
-            { text: 'A snake', bin: 'Made of cells', why: 'A snake is a living organism.' },
-            { text: 'E. coli bacteria', bin: 'Made of cells', why: 'Bacteria are living organisms too.' },
-            { text: 'Yeast', bin: 'Made of cells', why: 'Yeast is a living organism.' },
-            { text: 'A rock', bin: 'Not made of cells', why: 'A rock was never alive.' },
-            { text: 'A plastic toy', bin: 'Not made of cells', why: 'Plastic was never alive.' },
-          ],
-          prompt: 'Is it made of cells?',
-          hint: 'Every living organism is made of cells.',
-          why: 'Every single organism, from bacteria to trees to you, is made of cells.',
-        },
-        {
           id: 'clue-common', kind: 'clues', concept: 'c1-cells',
           clues: ['A tall eucalyptus tree.', 'A snake.', 'E. coli bacteria and yeast.', 'You!'],
           options: ['They are all made of cells', 'They all have chloroplasts', 'They can all move', 'They are all the same size'],
@@ -69,16 +54,6 @@ export const detective: World = {
       stage: 2, title: 'Check the notes',
       intro: 'Some students wrote notes with mistakes. Find each mistake and fix it.',
       challenges: [
-        {
-          id: 'spot-jake', kind: 'spot', concept: 'c1-form-function', author: 'Jake',
-          lines: ['All living things are made of cells.', 'Form means how a cell is built.', 'Function means the job of a cell.', 'All cells have the same shape.'],
-          wrong: 3,
-          fix: 'Cells have different shapes for different jobs.',
-          fixes: ['Cells have different shapes for different jobs.', 'All cells are round.', 'Only plant cells have a shape.'],
-          prompt: 'Find the mistake in Jake\'s notes.',
-          hint: 'Do skin, heart and blood cells look the same?',
-          why: 'Form meets function: cells have different shapes because they do different jobs.',
-        },
         {
           id: 'spot-nina', kind: 'spot', concept: 'c2-hooke', author: 'Nina',
           lines: ['Robert Hooke looked at cork in 1665.', 'He saw tiny, empty boxes.', 'He named them after the Latin word for "tiny animals".', 'His magnifier was about 50×.'],

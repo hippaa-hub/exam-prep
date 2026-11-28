@@ -144,6 +144,9 @@ export const c4: Topic = {
     pair('c4-fi-membrane', 'Cell membrane', FOUND, 'Plant and animal', 'Every cell has a membrane. Plant cells also have a wall outside it.'),
     pair('c4-fi-cyto', 'Cytoplasm', FOUND, 'Plant and animal', 'Plant and animal cells both have cytoplasm inside the membrane.'),
 
+    choice('c4-named', 'The big plant cell picture in your slides names two more parts without explaining them. Which two?',
+      'Golgi body and endoplasmic reticulum', ['Heart and lungs', 'Stage and eyepiece', 'Insulin and glucose'],
+      'The plant cell picture also labels the Golgi body and the endoplasmic reticulum. The slides only name them.'),
     // The teacher's table: Organelles of plant and animal cells
     row('c4-tbl-membrane', 'Cell membrane', 'Plant and animal', 'Outer surface', FUN[0]),
     row('c4-tbl-cytoplasm', 'Cytoplasm', 'Plant and animal', 'Inside the membrane', FUN[1]),
@@ -162,6 +165,6 @@ export const c4: Topic = {
     ['c4-chloroplast', /^c4-chloro-/],
     ['c4-vacuole', /^c4-vacuole-/],
     ['c4-found-in', /^c4-fi-/],
-    ['c4-table', /^c4-tbl-/],
+    ['c4-table', /^c4-(tbl-|named)/],
   ]),
 };

@@ -62,10 +62,12 @@ interface Props {
   /** True once a round of glossary words has been done today. */
   glossaryDone?: boolean;
   onGlossary?: () => void;
-  /** A free round, once the tasks are done (or after the exam). */
-  onExtra: () => void;
-  /** Opens the extra practice page. Offered only when the day's tasks are finished (or there are none). */
-  onPractise: () => void;
+  /** A free round, once the tasks are done (or after the exam). Left out, nothing extra is offered. */
+  onExtra?: () => void;
+  /** Opens the extra practice page. Left out (a daily-journey pack), there is no extra practice at all. */
+  onPractise?: () => void;
+  /** The word under the ring's percentage ("ready", or "learned"). */
+  ringWord?: string;
   onGuide: () => void;
   /** Opens the parent's view (study time and the day-by-day tracker). */
   onParent: () => void;
@@ -120,7 +122,7 @@ function lolaSays(plan: TodayPlan, tasks: Task[], finished: boolean, name: strin
 
 export function Home({
   pack, plan, progress, points, today, when, ring, name, tasks, finished, daysDone, tomorrow, showGuideHint, preview = false, glossaryWords = 0, glossaryDone = false, onGlossary,
-  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, ahead, catchUp, onToolkit, onExtra, onPractise, onGuide, onParent,
+  badges = [], badgesSeen, onBadgesSeen, muted = false, onMute, onDayDone, onTask, ahead, catchUp, onToolkit, onExtra, onPractise, onGuide, onParent, ringWord,
 }: Props) {
   const ready = ring;
   const cd = countdown(plan.daysToGo);
@@ -211,7 +213,7 @@ export function Home({
             <div className="countdown-main"><strong>{cd.big}</strong><span>{cd.small}</span></div>
             <small>Exam: {formatLong(pack.date)}</small>
           </div>
-          <Ring value={ready} size={84} />
+          <Ring value={ready} size={84} word={ringWord} />
         </div>
         {plan.phase !== 'past' && (
           <p className="track-note">
@@ -275,7 +277,7 @@ export function Home({
             <p className="done-today">{plan.phase === 'exam-day' ? '✓ Warm-up done. Good luck in your exam!' : "✓ Today's preparation is finished. Well done!"}</p>
             {tomorrow && <p className="muted">Tomorrow: {tomorrow.charAt(0).toLowerCase() + tomorrow.slice(1)}.</p>}
             {/* The last day: a round still adds to the ring for as long as something is not full. */}
-            {isSprint(plan) && notFull > 0 && (
+            {isSprint(plan) && notFull > 0 && onExtra && (
               <button type="button" className="btn ghost extra" onClick={onExtra}>
                 One more round
                 <small>{notFull} {notFull === 1 ? 'thing is' : 'things are'} not full yet</small>
@@ -288,7 +290,7 @@ export function Home({
                 <small>{glossaryDone ? '✓ Done today · 12 more words' : 'Optional · 12 words · about 10 min'}</small>
               </button>
             )}
-            <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>
+            {onPractise && <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>}
           </>
         ) : next ? (
           <button type="button" className="btn primary big" onClick={() => onTask(next)}>
@@ -297,11 +299,13 @@ export function Home({
           </button>
         ) : (
           <>
-            <button type="button" className="btn primary big" onClick={onExtra}>
-              Mixed quiz
-              <small>A mixed quiz of everything</small>
-            </button>
-            <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>
+            {onExtra && (
+              <button type="button" className="btn primary big" onClick={onExtra}>
+                Mixed quiz
+                <small>A mixed quiz of everything</small>
+              </button>
+            )}
+            {onPractise && <button type="button" className="btn ghost" onClick={onPractise}>More practice</button>}
           </>
         )}
       </section>
@@ -328,7 +332,7 @@ export function Home({
         </section>
       )}
 
-      {(pack.lessons?.length ?? 0) > 0 && (
+      {(pack.lessons?.length ?? 0) > 0 && onPractise && (
         <button type="button" className="card link-card" onClick={onPractise}>
           <span className="link-icon" aria-hidden="true">📚</span>
           <span>
@@ -374,7 +378,7 @@ export function Home({
           <span className="link-icon" aria-hidden="true">📖</span>
           <span>
             <strong>New here? How to get ready</strong>
-            <span className="muted">Eight steps to use these days well. One minute to read.</span>
+            <span className="muted">{pack.journey ? "How your daily journey works. One minute to read." : "Eight steps to use these days well. One minute to read."}</span>
           </span>
           <span className="chev" aria-hidden="true">›</span>
         </button>

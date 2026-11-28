@@ -96,6 +96,12 @@ export const factory: World = {
           why: 'The nucleolus is inside the nucleus. It makes ribosomes, and ribosomes make proteins.',
         },
         {
+          id: 'tap-nucleolus', kind: 'tap', concept: 'c4-nucleolus', diagram: 'animal-cell', answer: 'nucleolus',
+          prompt: 'Tap the part that makes ribosomes.',
+          hint: 'It is a small dark part inside the nucleus.',
+          why: 'The nucleolus is inside the nucleus. It makes ribosomes, and ribosomes make proteins.',
+        },
+        {
           id: 'clue-cyto', kind: 'clues', concept: 'c4-cytoplasm',
           clues: ['I am in every plant and animal cell.', 'I am a jelly-like liquid.', 'The organelles sit in me.', 'Chemical reactions happen in me.'],
           options: ['Cytoplasm', 'Cell sap', 'Nucleus'],
@@ -115,13 +121,6 @@ export const factory: World = {
       intro: 'Alarm! Things are going wrong. Find the broken part.',
       challenges: [
         {
-          id: 'break-poison', kind: 'tap', concept: 'c4-membrane', diagram: 'animal-cell', answer: 'membrane',
-          story: 'Breakdown! Poison is getting into the factory. Nothing is stopping it.',
-          prompt: 'Tap the broken part.',
-          hint: 'Which part controls what goes in and out?',
-          why: 'The membrane controls what goes in and out. It stops toxins from building up.',
-        },
-        {
           id: 'break-orders', kind: 'tap', concept: 'c4-nucleus', diagram: 'animal-cell', answer: 'nucleus',
           story: 'Breakdown! Nobody gives orders. No part knows what to do.',
           prompt: 'Tap the broken part.',
@@ -129,11 +128,18 @@ export const factory: World = {
           why: 'The nucleus directs all cell activities. Without it, nobody gives orders.',
         },
         {
-          id: 'break-food', kind: 'tap', concept: 'c4-chloroplast', diagram: 'plant-cell', answer: 'chloroplasts',
-          story: 'Breakdown in a plant factory! Sunlight comes in, but no glucose (food) is made.',
-          prompt: 'Tap the broken part.',
-          hint: 'Which part turns sunlight into glucose?',
-          why: 'Chloroplasts do photosynthesis: they turn sunlight into glucose.',
+          id: 'broken-mito', kind: 'pick', concept: 'c4-mitochondria',
+          story: 'Alarm! In this cell, the mitochondria stopped working.',
+          prompt: 'What does the cell lose?',
+          options: ['Its energy', 'Its DNA', 'Its green colour', 'Its stiff shape'],
+          answer: 'Its energy',
+          whyNot: {
+            'Its DNA': 'The DNA is in the nucleus, not in the mitochondria.',
+            'Its green colour': 'Green comes from chlorophyll in the chloroplasts.',
+            'Its stiff shape': 'A stiff shape comes from the cell wall.',
+          },
+          hint: 'What happens in mitochondria? Respiration makes…',
+          why: 'Respiration happens in the mitochondria. It makes the energy the cell needs.',
         },
         {
           id: 'liver', kind: 'pick', concept: 'c4-mitochondria', photo: 'c3-liver-cell',
@@ -162,19 +168,6 @@ export const factory: World = {
           },
           hint: 'Remember the word "interdependent".',
           why: 'A cell is a system: its parts are interdependent (they need each other).',
-        },
-        {
-          id: 'clue-vac', kind: 'clues', concept: 'c4-vacuole', photo: 'c3-vacuole',
-          clues: ['I am only in plant cells.', 'I am a big bag.', 'I am full of cell sap.', 'I keep the cell firm, like a balloon.'],
-          options: ['Large permanent vacuole', 'Cell wall', 'Chloroplast'],
-          answer: 'Large permanent vacuole',
-          whyNot: {
-            'Cell wall': 'The cell wall is made of cellulose. It is not a bag of sap.',
-            Chloroplast: 'Chloroplasts are green and do photosynthesis.',
-          },
-          prompt: 'Which part am I?',
-          hint: 'Cell sap is inside it.',
-          why: 'The large permanent vacuole is a bag of cell sap. It keeps the cell firm, like an inflated balloon.',
         },
       ],
     },

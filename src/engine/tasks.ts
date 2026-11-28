@@ -5,7 +5,7 @@ import { playTaskId } from '../content/adventure';
 import { isSprint, type SessionRecord, type TodayPlan } from './plan';
 import { LAST_DAY_SIZE, TODAY_SIZE, WARM_UP_SIZE } from './session';
 
-export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock' | 'learn' | 'play';
+export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock' | 'learn' | 'play' | 'clues' | 'explain';
 
 export interface Task {
   id: string;

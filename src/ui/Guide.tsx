@@ -70,10 +70,44 @@ const MATHS_STEPS: { icon: string; title: string; text: string }[] = [
   },
 ];
 
+/** The daily journey (science): only what is on her list, in easy English. */
+const JOURNEY_STEPS: { icon: string; title: string; text: string }[] = [
+  {
+    icon: '🗺️',
+    title: 'Every day: one short journey',
+    text: 'Home shows today\'s tasks: yesterday\'s clues, a lesson, a game, and two or three written answers. Press Start and do them in order. When all are ticked, you are done for the day.',
+  },
+  {
+    icon: '📖',
+    title: 'First learn, then play',
+    text: 'The lesson teaches the new part, one small idea per card, with a picture. Read each card and answer the quick check. Then the game lets you use what you just learned.',
+  },
+  {
+    icon: '🔍',
+    title: 'Yesterday\'s clues',
+    text: 'A few quick questions about earlier days. Your mistakes come back here until you get them right. Answer from memory: trying to remember is what makes it stick.',
+  },
+  {
+    icon: '✍️',
+    title: 'Explain it like the test',
+    text: 'The test asks for answers in full sentences. Write your answer, or tap the microphone and say it. The app checks the key ideas and then shows the teacher\'s wording.',
+  },
+  {
+    icon: '📊',
+    title: 'Watch your % grow',
+    text: 'The ring on Home shows how much of the test material you have learned. Something counts fully when you get it right on three different days, so a little every day is the way to fill it.',
+  },
+  {
+    icon: '🏁',
+    title: 'The final missions',
+    text: 'On the last two days you do a mock test, like the real one: notes closed, full sentences. On exam morning, a three-minute warm-up.',
+  },
+];
+
 export function Guide({ pack, today, onParent }: { pack: Pack; today: DateKey; onParent: () => void }) {
   const left = daysToGo(pack, today);
   const things = conceptsOf(itemsOf(pack)).length;
-  const steps = pack.subject === 'Mathematics' ? [...STEPS.slice(0, 5), ...MATHS_STEPS] : STEPS;
+  const steps = pack.journey ? JOURNEY_STEPS : pack.subject === 'Mathematics' ? [...STEPS.slice(0, 5), ...MATHS_STEPS] : STEPS;
   return (
     <>
       <header className="page-head">

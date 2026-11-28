@@ -22,9 +22,11 @@ interface Props {
   onExit: () => void;
   /** The next of today's tasks, offered at the end. */
   next?: { title: string; start: () => void };
+  /** True when there is no "More practice" page to open the lesson again from (a daily-journey pack). */
+  noPractice?: boolean;
 }
 
-export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next }: Props) {
+export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next, noPractice = false }: Props) {
   const [index, setIndex] = useState(Math.min(startAt, lesson.cards.length - 1));
   const [tapsRight, setTapsRight] = useState(0);
   const [finished, setFinished] = useState(false);
@@ -44,7 +46,7 @@ export function LearnScreen({ lesson, startAt, onProgress, onDone, onExit, next 
     window.scrollTo(0, 0);
   };
 
-  if (finished) return <LessonDone lesson={lesson} onExit={onExit} next={next} />;
+  if (finished) return <LessonDone lesson={lesson} onExit={onExit} next={next} noPractice={noPractice} />;
 
   return (
     <div className="session learn">
@@ -91,6 +93,7 @@ function CardView({ card, last, onTapRight, onNext }: { card: LearnCard; last: b
       <div className="kicker">Learn</div>
       <h2 className="learn-title"><span className="learn-emoji" aria-hidden="true">{card.emoji}</span> {card.title}</h2>
       <p className="learn-intro">{card.intro}</p>
+      {card.photo && <img className="learn-photo" src={`./img/${card.photo}.webp`} alt="" />}
       {card.picture && <PatternPicture picture={card.picture} />}
       {card.anatomy && <TermAnatomy term={card.anatomy} />}
 
@@ -226,7 +229,7 @@ function Faded({ faded, locked, onDone }: { faded: NonNullable<LearnCard['faded'
   );
 }
 
-function LessonDone({ lesson, onExit, next }: { lesson: Lesson; onExit: () => void; next?: { title: string; start: () => void } }) {
+function LessonDone({ lesson, onExit, next, noPractice }: { lesson: Lesson; onExit: () => void; next?: { title: string; start: () => void }; noPractice: boolean }) {
   useEffect(() => play('done'), []);
   return (
     <div className="summary">
@@ -235,7 +238,7 @@ function LessonDone({ lesson, onExit, next }: { lesson: Lesson; onExit: () => vo
         <div className="summary-lola"><Mascot mood="cheer" size={132} /></div>
         <h1>Lesson done!</h1>
         <p className="summary-score">{lesson.title}: {lesson.cards.length} cards</p>
-        <p className="summary-points">You can open this lesson again any time from More practice.</p>
+        <p className="summary-points">{noPractice ? 'Now use it! The game is next.' : 'You can open this lesson again any time from More practice.'}</p>
       </div>
       <div className="summary-actions">
         {next ? (

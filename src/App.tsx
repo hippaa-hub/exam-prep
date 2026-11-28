@@ -37,6 +37,7 @@ import { TableScreen } from './ui/TableScreen';
 import { WorldScreen } from './ui/adventure/WorldScreen';
 import { GamesTab } from './ui/adventure/GamesTab';
 import { playTaskId } from './content/adventure';
+import { buildCluesSession, buildExplainSession, CLUES_SIZE, CLUES_SIZE_MOCK, CLUES_TASK, EXPLAIN_TASK, journeyLabel, journeyTasks, mockToday, worldsDue } from './engine/journey';
 
 export interface SessionSpec {
   kind: SessionKind;
@@ -336,7 +337,11 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const wordsInMix = glossary.length ? GLOSSARY_IN_MIX : 0;
   const lateLeft = buildLateSession(pack, progress).length;
   const mockMinutes = (pack.mocks ?? []).find((m) => m.id === plan.mock)?.minutes ?? 35;
-  const tasks = tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes, lessonInfo, { round: roundSize(pack), lastDay: lastDaySize(pack) });
+  /** A pack with a daily journey shows only the journey's tasks until exam day (engine/journey.ts). */
+  const journeyOn = (pl: typeof plan) => !!pack.journey && pl.phase !== 'exam-day' && pl.phase !== 'past';
+  const tasks = journeyOn(plan)
+    ? journeyTasks(pack, plan, save.sessions, today, progress)
+    : tasksFor(plan, save.sessions, today, due, mistakes.length, wordsInMix, lateLeft, mockMinutes, lessonInfo, { round: roundSize(pack), lastDay: lastDaySize(pack) });
   const upcoming = nextTask(tasks);
   const finished = dayFinished(tasks);
   // The day's report, kept ready for the notification to a parent's phone.
@@ -357,7 +362,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       }];
       // Was that the last task of the day? Then today's preparation is finished.
       const planNow = planFor(pack, sessions, today);
-      const tasksNow = tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes, lessonInfo, { round: roundSize(pack), lastDay: lastDaySize(pack) });
+      const tasksNow = journeyOn(planNow)
+        ? journeyTasks(pack, planNow, sessions, today, p.progress)
+        : tasksFor(planNow, sessions, today, dueToday(pack, p.progress, planNow, occasionFor(planNow, sessions, today)), mistakeIds(pack, p.progress).length, wordsInMix, buildLateSession(pack, p.progress).length, mockMinutes, lessonInfo, { round: roundSize(pack), lastDay: lastDaySize(pack) });
       const daysDone = p.daysDone ?? [];
       return {
         ...p,
@@ -392,6 +399,18 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   const startLate = () => {
     const ids = buildLateSession(pack, currentSave().progress);
     if (ids.length > 0) open({ kind: 'practice', title: 'New questions', topics: [], ids, task: LATE_TASK, guided: true });
+  };
+  /** Yesterday's clues: quick questions about earlier days, mistakes first. A longer set on a mock-test day. */
+  const startClues = () => {
+    const ids = buildCluesSession(pack, currentSave().progress, today, mockToday(pack, today) ? CLUES_SIZE_MOCK : CLUES_SIZE);
+    if (ids.length > 0) open({ kind: 'practice', title: "Yesterday's clues", topics: [], ids, task: CLUES_TASK, guided: true });
+  };
+  /** Explain it like the test: written answers about the worlds of today. */
+  const startExplain = () => {
+    const sessionsNow = currentSave().sessions;
+    const worlds = [...new Set([...worldsDue(pack, sessionsNow, today), ...sessionsNow.filter((x) => x.date === today && x.task?.startsWith('play:')).map((x) => x.task!.slice(5))])];
+    const ids = buildExplainSession(pack, worlds, currentSave().progress);
+    if (ids.length > 0) open({ kind: 'practice', title: 'Explain it like the test', topics: [], ids, task: EXPLAIN_TASK, guided: true });
   };
   const startFix = (guided = false) => {
     const ids = buildFixSession(pack, currentSave().progress);
@@ -457,7 +476,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     else if (task.kind === 'argument') {
       const q = nextArgument(pack, currentSave().writing);
       if (q) openArgument(q.id, true);
-    } else if (task.kind === 'mock' && plan.mock) openMock(plan.mock, true);
+    } else if (task.kind === 'mock') openMock(task.id.replace(/^mock:/, ''), true);
+    else if (task.kind === 'clues') startClues();
+    else if (task.kind === 'explain') startExplain();
     else if (task.kind === 'learn' && task.topic) openLearn(task.topic, true);
     else if (task.kind === 'play' && task.world) openWorld(task.world, true);
   };
@@ -535,8 +556,9 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             updatePack(pack.id, (p) => ({ ...p, drafts: dropDraft(p, key) }));
             finish({ kind: 'practice', topics: [], task: key }, { asked: lesson.cards.length, firstTimeRight: tapsRight, missed: [] });
           }}
-          onExit={() => goTab(view.guided ? 'home' : 'practise')}
+          onExit={() => goTab(view.guided || pack.journey ? 'home' : 'practise')}
           next={view.guided ? next : undefined}
+          noPractice={!!pack.journey}
         />
       );
     }
@@ -616,6 +638,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         next={next}
         dayDone={finished}
         examDay={plan.phase === 'exam-day'}
+        learned={packRing(pack, progress, save.sessions)}
       />
     );
   }
@@ -632,6 +655,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
           onAnswer={answerGame}
           onFinish={(right, total, stars, points) => finishWorld(world.id, right, total, stars, points)}
           onExit={() => goTab(view.guided ? 'home' : 'games')}
+          learned={packRing(pack, progress, save.sessions)}
         />
       );
     }
@@ -707,7 +731,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
         {tab === 'home' && (
           <Home
             pack={pack}
-            plan={plan}
+            plan={journeyOn(plan) ? { ...plan, label: journeyLabel(pack, save.sessions, today), topics: [], catchUp: [] } : plan}
             progress={progress}
             points={save.points}
             today={today}
@@ -724,15 +748,16 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             onBadgesSeen={(ids) => updatePack(pack.id, (p) => ({ ...p, badgesSeen: ids }))}
             muted={soundsOff}
             onMute={(muted) => commit({ ...savedRef.current!, settings: { ...savedRef.current!.settings, muted } })}
-            glossaryWords={glossary.length}
+            glossaryWords={pack.journey ? 0 : glossary.length}
             glossaryDone={save.sessions.some((x) => x.date === today && x.task === GLOSSARY_TASK)}
             onGlossary={() => startGlossary(true)}
             daysDone={save.daysDone ?? []}
-            tomorrow={plan.daysToGo > 0 ? planFor(pack, save.sessions, addDays(today, 1)).label : undefined}
+            tomorrow={plan.daysToGo > 1 && pack.journey ? journeyLabel(pack, save.sessions, addDays(today, 1)) : plan.daysToGo > 0 ? planFor(pack, save.sessions, addDays(today, 1)).label : undefined}
             showGuideHint={!saved.settings.guideSeen}
             preview={preview !== null}
             onTask={startTask}
-            ahead={ahead}
+            ahead={pack.journey ? undefined : ahead}
+            ringWord={pack.journey ? 'learned' : undefined}
             onToolkit={pack.toolkit ? () => go({ name: 'toolkit', from: 'home' }) : undefined}
             catchUp={(() => {
               const topic = pack.catchUp;
@@ -741,8 +766,8 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
               const task = tasks.find((t) => t.id === learnTaskId(topic));
               return { title: lesson.title, cards: lesson.cards.length, start: () => (task ? startTask(task) : openLearn(topic)) };
             })()}
-            onExtra={() => startToday(false)}
-            onPractise={() => goTab('practise')}
+            onExtra={pack.journey ? undefined : () => startToday(false)}
+            onPractise={pack.journey ? undefined : () => goTab('practise')}
             onGuide={() => goTab('guide')}
             onParent={() => go({ name: 'parent', key: nextKey.current++ })}
           />
@@ -774,7 +799,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
           <Mistakes pack={pack} progress={progress} ids={mistakes} items={byId} onStart={() => startFix(false)} />
         )}
       </main>
-      <TabBar tab={tab} onChange={goTab} mistakeCount={mistakes.length} games={!!pack.adventure} />
+      <TabBar tab={tab} onChange={goTab} mistakeCount={mistakes.length} only={pack.journey ? ['home', 'guide'] : undefined} />
     </div>
   );
 }

@@ -84,7 +84,8 @@ function simulate(pack: Pack, firstDay: number, rounds: number, accuracy: number
 
 const average = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
 
-describe.each(packs.map((p) => [p.id, p] as const))('the countdown for %s', (_id, pack) => {
+// A pack with a daily journey is played by journey.test.ts instead: its days are not rounds of questions.
+describe.each(packs.filter((p) => !p.journey).map((p) => [p.id, p] as const))('the countdown for %s', (_id, pack) => {
   const first = Math.min(...pack.plan.map((d) => d.day));
   const runs = (firstDay: number, rounds: number, accuracy: number) =>
     Array.from({ length: 20 }, (_, i) => simulate(pack, firstDay, rounds, accuracy, 100 + i));

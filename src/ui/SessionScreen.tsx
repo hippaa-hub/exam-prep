@@ -18,6 +18,7 @@ import { PatternPicture } from './PatternPicture';
 const CALC = new Set<Item['type']>(['expression', 'numeric', 'sequence', 'errorFind']);
 import { Confetti } from './Confetti';
 import { ItemView } from './ItemView';
+import { LearnedGain } from './LearnedGain';
 import { Mascot } from './Mascot';
 
 interface Props {
@@ -40,9 +41,12 @@ interface Props {
   dayDone: boolean;
   /** True on the day of the exam: the end of the warm-up wishes her luck. */
   examDay?: boolean;
+  /** How much of the test material she has learned now (the ring). Shown before and after, at the end. */
+  learned?: number;
 }
 
-export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer, onFinish, onExit, onFix, onLeft, next: nextTask, dayDone, examDay = false }: Props) {
+export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer, onFinish, onExit, onFix, onLeft, next: nextTask, dayDone, examDay = false, learned }: Props) {
+  const learnedAtStart = useRef(learned);
   const [run, setRun] = useState(() => startRun(spec.ids));
   const [result, setResult] = useState<{ outcome: Outcome; askAgain: boolean; chosen?: string; replacement?: ItemId } | null>(null);
   const [fixed, setFixed] = useState(0);
@@ -71,6 +75,7 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
   if (finished) {
     return (
       <Summary spec={spec} summary={summarise(run)} items={items} fixed={fixed}
+        learned={learned !== undefined && learnedAtStart.current !== undefined ? { before: learnedAtStart.current, after: learned } : undefined}
         mistakeCount={mistakeCount} onExit={onExit} onFix={onFix} next={nextTask} dayDone={dayDone} examDay={examDay} />
     );
   }
@@ -203,9 +208,10 @@ export function SessionScreen({ spec, pack, items, mistakeCount, isNew, onAnswer
   );
 }
 
-function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, next, dayDone, examDay }: {
+function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, next, dayDone, examDay, learned }: {
   spec: SessionSpec; summary: RunSummary; items: Map<ItemId, Item>; fixed: number; mistakeCount: number;
   onExit: () => void; onFix: () => void; next?: { title: string; start: () => void }; dayDone: boolean; examDay: boolean;
+  learned?: { before: number; after: number };
 }) {
   const points = POINTS_SESSION + fixed * POINTS_FIXED_MISTAKE;
   const allRight = summary.missed.length === 0;
@@ -222,6 +228,7 @@ function Summary({ spec, summary, items, fixed, mistakeCount, onExit, onFix, nex
         </p>
         <p className="summary-points">+{points} points{fixed > 0 ? ` · ${fixed} mistake${fixed === 1 ? '' : 's'} fixed` : ''}</p>
       </div>
+      {learned && <LearnedGain before={learned.before} after={learned.after} />}
 
       {spec.guided && dayDone && (
         <section className="card tint-good day-done" role="status">

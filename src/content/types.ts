@@ -229,6 +229,8 @@ export interface LearnCard {
   picture?: Picture;
   /** One term drawn with its parts labelled (coefficient, letter, exponent), for example "5y³". */
   anatomy?: string;
+  /** An illustration for the card (public/img, without .webp). */
+  photo?: string;
   /** A quick-fire game after the steps: one tap per round, with a streak. Not marked. */
   game?: LearnGame;
   /** The one thing to remember. */
@@ -387,8 +389,13 @@ export interface Pack {
   sizes?: { round?: number; lastDay?: number };
   /** Questions added late (after a slide-by-slide check). A mixed day asks these first, in a round of their own. */
   lateAdditions?: ItemId[];
-  /** Game worlds (the Games tab). Their answers count in the ring like any other answer. */
+  /** Game worlds. Their answers count in the ring like any other answer. */
   adventure?: Adventure;
+  /**
+   * The daily journey (engine/journey.ts): clues, today's world, explain it, and the mocks on the last days.
+   * Only those tasks are shown: no optional practice anywhere (Jenia, 28 Nov).
+   */
+  journey?: boolean;
 }
 
 /** Which practice game an item belongs to. */

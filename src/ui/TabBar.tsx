@@ -7,11 +7,9 @@ const TABS: { tab: Tab; label: string; icon: string }[] = [
   { tab: 'guide', label: 'Guide', icon: '📖' },
 ];
 
-/** A pack with game worlds gets a Games tab, after Home. */
-const GAMES_TAB = { tab: 'games' as Tab, label: 'Games', icon: '🎮' };
-
-export function TabBar({ tab, onChange, mistakeCount, games = false }: { tab: Tab; onChange: (t: Tab) => void; mistakeCount: number; games?: boolean }) {
-  const tabs = games ? [TABS[0], GAMES_TAB, ...TABS.slice(1)] : TABS;
+/** `only`: a pack with a daily journey shows just Home and the Guide: everything she does is on Home's list. */
+export function TabBar({ tab, onChange, mistakeCount, only }: { tab: Tab; onChange: (t: Tab) => void; mistakeCount: number; only?: Tab[] }) {
+  const tabs = only ? TABS.filter((t) => only.includes(t.tab)) : TABS;
   return (
     <nav className="tabbar" aria-label="Main">
       {tabs.map((t) => (

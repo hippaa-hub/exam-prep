@@ -65,15 +65,13 @@ export const build: World = {
         {
           id: 'match-jobs', kind: 'match', concept: 'c4-chloroplast',
           pairs: [
-            ['Nucleus', 'Holds the DNA. Controls the cell.'],
-            ['Mitochondria', 'Respiration. Makes energy.'],
-            ['Cell wall', 'Gives a stiff (rigid) shape.'],
-            ['Chloroplasts', 'Photosynthesis happens here.'],
-            ['Vacuole', 'Full of cell sap. Keeps the cell firm.'],
+            ['Cell wall', 'Made of cellulose. Gives a stiff (rigid) shape.'],
+            ['Chloroplasts', 'Green chlorophyll. Photosynthesis happens here.'],
+            ['Large permanent vacuole', 'Full of cell sap. Keeps the cell firm.'],
           ],
-          prompt: 'Match each part to its job.',
-          hint: 'Chloroplasts are green: they use sunlight. Mitochondria are the "powerhouse".',
-          why: 'Each organelle has its own job. Together they keep the cell alive.',
+          prompt: 'Match each plant-only part to what it is like.',
+          hint: 'Chlorophyll is green. Cell sap is a liquid. Cellulose is tough.',
+          why: 'The three plant-only parts: a cellulose wall for shape, chloroplasts for photosynthesis, a vacuole of cell sap to keep the cell firm.',
         },
         {
           id: 'tap-cellulose', kind: 'tap', concept: 'c4-wall', diagram: 'plant-cell', answer: 'wall',
@@ -87,12 +85,6 @@ export const build: World = {
           hint: 'Photosynthesis needs green chlorophyll.',
           why: 'Chloroplasts contain green chlorophyll. They turn sunlight into glucose.',
         },
-        {
-          id: 'tap-nucleolus', kind: 'tap', concept: 'c4-nucleolus', diagram: 'animal-cell', answer: 'nucleolus',
-          prompt: 'Tap the part that makes ribosomes.',
-          hint: 'It is a small dark part inside the nucleus.',
-          why: 'The nucleolus is inside the nucleus. It makes ribosomes, and ribosomes make proteins.',
-        },
       ],
     },
     {
@@ -100,7 +92,7 @@ export const build: World = {
       intro: 'Some cells are broken or mixed up. Use what you know to find the problem.',
       challenges: [
         {
-          id: 'which-cell', kind: 'pick', concept: 'c2-plant-animal',
+          id: 'which-cell', kind: 'pick', concept: 'c4-found-in',
           story: 'A new cell arrives in the lab. It has a cell wall, green chloroplasts and a big vacuole.',
           prompt: 'What kind of cell is it?',
           options: ['A plant cell', 'An animal cell'],
@@ -108,20 +100,6 @@ export const build: World = {
           whyNot: { 'An animal cell': 'Animal cells have no cell wall, no chloroplasts and no large vacuole.' },
           hint: 'Which kind of cell has a wall and green parts?',
           why: 'Cell wall, chloroplasts and a large permanent vacuole are only in plant cells.',
-        },
-        {
-          id: 'broken-mito', kind: 'pick', concept: 'c4-mitochondria',
-          story: 'Alarm! In this cell, the mitochondria stopped working.',
-          prompt: 'What does the cell lose?',
-          options: ['Its energy', 'Its DNA', 'Its green colour', 'Its stiff shape'],
-          answer: 'Its energy',
-          whyNot: {
-            'Its DNA': 'The DNA is in the nucleus, not in the mitochondria.',
-            'Its green colour': 'Green comes from chlorophyll in the chloroplasts.',
-            'Its stiff shape': 'A stiff shape comes from the cell wall.',
-          },
-          hint: 'What happens in mitochondria? Respiration makes…',
-          why: 'Respiration happens in the mitochondria. It makes the energy the cell needs.',
         },
         {
           id: 'dry-plant', kind: 'pick', concept: 'c4-vacuole',
@@ -136,6 +114,19 @@ export const build: World = {
           },
           hint: 'The vacuole is like a balloon. What happens to a balloon with less air in it?',
           why: 'The vacuole is full of cell sap, like an inflated balloon. It keeps the cell firm. A small vacuole cannot.',
+        },
+        {
+          id: 'clue-vac', kind: 'clues', concept: 'c4-vacuole', photo: 'c3-vacuole',
+          clues: ['I am only in plant cells.', 'I am a big bag.', 'I am full of cell sap.', 'I keep the cell firm, like a balloon.'],
+          options: ['Large permanent vacuole', 'Cell wall', 'Chloroplast'],
+          answer: 'Large permanent vacuole',
+          whyNot: {
+            'Cell wall': 'The cell wall is made of cellulose. It is not a bag of sap.',
+            Chloroplast: 'Chloroplasts are green and do photosynthesis.',
+          },
+          prompt: 'Which part am I?',
+          hint: 'Cell sap is inside it.',
+          why: 'The large permanent vacuole is a bag of cell sap. It keeps the cell firm, like an inflated balloon.',
         },
         {
           id: 'spot-wall', kind: 'spot', concept: 'c4-wall', author: 'Zoe',

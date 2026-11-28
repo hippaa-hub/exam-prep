@@ -10,6 +10,7 @@ import { c2 } from './c2';
 import { c3 } from './c3';
 import { c4 } from './c4';
 import { adventure } from './adventure';
+import { lessons } from './lessons';
 import { mocks } from './mocks';
 import { examples, meanings, simple, whyNot } from './why';
 import { written } from './written';
@@ -49,37 +50,21 @@ export const pack: Pack = {
   simple,
   examples,
   mocks,
-  // The Games tab (Jenia, 28 Nov): six worlds from the same three decks; one of them is a task each study day.
+  // The daily journey (Jenia, 28 Nov): Yesterday's clues → Learn → Today's world → Explain it like the test.
+  // Each world owns its own material; Friday's Biology Detective is the mixed review; the weekend is the two mocks.
+  // Only these tasks: no optional practice anywhere. Topics are listed only for the countdown's own bookkeeping.
+  journey: true,
   adventure,
-  // Jenia, 28 Nov: "a little every day". Each day has the same small load: its rounds, one short extra and one game.
-  // The tables that used to make Sunday and Tuesday long moved to the two mixed days.
+  lessons,
   plan: [
-    {
-      day: -8, label: 'Organelles: the parts of a cell and their jobs', topics: ['C4'],
-      extras: [{ kind: 'game', game: 'key-terms' }, { kind: 'play', world: 'build', title: 'Build-a-Cell' }],
-    },
-    {
-      day: -7, label: 'A cell is a system: beta-cells, diabetes and respiration', topics: ['C3'],
-      extras: [{ kind: 'game', game: 'this-or-that' }, { kind: 'play', world: 'membrane', title: 'Membrane Security' }],
-    },
-    {
-      day: -6, label: 'How we see cells: the microscope and its history', topics: ['C2'],
-      extras: [{ kind: 'table', group: 'Microscope parts' }, { kind: 'play', world: 'escape', title: 'Microscopic Escape Room' }],
-    },
-    {
-      day: -5, label: 'Cells and stem cells', topics: ['C1'],
-      extras: [{ kind: 'play', world: 'hospital', title: 'Stem Cell Hospital' }],
-    },
-    {
-      day: -4, label: 'A mixed round, the organelle table and the Organelle Factory game',
-      extras: [{ kind: 'table', group: 'Organelles' }, { kind: 'play', world: 'factory', title: 'Organelle Factory' }],
-    },
-    {
-      day: -3, label: 'A mixed round, the plant and animal table and the Biology Detective game',
-      extras: [{ kind: 'table', group: 'Plant vs animal cells' }, { kind: 'play', world: 'detective', title: 'Biology Detective' }],
-    },
-    { day: -2, label: 'A mixed round, then Mock Test 1', mock: 'mock-1' },
-    { day: -1, label: 'One more mixed round, then Mock Test 2', mock: 'mock-2' },
+    { day: -8, label: 'Learn the parts of a cell, then Build-a-Cell', topics: ['C4'], extras: [{ kind: 'play', world: 'build', title: 'Build-a-Cell' }] },
+    { day: -7, label: 'Learn how the parts work as a system, then the Organelle Factory', topics: ['C3'], extras: [{ kind: 'play', world: 'factory', title: 'Organelle Factory' }] },
+    { day: -6, label: 'Learn what goes in and out of a cell, then Membrane Security', extras: [{ kind: 'play', world: 'membrane', title: 'Membrane Security' }] },
+    { day: -5, label: 'Learn how we see cells, then the Microscopic Escape Room', topics: ['C2'], extras: [{ kind: 'play', world: 'escape', title: 'Microscopic Escape Room' }] },
+    { day: -4, label: 'Learn about stem cells and medicine, then the Stem Cell Hospital', topics: ['C1'], extras: [{ kind: 'play', world: 'hospital', title: 'Stem Cell Hospital' }] },
+    { day: -3, label: 'Biology Detective: cases from the whole week', extras: [{ kind: 'play', world: 'detective', title: 'Biology Detective' }] },
+    { day: -2, label: 'Final mission 1: a mock test', mock: 'mock-1' },
+    { day: -1, label: 'Final mission 2: a mock test', mock: 'mock-2' },
   ],
   examTips: [
     {

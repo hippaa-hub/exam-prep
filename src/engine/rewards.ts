@@ -52,10 +52,10 @@ export function badgesFor(pack: Pack, save: PackSave): Badge[] {
 
   const list: (Badge | false)[] = [
     // ---- Rounds: for turning up and doing the work ----
-    { id: 'first-round', icon: '🌱', title: 'First round', how: 'Finish your first round.', earned: rounds >= 1 },
-    { id: 'five-rounds', icon: '🖐️', title: 'Five rounds', how: 'Finish five rounds.', earned: rounds >= 5 },
-    { id: 'ten-rounds', icon: '🔟', title: 'Ten rounds', how: 'Finish ten rounds.', earned: rounds >= 10 },
-    { id: 'twenty-rounds', icon: '💪', title: 'Twenty rounds', how: 'Finish twenty rounds.', earned: rounds >= 20 },
+    { id: 'first-round', icon: '🌱', title: pack.journey ? 'First task' : 'First round', how: pack.journey ? 'Finish your first task.' : 'Finish your first round.', earned: rounds >= 1 },
+    { id: 'five-rounds', icon: '🖐️', title: pack.journey ? 'Five tasks' : 'Five rounds', how: pack.journey ? 'Finish five tasks.' : 'Finish five rounds.', earned: rounds >= 5 },
+    { id: 'ten-rounds', icon: '🔟', title: pack.journey ? 'Ten tasks' : 'Ten rounds', how: pack.journey ? 'Finish ten tasks.' : 'Finish ten rounds.', earned: rounds >= 10 },
+    { id: 'twenty-rounds', icon: '💪', title: pack.journey ? 'Twenty tasks' : 'Twenty rounds', how: pack.journey ? 'Finish twenty tasks.' : 'Finish twenty rounds.', earned: rounds >= 20 },
     { id: 'points-100', icon: '💯', title: '100 points', how: 'Collect 100 points.', earned: save.points >= 100 },
     { id: 'time-30', icon: '⏱️', title: 'Half an hour', how: 'Study for 30 minutes in total.', earned: minutes >= 30 },
     { id: 'time-60', icon: '⏰', title: 'One hour', how: 'Study for one hour in total.', earned: minutes >= 60 },
@@ -107,7 +107,9 @@ export function badgesFor(pack: Pack, save: PackSave): Badge[] {
     },
     { id: 'ready', icon: '🏆', title: 'Ready for the exam', how: `Fill the ring to ${READY_AT}%.`, earned: ring >= READY_AT },
   ];
-  return list.filter((b): b is Badge => b !== false);
+  // A daily-journey pack has no flashcard rounds, tables or Fix My Mistakes task: no badges she could never earn.
+  const notInJourney = new Set(['flashcards', 'table', 'table-perfect', 'fixer', 'key-terms', 'glossary']);
+  return list.filter((b): b is Badge => b !== false && !(pack.journey && notInJourney.has(b.id)));
 }
 
 /** The earned badges she has not been shown yet. */

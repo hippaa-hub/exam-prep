@@ -40,6 +40,9 @@ export const c1: Topic = {
       'Its parts work together to give the cell energy, food and what it needs to live',
       ['It has only one part', 'It works alone and needs nothing', 'All its parts do the same job'],
       'The parts of a cell work together, like a team. Together they give the cell energy, food and what it needs to live.'),
+    choice('c1-model', 'In the teacher\'s cardboard cell model, which part is the control centre that holds the instructions?', 'The nucleus',
+      ['The outer boundary (membrane)', 'The cytoplasm', 'A small part near the edge'],
+      'The nucleus is the control centre. It holds the instructions (DNA).'),
     choice('c1-specialised', 'What do specialised cells do?',
       'Each one does one special job to keep the organism alive',
       ['They can turn into any other kind of cell', 'They have no job yet', 'They only store water'],
@@ -111,7 +114,7 @@ export const c1: Topic = {
   ], [
     ['c1-cells', /^c1-(made-of|diversity|ecoli)$/],
     ['c1-form-function', /^c1-ff-/],
-    ['c1-system', /^c1-(coord|specialised)$/],
+    ['c1-system', /^c1-(coord|specialised|model)$/],
     ['c1-stem-cell', /^c1-(stem-|ss-)/],
     ['c1-stem-types', /^c1-(types|induced)/],
     ['c1-medicine', /^c1-(medicine|insulin|repair|cancer)/],
