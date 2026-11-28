@@ -411,10 +411,19 @@ function DialView({ ch, onResult }: Props<DialChallenge>) {
       <div className="target-box">Target: <b>{ch.target}×</b></div>
       <div className="scope-view" aria-label={`The cells at ${total} times`}>
         <svg viewBox="0 0 200 200">
-          <rect width="200" height="200" fill="#eef9ff" />
+          <defs>
+            <radialGradient id="slide-light" cx="50%" cy="45%" r="60%"><stop offset="0%" stopColor="#ffffff" /><stop offset="100%" stopColor="#d9ecff" /></radialGradient>
+            <radialGradient id="stained" cx="40%" cy="35%" r="70%"><stop offset="0%" stopColor="#efe8ff" /><stop offset="100%" stopColor="#a99af0" /></radialGradient>
+          </defs>
+          <rect width="200" height="200" fill="url(#slide-light)" />
+          {/* Animal cells stained blue, as on a prepared slide. Sharp only at the right magnification. */}
           <g style={{ filter: `blur(${blur}px)` }} transform={`translate(100 100) scale(${Math.max(0.3, Math.min(2.6, total / 160))}) translate(-100 -100)`}>
-            {[[70, 80], [125, 72], [96, 120], [140, 122]].map(([x, y]) => (
-              <g key={`${x}${y}`}><ellipse cx={x} cy={y} rx="20" ry="15" fill="#e9e1ff" stroke="#7a5bd6" strokeWidth="2" /><circle cx={x - 3} cy={y} r="6" fill="#3b3fbf" /></g>
+            {[[70, 80, -10], [126, 70, 15], [96, 122, 5], [142, 124, -20], [52, 132, 30]].map(([x, y, r]) => (
+              <g key={`${x}${y}`} transform={`rotate(${r} ${x} ${y})`}>
+                <path d={`M${x - 22},${y} C${x - 22},${y - 16} ${x - 6},${y - 17} ${x + 4},${y - 15} C${x + 20},${y - 13} ${x + 23},${y - 2} ${x + 21},${y + 6} C${x + 18},${y + 16} ${x - 2},${y + 18} ${x - 12},${y + 14} C${x - 20},${y + 11} ${x - 22},${y + 6} ${x - 22},${y}Z`}
+                  fill="url(#stained)" stroke="#6a55c9" strokeWidth="1.6" />
+                <image href="./art/o-nucleus.webp" x={x - 9} y={y - 8} width="16" height="16" />
+              </g>
             ))}
           </g>
         </svg>

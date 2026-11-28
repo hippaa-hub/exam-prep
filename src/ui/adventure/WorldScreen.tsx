@@ -48,7 +48,11 @@ export function WorldScreen({ world, parts, onAnswer, onFinish, onExit, guided }
           <span className="session-title">{world.emoji} {world.title}</span>
         </header>
         <main className="session-body">
-          <img className="world-banner" src={`./img/${world.img}.webp`} alt="" />
+          {/* A short animation of the world's picture: it plays once, then rests on its last frame. Tap to play again.
+              The still picture shows until it loads (or if it cannot). */}
+          <video className="world-video" src={`./art/${world.img}.mp4`} poster={`./img/${world.img}.webp`}
+            autoPlay muted playsInline aria-label="The world's picture, moving. Tap to play it again."
+            onClick={(e) => { const v = e.currentTarget; v.currentTime = 0; void v.play().catch(() => {}); }} />
           <p className="world-story">{world.story}</p>
           <ol className="level-list">
             {world.levels.map((l) => (

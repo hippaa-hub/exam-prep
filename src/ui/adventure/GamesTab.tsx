@@ -21,7 +21,10 @@ export function GamesTab({ worlds, best, today, onPlay }: Props) {
           const b = best[w.id];
           return (
             <button key={w.id} type="button" className={`world-card${today === w.id ? ' today' : ''}`} style={{ ['--world' as string]: w.colour }} onClick={() => onPlay(w.id)}>
-              <img src={`./img/${w.img}.webp`} alt="" loading="lazy" />
+              {/* Today's game moves; the others show their still picture, to keep the page light. */}
+              {today === w.id
+                ? <video src={`./art/${w.img}.mp4`} poster={`./img/${w.img}.webp`} autoPlay muted playsInline aria-hidden="true" />
+                : <img src={`./img/${w.img}.webp`} alt="" loading="lazy" />}
               <span className="world-text">
                 {today === w.id && <span className="today-tag">Today's game</span>}
                 <strong>{w.emoji} {w.title}</strong>

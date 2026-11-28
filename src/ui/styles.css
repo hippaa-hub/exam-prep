@@ -841,20 +841,47 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .match-card.selected { border-color: var(--blue); background: var(--blue-soft); }
 .match-card.right.ready { border-style: dashed; }
 
-/* Drawings */
-.diagram-box { background: #fff; border: 2px solid var(--line); border-radius: var(--radius); padding: 8px; }
+/* Drawings: illustrated parts, gently moving */
+.diagram-box { background: radial-gradient(circle at 30% 20%, #ffffff, #f1f4ff); border: 2px solid var(--line); border-radius: var(--radius); padding: 8px; }
 .diagram-box.build { border-style: dashed; border-width: 3px; transition: border-color 0.15s, background 0.15s; }
 .diagram-box.build.ready { border-color: var(--blue); }
 .diagram-box.build.over { border-color: var(--green); background: var(--green-soft); }
-.diagram { display: block; width: 100%; height: auto; }
-.diagram.microscope { max-height: 330px; }
+.diagram { display: block; width: 100%; height: auto; overflow: visible; }
+.diagram.microscope { max-height: 380px; }
 .diagram .part.tappable { cursor: pointer; }
-.diagram .part.tappable:hover, .diagram .part.tappable:focus { filter: brightness(1.08) drop-shadow(0 0 4px #1cb0f6); outline: none; }
-.diagram .part.mark-right { filter: drop-shadow(0 0 5px #58cc02) drop-shadow(0 0 3px #58cc02); }
-.diagram .part.mark-wrong { filter: drop-shadow(0 0 5px #ff9600) drop-shadow(0 0 3px #ff9600); }
-.diagram .marker circle { fill: #fff; stroke: var(--world, var(--accent)); stroke-width: 3; }
-.diagram .marker text { font: 900 14px var(--font); fill: var(--ink); pointer-events: none; }
+.diagram .part.tappable:hover image, .diagram .part.tappable:focus image { filter: brightness(1.12) saturate(1.2); }
+.diagram .part.tappable:focus { outline: none; }
+.diagram .part.arrive { animation: arrive 0.5s cubic-bezier(.2, 1.5, .5, 1); transform-box: fill-box; transform-origin: center; }
+@keyframes arrive { from { transform: scale(0.3); opacity: 0; } to { transform: none; opacity: 1; } }
+.diagram .zone { fill: #fff; fill-opacity: 0.001; stroke: none; }
+.diagram .part.tappable:hover .zone { fill: #1cb0f6; fill-opacity: 0.12; }
+.diagram .ring { fill: none; stroke-width: 4; stroke-dasharray: 8 5; animation: ring-turn 6s linear infinite; }
+.diagram .ring-right { stroke: #46a302; }
+.diagram .ring-wrong { stroke: #ff7a00; }
+@keyframes ring-turn { to { stroke-dashoffset: -130; } }
+.diagram .marker circle { fill: #fff; stroke: var(--world, var(--accent)); stroke-width: 3; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.18)); }
+.diagram .marker text { font-family: var(--font); font-weight: 900; fill: var(--ink); pointer-events: none; }
 .diagram .marker { cursor: pointer; }
+.diagram .glow { fill: #bff3ff; opacity: 0.5; animation: glow 2.6s ease-in-out infinite; }
+@keyframes glow { 50% { opacity: 0.95; } }
+/* Gentle life in the cell */
+.diagram image.bob, .diagram image.sway, .diagram image.breathe, .diagram image.breathe-slow, .diagram image.twinkle { transform-box: fill-box; transform-origin: center; }
+.diagram image.bob { animation: bob 3.6s ease-in-out infinite; }
+.diagram image.sway { animation: sway 5s ease-in-out infinite; }
+.diagram image.breathe { animation: breathe 4s ease-in-out infinite; }
+.diagram image.breathe-slow { animation: breathe 6s ease-in-out infinite; }
+.diagram image.twinkle { animation: twinkle 2.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-3px) rotate(3deg); } }
+@keyframes sway { 50% { transform: rotate(8deg) translateX(2px); } }
+@keyframes breathe { 50% { transform: scale(1.04); } }
+@keyframes twinkle { 50% { opacity: 0.55; transform: scale(0.85); } }
+.diagram .flow { animation: flow 5s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -70; } }
+.diagram .specks circle { animation: drift 7s ease-in-out infinite; transform-box: fill-box; }
+@keyframes drift { 33% { transform: translate(4px, -3px); } 66% { transform: translate(-3px, 3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .diagram *, .gate-molecule, .gate-scene *, .world-video { animation: none !important; }
+}
 .label-slots { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .label-slot { display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 6px 8px; border-radius: 12px; border: 2px dashed var(--line); background: #fff; cursor: pointer; }
 .label-slot.ready { border-color: var(--blue); }
@@ -866,18 +893,33 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .gate-head { display: flex; justify-content: space-between; font-weight: 900; color: var(--ink-soft); }
 .timer { color: var(--blue-dark); }
 .timer.low { color: #e0604d; animation: pulse 1s infinite; }
-.gate-scene { position: relative; border-radius: var(--radius); overflow: hidden; border: 2px solid var(--line); background: linear-gradient(#eef7ff 0 45%, #f0d9a8 45% 55%, #fff1dc 55%); height: 270px; }
-.gate-outside, .gate-inside { position: absolute; left: 10px; font-size: 0.8rem; font-weight: 900; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+.gate-scene {
+  position: relative; border-radius: var(--radius); overflow: hidden; border: 2px solid var(--line); height: 280px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,255,255,0.7) 0 4px, transparent 5px),
+    radial-gradient(circle at 80% 30%, rgba(255,255,255,0.6) 0 3px, transparent 4px),
+    radial-gradient(circle at 60% 12%, rgba(255,255,255,0.6) 0 2px, transparent 3px),
+    linear-gradient(#bfe6ff 0%, #e3f4ff 44%, #ffe8cf 56%, #ffd3a8 100%);
+}
+.gate-outside, .gate-inside { position: absolute; left: 10px; font-size: 0.8rem; font-weight: 900; color: #3c5a7a; text-transform: uppercase; letter-spacing: 0.05em; z-index: 3; }
+.gate-inside { color: #8a4f1c; }
 .gate-outside { top: 8px; }
 .gate-inside { bottom: 8px; }
-.gate-wall { position: absolute; left: 0; right: 0; top: 45%; height: 10%; display: flex; justify-content: space-between; padding: 0 18px; align-items: stretch; z-index: 1; }
-.gate-wall i { width: 24px; background: #b07ce6; border-radius: 8px; border: 2px solid #6b2d91; }
-/* Every molecule waits at the gate, so its place gives nothing away. */
+/* The membrane: two rows of beads (the bilayer) with purple protein channels. */
+.gate-wall {
+  position: absolute; left: 0; right: 0; top: 44%; height: 12%; z-index: 1; display: flex; justify-content: space-between; padding: 0 22px; align-items: stretch;
+  background:
+    radial-gradient(circle at 50% 0%, #ffb347 0 5px, transparent 6px) 0 0 / 12px 50% repeat-x,
+    radial-gradient(circle at 50% 100%, #ffb347 0 5px, transparent 6px) 0 100% / 12px 50% repeat-x,
+    repeating-linear-gradient(90deg, #f7d9a8 0 2px, #f3c98a 2px 4px);
+}
+.gate-wall i { width: 26px; background: linear-gradient(90deg, #8e44c9, #c58af0, #8e44c9); border-radius: 10px; border: 2px solid #5b2a86; box-shadow: 0 0 10px rgba(142, 68, 201, 0.5); }
 .gate-molecule { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; display: flex; align-items: center; gap: 6px; transition: top 1.1s ease-in-out, opacity 1.1s; }
-.gate-molecule b { background: #fff; border-radius: 8px; padding: 2px 8px; font-size: 0.9rem; box-shadow: 0 1px 3px rgba(0,0,0,0.18); white-space: nowrap; }
-.gate-molecule .molecule { width: 60px; height: 60px; flex: none; }
-.gate-molecule.go-in { top: 80%; }
-.gate-molecule.go-out { top: 16%; }
+.gate-molecule b { background: #fff; border-radius: 10px; padding: 3px 10px; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(0,0,0,0.18); white-space: nowrap; }
+.gate-molecule .molecule { width: 76px; height: 76px; object-fit: contain; flex: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25)); animation: float-mol 2.4s ease-in-out infinite; }
+@keyframes float-mol { 50% { transform: translateY(-5px) rotate(6deg); } }
+.gate-molecule.go-in { top: 82%; }
+.gate-molecule.go-out { top: 14%; }
 .gate-molecule.go-block { animation: blocked 1s ease-out forwards; }
 @keyframes blocked { 20% { transform: translate(-46%, -50%); } 40% { transform: translate(-54%, -50%); } 60% { transform: translate(-47%, -50%); } to { transform: translate(-50%, -50%) scale(0.85); opacity: 0.3; } }
 .gate-msg { border-radius: 12px; padding: 8px 12px; font-weight: 700; }
@@ -926,3 +968,7 @@ textarea:focus { outline: none; border-color: var(--blue); }
 .world-stars span { color: #ddd; font-size: 1.1rem; }
 .world-stars span.on { color: #ffc800; }
 .world-stars .muted { color: var(--ink-soft); font-size: 0.85rem; }
+
+/* Animated world pictures */
+.world-video { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: var(--radius); border: 3px solid var(--world); display: block; background: #eee; }
+.world-card video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }

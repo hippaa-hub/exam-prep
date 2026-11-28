@@ -78,7 +78,8 @@ export default defineConfig(({ mode }) => {
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webp,woff2,mp4}'],
         // The main app must not answer for the maths app's address with its own page.
-        ...(maths ? { globIgnores: JSON.parse(readFileSync(new URL('./tools/old-main-assets.json', import.meta.url), 'utf8')).names.map((n: string) => `assets/${n}`) }
+        // The maths app never shows the science games, so it does not download their pictures for offline use.
+        ...(maths ? { globIgnores: [...JSON.parse(readFileSync(new URL('./tools/old-main-assets.json', import.meta.url), 'utf8')).names.map((n: string) => `assets/${n}`), 'art/**', 'img/**'] }
           : science ? {}
             : { navigateFallbackDenylist: [/\/maths\//, /\/science\//], globIgnores: ['maths/**', 'science/**'] }),
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
