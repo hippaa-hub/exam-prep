@@ -1,10 +1,11 @@
 // Today's tasks: the short list Adele works through each day. When every task is done,
 // the preparation for today is finished. Each task carries a tip on how to do it well.
 import type { DateKey, Game } from '../content/types';
+import { playTaskId } from '../content/adventure';
 import { isSprint, type SessionRecord, type TodayPlan } from './plan';
 import { LAST_DAY_SIZE, TODAY_SIZE, WARM_UP_SIZE } from './session';
 
-export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock' | 'learn';
+export type TaskKind = 'round' | 'game' | 'table' | 'fix' | 'warm-up' | 'argument' | 'mock' | 'learn' | 'play';
 
 export interface Task {
   id: string;
@@ -19,6 +20,8 @@ export interface Task {
   group?: string;
   /** For a lesson: the topic it teaches. */
   topic?: string;
+  /** For a game world: its id. */
+  world?: string;
 }
 
 /** What the task list needs to know about a lesson. */
@@ -152,6 +155,13 @@ export function tasksFor(
         detail: 'From memory · about 5 min',
         tip: 'Fill every box without looking, then check. The test asks you to compare, and this is the best practice for it.',
         done: didTask(tableTaskId(extra.group)),
+      });
+    } else if (extra.kind === 'play') {
+      tasks.push({
+        id: playTaskId(extra.world), kind: 'play', world: extra.world, title: `Game: ${extra.title}`,
+        detail: 'Three levels · about 8 min',
+        tip: 'Play all three levels. A wrong move shows you why. Read it, then try again.',
+        done: didTask(playTaskId(extra.world)),
       });
     } else {
       tasks.push({

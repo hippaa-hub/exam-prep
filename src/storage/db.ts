@@ -26,6 +26,8 @@ export interface PackSave {
   leftDuring?: Record<string, number>;
   /** The badges she has already been shown, so a new one is announced once. */
   badgesSeen?: string[];
+  /** Game worlds: her best stars and how many times she finished each one. */
+  worlds?: Record<string, { best: number; plays: number }>;
 }
 
 export interface Settings {

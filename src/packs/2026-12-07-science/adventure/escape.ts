@@ -1,0 +1,176 @@
+// World 3: The Microscopic Escape Room. From "How Do We See Cells?" (history, the compound light microscope,
+// plant vs animal cells under the microscope).
+import type { World } from '../../../content/adventure';
+
+export const escape: World = {
+  id: 'escape',
+  title: 'Microscopic Escape Room',
+  emoji: '🔬',
+  img: 'w-escape',
+  colour: '#b5761d',
+  badge: 'Escape Artist',
+  story: 'You are locked in an old science room. To get out, solve the puzzles of the microscope. Each room has a lock.',
+  levels: [
+    {
+      stage: 1, title: 'Room 1: The history door',
+      intro: 'The first door is about the people who first saw cells. Put history in order.',
+      challenges: [
+        {
+          id: 'ancient', kind: 'pick', concept: 'c2-ancient',
+          prompt: 'Long ago, before microscopes, how did people make small things look bigger?',
+          options: ['With curved glass, water drops and clear pebbles', 'With mirrors and candles', 'With a compound microscope', 'They could not'],
+          answer: 'With curved glass, water drops and clear pebbles',
+          whyNot: {
+            'With mirrors and candles': 'Mirrors do not make things bigger. People used curved glass and water drops.',
+            'With a compound microscope': 'The first compound microscope came later, in 1590.',
+            'They could not': 'They could! Curved glass and water drops worked as simple lenses.',
+          },
+          hint: 'Think of looking through a drop of water.',
+          why: 'Curved glass, drops of water and clear pebbles worked as single lenses.',
+        },
+        {
+          id: 'timeline', kind: 'order', concept: 'c2-janssen',
+          steps: ['Curved glass and water drops', 'Janssen: first compound microscope (1590)', 'Hooke names "cells" (1665)', 'Leeuwenhoek sees "animalcules" (1670)'],
+          prompt: 'Put the history in order. Oldest first.',
+          hint: 'Look at the years: 1590, 1665, 1670.',
+          why: 'Simple lenses first. Then Janssen in 1590, Hooke in 1665, Leeuwenhoek in 1670.',
+        },
+        {
+          id: 'who-did', kind: 'match', concept: 'c2-leeuwenhoek',
+          pairs: [
+            ['Janssen', 'Put lenses in a tube: the first compound microscope'],
+            ['Hooke', 'Looked at cork and named "cells"'],
+            ['Leeuwenhoek', 'First to see living bacteria'],
+          ],
+          prompt: 'Match each scientist to what they did.',
+          hint: 'Hooke looked at something dead (cork). Leeuwenhoek saw things that were alive.',
+          why: 'Janssen made the microscope. Hooke named cells. Leeuwenhoek saw living cells.',
+        },
+        {
+          id: 'mag-sort', kind: 'sort', concept: 'c2-janssen',
+          bins: ['Up to 10×', 'About 50×', 'Up to 200×'],
+          cards: [
+            { text: 'Janssen\'s microscope (1590)', bin: 'Up to 10×', why: 'The first compound microscope magnified up to 10×.' },
+            { text: 'Hooke\'s magnifier (1665)', bin: 'About 50×', why: 'Hooke\'s magnifier was about 50×.' },
+            { text: 'Leeuwenhoek\'s lenses (1670)', bin: 'Up to 200×', why: 'Leeuwenhoek\'s lenses were the strongest: up to 200×.' },
+          ],
+          prompt: 'How strong was each one? (× means "times bigger")',
+          hint: 'The magnification got bigger over time.',
+          why: 'Janssen up to 10×, Hooke about 50×, Leeuwenhoek up to 200×.',
+        },
+        {
+          id: 'cellae', kind: 'pick', concept: 'c2-hooke', photo: 'c2-monk-rooms',
+          story: 'A word is scratched on the door: "cellae". It is the key to the name "cells".',
+          prompt: 'What were cellae?',
+          options: ['Small rooms where monks lived', 'Tiny animals', 'Pieces of cork', 'Glass lenses'],
+          answer: 'Small rooms where monks lived',
+          whyNot: {
+            'Tiny animals': '"Tiny animals" is animalcules, Leeuwenhoek\'s word.',
+            'Pieces of cork': 'Cork is what Hooke looked at. Cellae is a different word.',
+            'Glass lenses': 'Lenses make things bigger. Cellae were rooms.',
+          },
+          hint: 'The boxes in the cork reminded Hooke of rooms.',
+          why: 'Hooke called the boxes cells because they reminded him of cellae, the small rooms where monks lived.',
+        },
+      ],
+    },
+    {
+      stage: 2, title: 'Room 2: The microscope lock',
+      intro: 'The second lock is a microscope. Know every part to open it.',
+      challenges: [
+        {
+          id: 'label-scope', kind: 'label', concept: 'c2-parts', diagram: 'microscope',
+          spots: ['eyepiece', 'nosepiece', 'objectives', 'stage', 'coarse', 'fine', 'light'],
+          prompt: 'Name the parts of the microscope.',
+          hint: 'You look through the top. The big knob is coarse, the small knob is fine.',
+          why: 'You look through the eyepiece on top. The nosepiece holds the objective lenses. The slide sits on the stage. Two knobs focus. The light is at the bottom.',
+        },
+        {
+          id: 'tap-nose', kind: 'tap', concept: 'c2-parts', diagram: 'microscope', answer: 'nosepiece',
+          prompt: 'Tap the part you turn to change the objective lens.',
+          hint: 'It holds the objective lenses and it revolves (turns).',
+          why: 'The revolving nosepiece holds the objective lenses. Turn it to change lens.',
+        },
+        {
+          id: 'tap-fine', kind: 'tap', concept: 'c2-parts', diagram: 'microscope', answer: 'fine',
+          prompt: 'Tap the knob that focuses slowly and exactly.',
+          hint: 'There are two knobs. The fine one is smaller.',
+          why: 'The fine knob focuses with precision (exactly). The coarse knob focuses fast.',
+        },
+        {
+          id: 'match-parts', kind: 'match', concept: 'c2-parts',
+          pairs: [
+            ['Eyepiece', 'You look through it (usually 10×)'],
+            ['Stage clips', 'Hold the slide still'],
+            ['Coarse knob', 'Focuses fast'],
+            ['Diaphragm', 'Controls how bright the light is'],
+          ],
+          prompt: 'Match each part to its job.',
+          hint: 'The diaphragm works with the light source.',
+          why: 'Eyepiece: you look through it. Clips: hold the slide. Coarse knob: fast focus. Diaphragm: brightness.',
+        },
+        {
+          id: 'pa-sort', kind: 'sort', concept: 'c2-plant-animal', photo: 'c2-plant-animal-view',
+          bins: ['Plant cell', 'Animal cell'],
+          cards: [
+            { text: 'Box-like shape', bin: 'Plant cell', why: 'Plant cells are box-like, in a neat grid.' },
+            { text: 'Thick cell wall', bin: 'Plant cell', why: 'You can see the thick cell wall of a plant cell.' },
+            { text: 'Green chloroplasts', bin: 'Plant cell', why: 'Plant cells have green chloroplasts.' },
+            { text: 'Rounded or irregular shape', bin: 'Animal cell', why: 'Animal cells have a flexible shape.' },
+            { text: 'No cell wall', bin: 'Animal cell', why: 'Animal cells have only a flexible membrane.' },
+            { text: 'Stained blue or pink', bin: 'Animal cell', why: 'Animal cells are stained so you can see the nucleus.' },
+          ],
+          prompt: 'Under the microscope: plant cell or animal cell?',
+          hint: 'Plant cells are stiff and green. Animal cells are soft and need a stain.',
+          why: 'Plant: box shape, thick wall, green. Animal: rounded, no wall, stained blue or pink.',
+        },
+      ],
+    },
+    {
+      stage: 3, title: 'Room 3: The final lock',
+      intro: 'The last door opens with the right magnification. Remember: eyepiece × objective.',
+      challenges: [
+        {
+          id: 'dial-400', kind: 'dial', concept: 'c2-magnification', target: 400, eyepieces: [10], objectives: [4, 10, 40],
+          prompt: 'The lock needs 400×. Choose the objective lens.',
+          hint: 'Total magnification = eyepiece × objective. 10 × ? = 400',
+          why: '10 × 40 = 400×.',
+        },
+        {
+          id: 'dial-150', kind: 'dial', concept: 'c2-magnification', target: 150, eyepieces: [5, 10, 15], objectives: [4, 10, 40],
+          story: 'Someone changed the eyepiece! This microscope has a 5×, a 10× and a 15× eyepiece.',
+          prompt: 'The lock needs 150×. Set both dials.',
+          hint: 'Which pair multiplies to 150? Try the 15× eyepiece.',
+          why: '15 × 10 = 150×. You always multiply eyepiece × objective.',
+        },
+        {
+          id: 'too-small', kind: 'pick', concept: 'c2-magnification',
+          story: 'You look at a cell with the 10× eyepiece and the 4× objective. The cell is too small to see well.',
+          prompt: 'What should you do?',
+          options: ['Turn the nosepiece to the 40× objective', 'Open the diaphragm', 'Move the stage clips', 'Look with only one eye'],
+          answer: 'Turn the nosepiece to the 40× objective',
+          whyNot: {
+            'Open the diaphragm': 'The diaphragm changes the brightness, not the size.',
+            'Move the stage clips': 'The clips only hold the slide still.',
+            'Look with only one eye': 'That does not change the magnification.',
+          },
+          hint: 'Which part changes the magnification?',
+          why: 'A bigger objective makes the image bigger: 10 × 40 = 400× instead of 10 × 4 = 40×.',
+        },
+        {
+          id: 'who-am-i', kind: 'clues', concept: 'c2-leeuwenhoek',
+          clues: ['I lived in the 1600s.', 'My lenses were very strong: up to 200×.', 'I looked at drops of pond water.', 'I saw tiny swimming living things. I called them "animalcules".'],
+          options: ['Antonie van Leeuwenhoek', 'Robert Hooke', 'Zacharias Janssen'],
+          answer: 'Antonie van Leeuwenhoek',
+          whyNot: {
+            'Robert Hooke': 'Hooke looked at cork, at about 50×. He did not see living cells.',
+            'Zacharias Janssen': 'Janssen\'s microscope was only up to 10×, in 1590.',
+          },
+          prompt: 'Who am I?',
+          hint: 'Who saw living things for the first time?',
+          why: 'Leeuwenhoek built 200× lenses and was the first to see living bacteria, yeast and blood cells.',
+        },
+      ],
+    },
+  ],
+};

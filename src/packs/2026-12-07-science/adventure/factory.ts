@@ -1,0 +1,182 @@
+// World 5: Organelle Factory. The cell as a system: each organelle has a job, and the parts depend on each other.
+// From "A Cell is a System" (system, beta-cells, organelles) and "Form meets function" (coordinated system).
+import type { World } from '../../../content/adventure';
+
+export const factory: World = {
+  id: 'factory',
+  title: 'Organelle Factory',
+  emoji: '🏭',
+  img: 'w-factory',
+  colour: '#e07b00',
+  badge: 'Factory Boss',
+  story: 'A cell works like a factory. Every part has a job. You are the boss: learn the jobs, and fix the factory when it breaks.',
+  levels: [
+    {
+      stage: 1, title: 'Meet the workers',
+      intro: 'Walk round the factory. Which part does which job?',
+      challenges: [
+        {
+          id: 'match-stations', kind: 'match', concept: 'c1-system',
+          pairs: [
+            ['The control room (gives orders)', 'Nucleus'],
+            ['The power station (makes energy)', 'Mitochondria'],
+            ['The gate (controls what goes in and out)', 'Cell membrane'],
+            ['The jelly floor where the work happens', 'Cytoplasm'],
+          ],
+          prompt: 'Match each part of the factory to the organelle.',
+          hint: 'The nucleus controls. Mitochondria make energy.',
+          why: 'The parts of a cell work together as a system to give energy and what the cell needs.',
+        },
+        {
+          id: 'tap-control', kind: 'tap', concept: 'c4-nucleus', diagram: 'animal-cell', answer: 'nucleus',
+          prompt: 'Tap the control room: the part that holds the DNA.',
+          hint: 'It is the big round part in the middle.',
+          why: 'The nucleus contains the DNA and directs (controls) all cell activities.',
+        },
+        {
+          id: 'tap-power', kind: 'tap', concept: 'c4-mitochondria', diagram: 'animal-cell', answer: 'mitochondria',
+          prompt: 'Tap the power station.',
+          hint: 'Look for the parts with folds inside.',
+          why: 'Mitochondria are where respiration happens. They make the cell\'s energy.',
+        },
+        {
+          id: 'tap-jelly', kind: 'tap', concept: 'c4-cytoplasm', diagram: 'animal-cell', answer: 'cytoplasm',
+          prompt: 'Tap the jelly-like floor where chemical reactions happen.',
+          hint: 'It fills the cell around all the other parts.',
+          why: 'The cytoplasm is a jelly-like liquid. It holds the organelles, and chemical reactions happen in it.',
+        },
+      ],
+    },
+    {
+      stage: 2, title: 'How the factory works',
+      intro: 'A factory is a system. Learn how the parts work together.',
+      challenges: [
+        {
+          id: 'sort-system', kind: 'sort', concept: 'c3-system',
+          bins: ['True for a system', 'Not true'],
+          cards: [
+            { text: 'The parts depend on each other', bin: 'True for a system', why: 'Interdependent parts: they need each other.' },
+            { text: 'Each part has its own job', bin: 'True for a system', why: 'Each organelle has a specific task.' },
+            { text: 'The parts work together for one goal', bin: 'True for a system', why: 'They work together for one shared (unified) function.' },
+            { text: 'Each part works alone', bin: 'Not true', why: 'In a system the parts depend on each other.' },
+            { text: 'Every part does the same job', bin: 'Not true', why: 'Each part has a different, specific job.' },
+          ],
+          prompt: 'What is true about a system?',
+          hint: 'A system = parts that need each other and work together.',
+          why: 'A system is a group of interdependent parts working together for one unified function.',
+        },
+        {
+          id: 'order-insulin', kind: 'order', concept: 'c3-beta-cells', photo: 'c3-beta-cells',
+          steps: ['The beta-cell takes in amino acids', 'It builds them into protein chains', 'Insulin is made', 'The insulin goes out to help the body'],
+          prompt: 'A special factory: the beta-cell. Put the steps in order.',
+          hint: 'First the building blocks come in.',
+          why: 'Beta-cells absorb (take in) amino acids and build protein chains. That makes insulin for the body.',
+        },
+        {
+          id: 'cristae', kind: 'pick', concept: 'c4-mitochondria',
+          prompt: 'The power station has walls with deep folds (cristae). Why?',
+          options: ['To make a very big surface for reactions', 'To store the DNA', 'To hold cell sap', 'To let light in'],
+          answer: 'To make a very big surface for reactions',
+          whyNot: {
+            'To store the DNA': 'DNA is in the nucleus.',
+            'To hold cell sap': 'Cell sap is in the vacuole of a plant cell.',
+            'To let light in': 'Light is for chloroplasts, not mitochondria.',
+          },
+          hint: 'More folds = more space.',
+          why: 'The folds (cristae) give a very big surface area for the chemical reactions of respiration.',
+        },
+        {
+          id: 'spot-max', kind: 'spot', concept: 'c4-nucleolus', author: 'Max',
+          lines: ['The nucleus holds the DNA.', 'The nucleolus is inside the nucleus.', 'The nucleolus makes DNA.', 'Ribosomes make proteins.'],
+          wrong: 2,
+          fix: 'The nucleolus makes ribosomes.',
+          fixes: ['The nucleolus makes ribosomes.', 'The nucleolus makes energy.', 'The nucleolus makes cell sap.'],
+          prompt: 'Max wrote the factory guide. One sentence is wrong. Find it.',
+          hint: 'What does the nucleolus make? It is not DNA.',
+          why: 'The nucleolus is inside the nucleus. It makes ribosomes, and ribosomes make proteins.',
+        },
+        {
+          id: 'clue-cyto', kind: 'clues', concept: 'c4-cytoplasm',
+          clues: ['I am in every plant and animal cell.', 'I am a jelly-like liquid.', 'The organelles sit in me.', 'Chemical reactions happen in me.'],
+          options: ['Cytoplasm', 'Cell sap', 'Nucleus'],
+          answer: 'Cytoplasm',
+          whyNot: {
+            'Cell sap': 'Cell sap is inside the vacuole, only in plant cells.',
+            Nucleus: 'The nucleus is an organelle. It sits in me!',
+          },
+          prompt: 'Which part am I?',
+          hint: 'It fills the cell around the organelles.',
+          why: 'Cytoplasm is the jelly-like liquid that holds the organelles. Reactions happen in it.',
+        },
+      ],
+    },
+    {
+      stage: 3, title: 'Factory breakdowns',
+      intro: 'Alarm! Things are going wrong. Find the broken part.',
+      challenges: [
+        {
+          id: 'break-poison', kind: 'tap', concept: 'c4-membrane', diagram: 'animal-cell', answer: 'membrane',
+          story: 'Breakdown! Poison is getting into the factory. Nothing is stopping it.',
+          prompt: 'Tap the broken part.',
+          hint: 'Which part controls what goes in and out?',
+          why: 'The membrane controls what goes in and out. It stops toxins from building up.',
+        },
+        {
+          id: 'break-orders', kind: 'tap', concept: 'c4-nucleus', diagram: 'animal-cell', answer: 'nucleus',
+          story: 'Breakdown! Nobody gives orders. No part knows what to do.',
+          prompt: 'Tap the broken part.',
+          hint: 'Which part directs all cell activities?',
+          why: 'The nucleus directs all cell activities. Without it, nobody gives orders.',
+        },
+        {
+          id: 'break-food', kind: 'tap', concept: 'c4-chloroplast', diagram: 'plant-cell', answer: 'chloroplasts',
+          story: 'Breakdown in a plant factory! Sunlight comes in, but no glucose (food) is made.',
+          prompt: 'Tap the broken part.',
+          hint: 'Which part turns sunlight into glucose?',
+          why: 'Chloroplasts do photosynthesis: they turn sunlight into glucose.',
+        },
+        {
+          id: 'liver', kind: 'pick', concept: 'c4-mitochondria', photo: 'c3-liver-cell',
+          story: 'A liver cell works very, very hard. It needs a lot of energy.',
+          prompt: 'What will you find a lot of in a liver cell?',
+          options: ['Mitochondria (up to 100,000)', 'Chloroplasts', 'Cell walls', 'Vacuoles'],
+          answer: 'Mitochondria (up to 100,000)',
+          whyNot: {
+            Chloroplasts: 'Chloroplasts are only in plant cells. A liver cell is an animal cell.',
+            'Cell walls': 'Animal cells have no cell wall.',
+            Vacuoles: 'The large permanent vacuole is in plant cells. It does not make energy.',
+          },
+          hint: 'Which part makes energy?',
+          why: 'Very active cells, like liver cells, can have up to 100,000 mitochondria for their energy.',
+        },
+        {
+          id: 'one-stops', kind: 'pick', concept: 'c3-system',
+          story: 'One worker in the factory stops. Soon the whole factory stops.',
+          prompt: 'Why does that happen?',
+          options: ['The parts depend on each other', 'Each part works alone', 'The factory has too many parts', 'Factories always stop at night'],
+          answer: 'The parts depend on each other',
+          whyNot: {
+            'Each part works alone': 'If each part worked alone, the others would keep going.',
+            'The factory has too many parts': 'Every part has a job. None is extra.',
+            'Factories always stop at night': 'This is about how a system works, not the time.',
+          },
+          hint: 'Remember the word "interdependent".',
+          why: 'A cell is a system: its parts are interdependent (they need each other).',
+        },
+        {
+          id: 'clue-vac', kind: 'clues', concept: 'c4-vacuole', photo: 'c3-vacuole',
+          clues: ['I am only in plant cells.', 'I am a big bag.', 'I am full of cell sap.', 'I keep the cell firm, like a balloon.'],
+          options: ['Large permanent vacuole', 'Cell wall', 'Chloroplast'],
+          answer: 'Large permanent vacuole',
+          whyNot: {
+            'Cell wall': 'The cell wall is made of cellulose. It is not a bag of sap.',
+            Chloroplast: 'Chloroplasts are green and do photosynthesis.',
+          },
+          prompt: 'Which part am I?',
+          hint: 'Cell sap is inside it.',
+          why: 'The large permanent vacuole is a bag of cell sap. It keeps the cell firm, like an inflated balloon.',
+        },
+      ],
+    },
+  ],
+};

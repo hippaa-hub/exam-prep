@@ -34,6 +34,9 @@ import { SessionScreen } from './ui/SessionScreen';
 import { setMuted } from './ui/sound';
 import { TabBar, type Tab } from './ui/TabBar';
 import { TableScreen } from './ui/TableScreen';
+import { WorldScreen } from './ui/adventure/WorldScreen';
+import { GamesTab } from './ui/adventure/GamesTab';
+import { playTaskId } from './content/adventure';
 
 export interface SessionSpec {
   kind: SessionKind;
@@ -59,7 +62,8 @@ type View =
   | { name: 'argument'; id: string; key: number; guided: boolean }
   | { name: 'mock'; id: string; key: number; guided: boolean; part1?: ItemId[] }
   | { name: 'learn'; topic: string; key: number; guided: boolean }
-  | { name: 'toolkit'; from: Tab };
+  | { name: 'toolkit'; from: Tab }
+  | { name: 'world'; id: string; key: number; guided: boolean };
 
 /** For looking at another day without waiting for it: add ?today=2026-11-17 to the address. */
 function previewDay(): string | null {
@@ -235,7 +239,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
   }, [now, beginSitting, reportSitting]);
 
   const go = useCallback((v: View) => {
-    if (v.name === 'session' || v.name === 'table') lastTick.current = now().getTime(); // start the clock
+    if (v.name === 'session' || v.name === 'table' || v.name === 'world') lastTick.current = now().getTime(); // start the clock
     setView(v);
     window.scrollTo(0, 0);
   }, [now]);
@@ -285,6 +289,32 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       points: p.points + (fixed ? POINTS_FIXED_MISTAKE : 0),
     }));
     return { progress: after, fixed };
+  };
+
+  /** A game answer (first try only): counts for its thing to know like any other answer. */
+  const answerGame = (concept: string, id: string, right: boolean) => {
+    const before = (savedRef.current?.packs[pack.id] ?? emptyPackSave()).progress[concept];
+    const after = plan.phase === 'exam-day' && !right
+      ? applyLook(before, stamp(), id)
+      : applyAnswer(before, right ? 'right' : 'wrong', stamp(), id, true, isSprint(plan));
+    const fixed = before?.fix !== undefined && after.fix === undefined;
+    const tick = now().getTime();
+    const studied = creditSeconds(tick - lastTick.current, TABLE_CAP_SECONDS);
+    lastTick.current = tick;
+    updatePack(pack.id, (p) => ({
+      ...p,
+      studyTime: addStudyTime(p.studyTime, today, studied),
+      progress: { ...p.progress, [concept]: after },
+      points: p.points + (fixed ? POINTS_FIXED_MISTAKE : 0),
+    }));
+  };
+  const openWorld = (id: string, guided = false) => go({ name: 'world', id, key: nextKey.current++, guided });
+  const finishWorld = (id: string, right: number, total: number, stars: number, points: number) => {
+    updatePack(pack.id, (p) => {
+      const old = p.worlds?.[id];
+      return { ...p, points: p.points + points, worlds: { ...(p.worlds ?? {}), [id]: { best: Math.max(old?.best ?? 0, stars), plays: (old?.plays ?? 0) + 1 } } };
+    });
+    finish({ kind: 'practice', topics: [], task: playTaskId(id) }, { asked: total, firstTimeRight: right, missed: [] });
   };
 
   const all = itemsOf(pack);
@@ -429,6 +459,7 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
       if (q) openArgument(q.id, true);
     } else if (task.kind === 'mock' && plan.mock) openMock(plan.mock, true);
     else if (task.kind === 'learn' && task.topic) openLearn(task.topic, true);
+    else if (task.kind === 'play' && task.world) openWorld(task.world, true);
   };
   const next = upcoming ? { title: upcoming.title, start: () => startTask(upcoming) } : undefined;
 
@@ -589,6 +620,23 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
     );
   }
 
+  if (view.name === 'world' && pack.adventure) {
+    const world = pack.adventure.worlds.find((w) => w.id === view.id);
+    if (world) {
+      return (
+        <WorldScreen
+          key={view.key}
+          world={world}
+          parts={pack.adventure.parts}
+          guided={view.guided}
+          onAnswer={answerGame}
+          onFinish={(right, total, stars, points) => finishWorld(world.id, right, total, stars, points)}
+          onExit={() => goTab(view.guided ? 'home' : 'games')}
+        />
+      );
+    }
+  }
+
   if (view.name === 'table') {
     return (
       <TableScreen
@@ -717,12 +765,16 @@ export function App({ store = idbStore, packs = allPacks, now = () => new Date()
             onBack={() => goTab('home')}
           />
         )}
+        {tab === 'games' && pack.adventure && (
+          <GamesTab worlds={pack.adventure.worlds} best={save.worlds ?? {}}
+            today={tasks.find((t) => t.kind === 'play')?.world} onPlay={(id) => openWorld(id)} />
+        )}
         {tab === 'guide' && <Guide pack={pack} today={today} onParent={() => go({ name: 'parent', key: nextKey.current++ })} />}
         {tab === 'mistakes' && (
           <Mistakes pack={pack} progress={progress} ids={mistakes} items={byId} onStart={() => startFix(false)} />
         )}
       </main>
-      <TabBar tab={tab} onChange={goTab} mistakeCount={mistakes.length} />
+      <TabBar tab={tab} onChange={goTab} mistakeCount={mistakes.length} games={!!pack.adventure} />
     </div>
   );
 }

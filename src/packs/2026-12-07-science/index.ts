@@ -9,6 +9,7 @@ import { c1 } from './c1';
 import { c2 } from './c2';
 import { c3 } from './c3';
 import { c4 } from './c4';
+import { adventure } from './adventure';
 import { mocks } from './mocks';
 import { examples, meanings, simple, whyNot } from './why';
 import { written } from './written';
@@ -48,25 +49,27 @@ export const pack: Pack = {
   simple,
   examples,
   mocks,
+  // The Games tab (Jenia, 28 Nov): six worlds from the same three decks; one of them is a task each study day.
+  adventure,
   plan: [
     {
       day: -8, label: 'Organelles: the parts of a cell and their jobs', topics: ['C4'],
-      extras: [{ kind: 'game', game: 'key-terms' }, { kind: 'table', group: 'Organelles' }],
+      extras: [{ kind: 'game', game: 'key-terms' }, { kind: 'table', group: 'Organelles' }, { kind: 'play', world: 'build', title: 'Build-a-Cell' }],
     },
     {
       day: -7, label: 'A cell is a system: beta-cells, diabetes and respiration', topics: ['C3'],
-      extras: [{ kind: 'game', game: 'this-or-that' }],
+      extras: [{ kind: 'game', game: 'this-or-that' }, { kind: 'play', world: 'membrane', title: 'Membrane Security' }],
     },
     {
       day: -6, label: 'How we see cells: the microscope and its history', topics: ['C2'],
-      extras: [{ kind: 'table', group: 'Microscope parts' }, { kind: 'table', group: 'Plant vs animal cells' }],
+      extras: [{ kind: 'table', group: 'Microscope parts' }, { kind: 'table', group: 'Plant vs animal cells' }, { kind: 'play', world: 'escape', title: 'Microscopic Escape Room' }],
     },
     {
       day: -5, label: 'Cells and stem cells', topics: ['C1'],
-      extras: [{ kind: 'game', game: 'key-terms' }],
+      extras: [{ kind: 'game', game: 'key-terms' }, { kind: 'play', world: 'hospital', title: 'Stem Cell Hospital' }],
     },
-    { day: -4, label: 'A mixed round of everything' },
-    { day: -3, label: 'Another mixed round of everything' },
+    { day: -4, label: 'A mixed round of everything, and the Organelle Factory game', extras: [{ kind: 'play', world: 'factory', title: 'Organelle Factory' }] },
+    { day: -3, label: 'Another mixed round, and the Biology Detective game', extras: [{ kind: 'play', world: 'detective', title: 'Biology Detective' }] },
     { day: -2, label: 'A mixed round, then Mock Test 1', mock: 'mock-1' },
     { day: -1, label: 'One more mixed round, then Mock Test 2', mock: 'mock-2' },
   ],

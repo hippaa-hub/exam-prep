@@ -92,6 +92,10 @@ export function badgesFor(pack: Pack, save: PackSave): Badge[] {
     },
 
     // ---- Knowledge: for what she now knows ----
+    ...(pack.adventure?.worlds ?? []).map((w) => ({
+      id: `world-${w.id}`, icon: w.emoji, title: w.badge, how: `Finish the game ${w.title}.`,
+      earned: sessions.some((s) => s.task === `play:${w.id}`),
+    })),
     { id: 'tried-half', icon: '🔍', title: 'Explorer', how: 'Try half of the things to know.', earned: concepts.length > 0 && tried >= half },
     { id: 'tried-all', icon: '🧭', title: 'Tried everything', how: 'Try every thing to know at least once.', earned: concepts.length > 0 && tried >= concepts.length },
     { id: 'first-learned', icon: '🌟', title: 'First one learned', how: 'Get one thing right on three different days.', earned: learned >= 1 },

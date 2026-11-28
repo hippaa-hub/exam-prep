@@ -1,4 +1,5 @@
 import { pretty as prettyMaths } from '../engine/algebra';
+import type { Adventure } from './adventure';
 /** A calendar day as 'YYYY-MM-DD'. */
 export type DateKey = string;
 
@@ -192,7 +193,9 @@ export interface Topic {
 }
 
 /** An extra activity for a plan day, on top of the rounds of questions. */
-export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string } | { kind: 'argument' } | { kind: 'learn'; topic: TopicId };
+export type DayExtra = { kind: 'game'; game: Game } | { kind: 'table'; group: string } | { kind: 'argument' } | { kind: 'learn'; topic: TopicId }
+  /** One of the pack's game worlds (`pack.adventure`), as one of the day's tasks. */
+  | { kind: 'play'; world: string; title: string };
 
 /** One solving system for the Toolkit: when to use it, the steps, a worked example, and the trap to avoid. */
 export interface Method {
@@ -384,6 +387,8 @@ export interface Pack {
   sizes?: { round?: number; lastDay?: number };
   /** Questions added late (after a slide-by-slide check). A mixed day asks these first, in a round of their own. */
   lateAdditions?: ItemId[];
+  /** Game worlds (the Games tab). Their answers count in the ring like any other answer. */
+  adventure?: Adventure;
 }
 
 /** Which practice game an item belongs to. */

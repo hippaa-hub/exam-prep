@@ -157,12 +157,18 @@ export function planFor(pack: Pack, sessions: readonly SessionRecord[], today: D
     // The activities of the days whose topics landed on today: two at most, to keep the day short,
     // and the argument first, because it is the closest practice for half of the test.
     // Every lesson for today's topics comes too: a topic is always taught before it is asked.
+    // Game worlds always come too (Jenia, 28 Nov: the games are part of the tasks): the games of the days
+    // whose topics landed on today, and today's own game.
     extras: [
       ...uniqueExtras(studyDays.flatMap((d) => d.extras ?? []).filter((e) => e.kind === 'learn' && topics.includes(e.topic))),
       ...uniqueExtras(studyDays.filter((d) => d.topics.some((t) => topics.includes(t))).flatMap((d) => d.extras ?? []))
-        .filter((e) => e.kind !== 'learn')
+        .filter((e) => e.kind !== 'learn' && e.kind !== 'play')
         .sort((a, b) => Number(b.kind === 'argument') - Number(a.kind === 'argument'))
         .slice(0, 2),
+      ...uniqueExtras([
+        ...studyDays.filter((d) => d.topics.some((t) => topics.includes(t))).flatMap((d) => d.extras ?? []),
+        ...(pack.plan.find((d) => d.day === off)?.extras ?? []),
+      ].filter((e) => e.kind === 'play')),
     ],
   };
 }
