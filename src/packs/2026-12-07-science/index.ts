@@ -2,13 +2,13 @@
 // The teacher attached three decks to the test on 25 Nov: "Cells: The Building Blocks of Life",
 // "How Do We See Cells?" and "A Cell is a System" (organelles). Every question here comes from those slides
 // (notes in adele-science/SCIENCE_STUDIED.md). The lesson on specialised cells (26 Nov) and the textbook page on
-// diffusion and osmosis (for 3 Dec) are in the same unit but were not attached: they are extra cards, outside the ring.
+// diffusion and osmosis (for 3 Dec) are in the same unit but were NOT attached to the test, so they are not in the app
+// (Jenia, 28 Nov: only the teacher's test material). Cards for them are kept in extra.ts, unused, in case she adds them.
 import type { Item, Pack, Topic } from '../../content/types';
 import { c1 } from './c1';
 import { c2 } from './c2';
 import { c3 } from './c3';
 import { c4 } from './c4';
-import { extra, extraExamples, extraSimple } from './extra';
 import { mocks } from './mocks';
 import { examples, meanings, simple, whyNot } from './why';
 import { written } from './written';
@@ -45,9 +45,8 @@ export const pack: Pack = {
   criteria: ['A: knowing and understanding'],
   topics: [c1, c2, c3, c4].map(complete),
   meanings,
-  simple: { ...simple, ...extraSimple },
-  examples: { ...examples, ...extraExamples },
-  glossary: extra,
+  simple,
+  examples,
   mocks,
   plan: [
     {
@@ -66,8 +65,8 @@ export const pack: Pack = {
       day: -5, label: 'Cells and stem cells', topics: ['C1'],
       extras: [{ kind: 'game', game: 'key-terms' }],
     },
-    { day: -4, label: 'A mixed round of everything, plus the specialised cells' },
-    { day: -3, label: 'A mixed round of everything, plus diffusion and osmosis' },
+    { day: -4, label: 'A mixed round of everything' },
+    { day: -3, label: 'Another mixed round of everything' },
     { day: -2, label: 'A mixed round, then Mock Test 1', mock: 'mock-1' },
     { day: -1, label: 'One more mixed round, then Mock Test 2', mock: 'mock-2' },
   ],
